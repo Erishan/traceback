@@ -1,0 +1,7 @@
+# Git'e dahil edilmeyeccek öğrenme klasörü
+docs/private/
+
+# İşletim sistemi / Editör artıklarını engellemek için
+.DS_Store
+.vscode/
+.idea/
