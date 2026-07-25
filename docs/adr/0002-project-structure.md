@@ -33,7 +33,7 @@ here maintained by discipline rather than by the compiler.
   modules) → REJECTED for v1. For a project this small, with boundaries not
   yet known, splitting up front draws walls in places that may turn out
   wrong, and re-drawing a wrong module boundary is expensive. This is
-  premature modularization / over-engineering at this size. Multi-module
+  premature modularization and over-engineering at this size. Multi-module
   becomes worth its cost as the project grows and build times or team
   boundaries justify compiler-enforced separation.
 
@@ -43,7 +43,7 @@ here maintained by discipline rather than by the compiler.
   import in domain will compile and run; discipline and code review are the
   only guardrails. This is an accepted trade-off at this size.
 - Because the three layers are cleanly separated by package from day one,
-  extracting them into separate modules later is cheap — code does not need
+  extracting them into separate modules later is cheap. The code does not need
   to be untangled, only wrapped in module boundaries with declared
   dependencies. The expensive path (mixing layers and separating later) is
   avoided.
