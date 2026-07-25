@@ -4,4 +4,13 @@ docs/private/
 # İşletim sistemi / Editör artıklarını engellemek için
 .DS_Store
 .vscode/
+
+# Gradle
+.gradle/
+/build
+/app/build
+
+# Android Studio / IntelliJ
 .idea/
+*.iml
+local.properties
