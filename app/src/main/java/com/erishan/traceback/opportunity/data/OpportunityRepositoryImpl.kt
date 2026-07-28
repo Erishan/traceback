@@ -10,11 +10,11 @@ class OpportunityRepositoryImpl(
 ) : OpportunityRepository {
     override suspend fun save(opportunity: Opportunity) {
         val entity = opportunity.toEntity()
-        return opportunityDao.save(entity)
+        opportunityDao.save(entity)
     }
 
     override suspend fun delete(id: String) {
-        return opportunityDao.delete(id)
+        opportunityDao.delete(id)
     }
 
     override fun observeById(id: String): Flow<Opportunity?> {
