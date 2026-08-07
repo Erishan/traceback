@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">traceback</string>
+
+    <!-- Opportunity list -->
+    <string name="pipeline_overline">Pipeline</string>
+    <string name="opportunities_title">Opportunities</string>
+    <string name="opportunities_count">%1$d total</string>
+    <string name="new_opportunity">New opportunity</string>
+    <string name="empty_opportunities_list_title">No opportunities yet</string>
+    <string name="empty_opportunities_list_message">Tap + to track your first one, from proposal to payment.</string>
+
+    <!-- Filters -->
+    <string name="filter_all">All</string>
+    <string name="filter_active">Active</string>
+    <string name="filter_won">Won</string>
+    <string name="filter_lost">Lost</string>
+
+    <!-- Pipeline stages -->
+    <string name="stage_draft">Draft</string>
+    <string name="stage_applied">Applied</string>
+    <string name="stage_in_conversation">In conversation</string>
+    <string name="stage_interview">Interview</string>
+    <string name="stage_hired">Hired</string>
+    <string name="stage_delivered">Delivered</string>
+    <string name="stage_closed">Closed</string>
+    <string name="stage_lost">Lost</string>
+
+    <!-- Sources -->
+    <string name="source_upwork">Upwork</string>
+    <string name="source_linkedin">LinkedIn</string>
+    <string name="source_referral">Referral</string>
+    <string name="source_other">Other</string>
 </resources>

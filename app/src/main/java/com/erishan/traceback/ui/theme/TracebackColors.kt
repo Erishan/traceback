@@ -24,7 +24,7 @@ data class TracebackColors(
 )
 
 val LocalTracebackColors = staticCompositionLocalOf<TracebackColors> {
-    error("TracebackColors not provided — TracebackTheme dışında kullanılıyor")
+    error("TracebackColors not provided")
 }
 
 object TracebackTheme {

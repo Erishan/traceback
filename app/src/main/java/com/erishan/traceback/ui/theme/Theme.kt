@@ -25,7 +25,6 @@ private val DarkColorScheme = darkColorScheme(
     onError          = Ink,
 )
 
-// Material'da rol karşılığı olmayan token'lar.
 private val DarkExtras = TracebackColors(
     accentDim           = AccentDim,
     textFaint           = TextFaint,
