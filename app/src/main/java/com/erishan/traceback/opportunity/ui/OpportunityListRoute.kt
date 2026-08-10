@@ -1,6 +1,7 @@
 package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,26 +21,31 @@ fun OpportunityListRoute(
     var showCreate by remember { mutableStateOf(false) }
     OpportunityListScreen(
         uiState,
-        onAddClick = { showCreate },
+        onAddClick = { showCreate = true },
         onFilterSelected = viewModel::onFilterSelected,
         modifier
     )
 
-    if(showCreate) {
-        val editViewModel: OpportunityEditViewModel = viewModel(factory = OpportunityEditViewModel.Factory)
-        val editState by editViewModel.uiState.collectAsStateWithLifecycle()
+    if (showCreate) {
+        val createViewModel: OpportunityCreateViewModel =
+            viewModel(factory = OpportunityCreateViewModel.Factory)
+        val createState by createViewModel.uiState.collectAsStateWithLifecycle()
 
-        if(editState.isSaved) {
-            showCreate = false
+        LaunchedEffect(createState.isSaved) {
+            if (createState.isSaved) {
+                showCreate = false
+                createViewModel.reset()
+            }
         }
 
         OpportunityCreateDialog(
-            editState,
-            onTitleChange = editViewModel::onTitleChange,
-            onDescriptionChange = editViewModel::onDescriptionChange,
-            onSourceChange = editViewModel::onSourceChange,
-            onSourceLabelChange = editViewModel::onSourceLabelChange,
-            onSave = editViewModel::onSave,
+            createState,
+            onTitleChange = createViewModel::onTitleChange,
+            onDescriptionChange = createViewModel::onDescriptionChange,
+            onSourceChange = createViewModel::onSourceChange,
+            onSourceLabelChange = createViewModel::onSourceLabelChange,
+            onStageChange = createViewModel::onPipelineStageChange,
+            onSave = createViewModel::onSave,
             onDismiss = { showCreate = false }
         )
     }

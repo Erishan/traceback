@@ -10,3 +10,6 @@ val Shapes = Shapes(
     medium     = RoundedCornerShape(16.dp), // card
     large      = RoundedCornerShape(26.dp), // bottom sheet
 )
+
+val ButtonShape = RoundedCornerShape(12.dp) // primary & ghost buttons
+val FabShape    = RoundedCornerShape(18.dp)

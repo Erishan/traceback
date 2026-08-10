@@ -30,4 +30,22 @@
     <string name="source_linkedin">LinkedIn</string>
     <string name="source_referral">Referral</string>
     <string name="source_other">Other</string>
+
+    <!-- Create opportunity sheet -->
+    <string name="create_opportunity_title">New opportunity</string>
+    <string name="create_opportunity_lead">Track it from proposal to payment.</string>
+    <string name="field_title">Title</string>
+    <string name="field_description">Description</string>
+    <string name="field_optional">optional</string>
+    <string name="field_source">Source</string>
+    <string name="field_source_label">Source label</string>
+    <string name="field_stage">Stage</string>
+    <string name="create_title_hint">SaaS onboarding flow redesign</string>
+    <string name="create_description_hint">What\'s the work?</string>
+    <string name="create_source_label_hint">e.g. Twitter DM, old client</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+
+    <!--Error management-->
+    <string name="opportunity_could_not_save">Opportunity couldn\'t save</string>
 </resources>

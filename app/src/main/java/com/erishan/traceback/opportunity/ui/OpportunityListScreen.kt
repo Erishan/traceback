@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.erishan.traceback.ui.theme.FabShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -76,7 +76,7 @@ fun OpportunityListScreen(
             onClick = onAddClick,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            shape = RoundedCornerShape(18.dp),
+            shape = FabShape,
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_opportunity))
@@ -148,7 +148,7 @@ private fun OpportunityCard(o: Opportunity) {
             ) {
                 Text(
                     text = o.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )

@@ -20,10 +20,15 @@ val Typography = Typography(
         fontFamily = AppFontFamily, fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.5).sp
     ),
-    // card title
+    //
     titleMedium = TextStyle(
         fontFamily = AppFontFamily, fontWeight = FontWeight.SemiBold,
-        fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = (-0.2).sp
+        fontSize = 18.sp, lineHeight = 20.sp, letterSpacing = (-0.2).sp
+    ),
+    // card & dialog title
+    titleSmall = TextStyle(
+        fontFamily = AppFontFamily, fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp, lineHeight = 24.sp, letterSpacing = (-0.3).sp
     ),
     // desc
     bodyMedium = TextStyle(
