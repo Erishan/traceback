@@ -49,6 +49,7 @@ fun OpportunityListScreen(
     uiState: OpportunityListUiState,
     onAddClick: () -> Unit,
     onFilterSelected: (OpportunityFilter) -> Unit,
+    onOpenOpportunity: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -67,7 +68,9 @@ fun OpportunityListScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(11.dp)
                 ) {
-                    items(items = uiState.opportunities, key = { it.id }) { OpportunityCard(it) }
+                    items(items = uiState.opportunities, key = { it.id }) {
+                        OpportunityCard(it, onClick = { onOpenOpportunity(it.id) })
+                    }
                 }
             }
         }
@@ -133,12 +136,15 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
 }
 
 @Composable
-private fun OpportunityCard(o: Opportunity) {
+private fun OpportunityCard(o: Opportunity, onClick: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(onClick = onClick)
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(
@@ -253,6 +259,7 @@ private fun OpportunityListScreenPreview() {
             ),
             onAddClick = {},
             onFilterSelected = {},
+            onOpenOpportunity = {},
         )
     }
 }
