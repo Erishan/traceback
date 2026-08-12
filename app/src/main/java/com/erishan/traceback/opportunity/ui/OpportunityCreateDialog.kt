@@ -1,13 +1,10 @@
 package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,11 +15,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -32,8 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -45,19 +37,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.ui.components.ChoiceChip
+import com.erishan.traceback.ui.components.FieldLabel
+import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.TracebackTheme
 
@@ -274,148 +264,6 @@ private fun CreateSheetContent(
                 Text(stringResource(R.string.action_save))
             }
         }
-    }
-}
-
-@Composable
-private fun FieldLabel(
-    text: String,
-    trailing: String? = null,
-    spacer: Boolean = true,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = text.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp,
-            ),
-            color = TracebackTheme.colors.textFaint,
-        )
-        if (trailing != null) {
-            Text(
-                text = " · $trailing",
-                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
-                color = TracebackTheme.colors.textFaint,
-            )
-        }
-    }
-    if (spacer) Spacer(Modifier.height(7.dp))
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TbTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    singleLine: Boolean = true,
-    minLines: Int = 1,
-    maxLines: Int = 1,
-    imeAction: ImeAction = ImeAction.Done,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder, color = TracebackTheme.colors.textFaint) },
-        singleLine = singleLine,
-        minLines = minLines,
-        maxLines = maxLines,
-        shape = MaterialTheme.shapes.small,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-            imeAction = imeAction,
-        ),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            cursorColor = MaterialTheme.colorScheme.primary,
-        ),
-    )
-}
-
-@Composable
-private fun ChoiceChip(
-    label: String,
-    selected: Boolean,
-    selectedBg: Color,
-    selectedFg: Color,
-    onClick: () -> Unit,
-    leadingDot: Color? = null,
-) {
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(if (selected) selectedBg else MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (leadingDot != null) {
-            Box(
-                Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(leadingDot)
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
-            color = if (selected) selectedFg else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun StageChip(stage: PipelineStage, selected: Boolean, onClick: () -> Unit) {
-    val c = stageColor(stage)
-    ChoiceChip(
-        label = stringResource(stageLabelRes(stage)),
-        selected = selected,
-        selectedBg = c.copy(alpha = 0.16f),
-        selectedFg = c,
-        onClick = onClick,
-        leadingDot = c,
-    )
-}
-
-@Composable
-private fun StageTrigger(stage: PipelineStage, open: Boolean, onClick: () -> Unit) {
-    val c = stageColor(stage)
-    val caret by animateFloatAsState(if (open) 180f else 0f, label = "caret")
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(c.copy(alpha = 0.16f))
-            .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Box(
-            Modifier
-                .size(7.dp)
-                .clip(CircleShape)
-                .background(c)
-        )
-        Text(
-            text = stringResource(stageLabelRes(stage)),
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
-            color = c,
-        )
-        Icon(
-            imageVector = Icons.Default.ArrowDropDown,
-            contentDescription = null,
-            tint = c,
-            modifier = Modifier.rotate(caret),
-        )
     }
 }
 
