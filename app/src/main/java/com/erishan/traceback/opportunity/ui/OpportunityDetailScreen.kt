@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,23 +16,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.PlayForWork
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +55,7 @@ import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
+import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.TracebackTheme
 
@@ -69,30 +75,84 @@ fun OpportunityDetailScreen(
     onDeleteErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (uiState) {
-        OpportunityDetailUiState.Loading -> LoadingState()
-        OpportunityDetailUiState.NotFound -> Column(modifier.fillMaxSize()) {
-            DetailTopBar(onBack = onBack, onDeleteClick = null)
-            EmptyState(
-                title = stringResource(R.string.detail_not_found_title),
-                message = stringResource(R.string.detail_not_found_message),
-            )
-        }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showConfirm by remember { mutableStateOf(false) }
+    val content = uiState as? OpportunityDetailUiState.Content
 
-        is OpportunityDetailUiState.Content -> DetailContent(
-            content = uiState,
-            onBack = onBack,
-            onDelete = onDelete,
-            onStageChange = onStageChange,
-            onTitleChange = onTitleChange,
-            onDescriptionChange = onDescriptionChange,
-            onSourceChange = onSourceChange,
-            onSourceLabelChange = onSourceLabelChange,
-            onNotesChange = onNotesChange,
-            onAppliedMessageChange = onAppliedMessageChange,
-            deleteFailed = deleteFailed,
-            onDeleteErrorDismiss = onDeleteErrorDismiss,
-            modifier = modifier,
+    val deleteFailedText = stringResource(R.string.opportunity_could_not_delete)
+    LaunchedEffect(deleteFailed) {
+        if (deleteFailed) {
+            snackbarHostState.showSnackbar(deleteFailedText)
+            onDeleteErrorDismiss()
+        }
+    }
+
+    TbScaffold(
+        modifier = modifier.fillMaxSize(),
+        title = null,
+        navigationIcon = {
+            IconButton(
+                onClick = onBack, colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = Color.Transparent
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.cd_back),
+                )
+            }
+        },
+        actions = {
+            if (content != null) {
+                IconButton(onClick = { showConfirm = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteSweep,
+                        contentDescription = stringResource(R.string.cd_delete),
+                    )
+                }
+            }
+        },
+        snackbarHostState =snackbarHostState,
+    ) { innerPadding ->
+        when (uiState) {
+            OpportunityDetailUiState.Loading ->
+                Box(Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)) { LoadingState() }
+
+            OpportunityDetailUiState.NotFound ->
+                Box(Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)) {
+                    EmptyState(
+                        title = stringResource(R.string.detail_not_found_title),
+                        message = stringResource(R.string.detail_not_found_message),
+                    )
+                }
+
+            is OpportunityDetailUiState.Content ->
+                DetailContent(
+                    content = uiState,
+                    contentPadding = innerPadding,
+                    onStageChange = onStageChange,
+                    onTitleChange = onTitleChange,
+                    onDescriptionChange = onDescriptionChange,
+                    onSourceChange = onSourceChange,
+                    onSourceLabelChange = onSourceLabelChange,
+                    onNotesChange = onNotesChange,
+                    onAppliedMessageChange = onAppliedMessageChange,
+                )
+        }
+    }
+
+    if (showConfirm) {
+        DeleteConfirmDialog(
+            onConfirm = {
+                showConfirm = false
+                onDelete()
+            },
+            onDismiss = { showConfirm = false },
         )
     }
 }
@@ -100,8 +160,7 @@ fun OpportunityDetailScreen(
 @Composable
 private fun DetailContent(
     content: OpportunityDetailUiState.Content,
-    onBack: () -> Unit,
-    onDelete: () -> Unit,
+    contentPadding: PaddingValues,
     onStageChange: (PipelineStage) -> Unit,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
@@ -109,33 +168,21 @@ private fun DetailContent(
     onSourceLabelChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
-    deleteFailed: Boolean,
-    onDeleteErrorDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    var showConfirm by remember { mutableStateOf(false) }
     var sourceOpen by remember { mutableStateOf(false) }
     var stageOpen by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .imePadding()
             .padding(horizontal = 18.dp),
     ) {
-        DetailTopBar(onBack = onBack, onDeleteClick = { showConfirm = true })
-
-        if (deleteFailed) {
-            ErrorBanner(
-                text = stringResource(R.string.opportunity_could_not_delete),
-                onDismiss = onDeleteErrorDismiss,
-            )
-            Spacer(Modifier.height(12.dp))
-        }
         if (content.saveFailed) {
-            ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
             Spacer(Modifier.height(12.dp))
+            ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
         }
 
         InlineTitle(value = content.title, onCommit = onTitleChange)
@@ -154,6 +201,7 @@ private fun DetailContent(
                     stageOpen = false
                 },
             )
+            Spacer(Modifier.width(12.dp))
             StageTrigger(
                 stage = content.pipelineStage,
                 open = stageOpen,
@@ -247,44 +295,6 @@ private fun DetailContent(
         )
         Spacer(Modifier.height(24.dp))
     }
-
-    if (showConfirm) {
-        DeleteConfirmDialog(
-            onConfirm = {
-                showConfirm = false
-                onDelete()
-            },
-            onDismiss = { showConfirm = false },
-        )
-    }
-}
-
-@Composable
-private fun DetailTopBar(onBack: () -> Unit, onDeleteClick: (() -> Unit)?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        if (onDeleteClick != null) {
-            IconButton(onClick = onDeleteClick) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.cd_delete),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
 }
 
 @Composable
@@ -332,17 +342,17 @@ private fun SourcePill(
     Row(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(color = Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 11.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Box(
-            Modifier
-                .size(5.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+        Icon(
+            imageVector = Icons.Outlined.PlayForWork,
+            contentDescription = null,
+            modifier = Modifier.size(15.dp),
+            tint = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
@@ -499,29 +509,27 @@ private fun DeleteConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 @Composable
 private fun OpportunityDetailScreenPreview() {
     TracebackTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            OpportunityDetailScreen(
-                uiState = OpportunityDetailUiState.Content(
-                    title = "SaaS onboarding flow redesign",
-                    description = "Rework the multi-step signup, reduce mobile drop-off across the trial funnel.",
-                    source = OpportunitySource.UPWORK,
-                    sourceLabel = null,
-                    pipelineStage = PipelineStage.APPLIED,
-                    appliedMessage = null,
-                    notes = "Client wants a Loom walkthrough before the call. Follow up Monday if no reply.",
-                ),
-                onBack = {},
-                onDelete = {},
-                onStageChange = {},
-                onTitleChange = {},
-                onDescriptionChange = {},
-                onSourceChange = {},
-                onSourceLabelChange = {},
-                onNotesChange = {},
-                onAppliedMessageChange = {},
-                deleteFailed = false,
-                onDeleteErrorDismiss = {},
-            )
-        }
+        OpportunityDetailScreen(
+            uiState = OpportunityDetailUiState.Content(
+                title = "SaaS onboarding flow redesign",
+                description = "Rework the multi-step signup, reduce mobile drop-off across the trial funnel.",
+                source = OpportunitySource.UPWORK,
+                sourceLabel = null,
+                pipelineStage = PipelineStage.APPLIED,
+                appliedMessage = null,
+                notes = "Client wants a Loom walkthrough before the call. Follow up Monday if no reply.",
+            ),
+            onBack = {},
+            onDelete = {},
+            onStageChange = {},
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onSourceChange = {},
+            onSourceLabelChange = {},
+            onNotesChange = {},
+            onAppliedMessageChange = {},
+            deleteFailed = false,
+            onDeleteErrorDismiss = {},
+        )
     }
 }

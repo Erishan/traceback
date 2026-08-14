@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import com.erishan.traceback.ui.theme.FabShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -41,6 +40,8 @@ import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.LoadingState
+import com.erishan.traceback.ui.components.TbScaffold
+import com.erishan.traceback.ui.theme.FabShape
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 
@@ -52,9 +53,25 @@ fun OpportunityListScreen(
     onOpenOpportunity: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
-            ListHeader(total = uiState.total)
+    TbScaffold(
+        modifier = modifier.fillMaxSize(),
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = FabShape,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_opportunity))
+            }
+        },
+    ) { innerPadding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            ListSubheader(total = uiState.total)
             FilterRow(selected = uiState.selectedFilter, onSelect = onFilterSelected)
 
             when {
@@ -74,22 +91,12 @@ fun OpportunityListScreen(
                 }
             }
         }
-
-        FloatingActionButton(
-            onClick = onAddClick,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            shape = FabShape,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_opportunity))
-        }
     }
 }
 
 @Composable
-private fun ListHeader(total: Int) {
-    Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 12.dp)) {
+private fun ListSubheader(total: Int) {
+    Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 8.dp, bottom = 10.dp)) {
         Text(
             text = stringResource(R.string.pipeline_overline).uppercase(),
             style = MaterialTheme.typography.labelSmall,
@@ -98,7 +105,7 @@ private fun ListHeader(total: Int) {
         Spacer(Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.opportunities_title),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(4.dp))
@@ -113,7 +120,9 @@ private fun ListHeader(total: Int) {
 @Composable
 private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 22.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         OpportunityFilter.entries.forEach { f ->
@@ -207,7 +216,10 @@ private fun SourceChip(o: Opportunity) {
             .background(TracebackTheme.colors.sourceChipBg)
             .padding(horizontal = 9.dp, vertical = 4.dp)
     ) {
-        Box(Modifier.size(5.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+        Box(Modifier
+            .size(5.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary))
         Spacer(Modifier.width(5.dp))
         Text(
             text = text,
