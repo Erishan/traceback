@@ -201,18 +201,17 @@ private fun DetailContent(
         }
 
         InlineTitle(value = content.title, onCommit = onTitleChange)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(20.dp))
 
-        Box(modifier = Modifier.align(alignment = Alignment.End)){
-            StageTrigger(
-                stage = content.pipelineStage,
-                open = stageOpen,
-                onClick = {
-                    stageOpen = !stageOpen
-                    sourceOpen = false
-                },
-            )
-        }
+        StagePipeline(
+            stage = content.pipelineStage,
+            pickerOpen = stageOpen,
+            onOpenPicker = {
+                stageOpen = !stageOpen
+                sourceOpen = false
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
 
         AnimatedVisibility(visible = stageOpen) {
             Row(

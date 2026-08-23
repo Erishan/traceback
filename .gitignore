@@ -1,7 +1,7 @@
-# Git'e dahil edilmeyeccek öğrenme klasörü
+# Private learning/planning notes
 docs/private/
 
-# İşletim sistemi / Editör artıklarını engellemek için
+# OS & editor artifacts
 .DS_Store
 .vscode/
 

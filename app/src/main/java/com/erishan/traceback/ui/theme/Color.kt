@@ -15,12 +15,12 @@ val TextFaint = Color(0xFF606670)
 // Accent
 val Emerald   = Color(0xFF3DDC97)
 val EmeraldOn = Color(0xFF04231A)
-val AccentDim = Color(0x243DDC97) // ~%14 alpha
+val AccentDim = Color(0x243DDC97) // ~14% alpha
 
 // Line & sides
-val OutlineStrong = Color(0x1FFFFFFF) // ~%12
-val OutlineSubtle = Color(0x12FFFFFF) // ~%7
-val HairlineTop   = Color(0x0DFFFFFF) // ~%5, kart üst ışığı
+val OutlineStrong = Color(0x1FFFFFFF) // ~12%
+val OutlineSubtle = Color(0x12FFFFFF) // ~7%
+val HairlineTop   = Color(0x0DFFFFFF) // ~5%, top-edge card highlight
 
 // Stage colors
 val StageDraft          = Color(0xFF8A909B)
