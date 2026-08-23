@@ -65,7 +65,8 @@
     <string name="applied_message_empty">Tap to add the message you sent</string>
     <string name="detail_description_empty">Tap to add a description</string>
     <string name="notes_hint">Add a note…</string>
-    <string name="notes_empty">Tap to add a note</string>
+    <string name="notes_add">Add note</string>
+    <string name="notes_empty">No notes yet.</string>
     <string name="detail_not_found_title">Not found</string>
     <string name="detail_not_found_message">This opportunity no longer exists.</string>
     <string name="delete_confirm_title">Delete opportunity?</string>

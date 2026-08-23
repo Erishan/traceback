@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.erishan.traceback.TracebackApp
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.opportunity.domain.Note
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
 import kotlinx.coroutines.channels.Channel
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
+import kotlin.time.Clock
 
 class OpportunityDetailViewModel(
     private val id: String,
@@ -43,6 +46,7 @@ class OpportunityDetailViewModel(
                 source = c.source,
                 sourceLabel = c.sourceLabel,
                 pipelineStage = c.pipelineStage,
+                createdAt = c.createdAt,
                 notes = c.notes,
                 appliedMessage = c.appliedMessage,
             )
@@ -64,6 +68,7 @@ class OpportunityDetailViewModel(
                         source = opp.source,
                         sourceLabel = opp.sourceLabel,
                         pipelineStage = opp.pipelineStage,
+                        createdAt = opp.createdAt,
                         appliedMessage = opp.appliedMessage,
                         notes = opp.notes,
                         isSaving = status.isSaving,
@@ -107,7 +112,19 @@ class OpportunityDetailViewModel(
         )
     }
 
-    fun onNotesChange(notes: String) = saveEdit { it.copy(notes = notes) }
+    fun onAddNote(text: String) = saveEdit { opp ->
+        opp.copy(
+            notes = opp.notes + Note(
+                id = UUID.randomUUID().toString(),
+                createdAt = Clock.System.now(),
+                text = text,
+            )
+        )
+    }
+
+    fun onDeleteNote(noteId: String) = saveEdit { opp ->
+        opp.copy(notes = opp.notes.filterNot { it.id == noteId })
+    }
 
     fun onAppliedMessageChange(message: String) = saveEdit { it.copy(appliedMessage = message) }
 

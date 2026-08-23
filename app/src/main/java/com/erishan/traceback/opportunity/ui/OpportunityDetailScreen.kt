@@ -1,6 +1,8 @@
 package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -43,14 +46,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.opportunity.domain.Note
 import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.FieldLabel
@@ -58,6 +66,10 @@ import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.TracebackTheme
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.time.Instant
 
 @Composable
 fun OpportunityDetailScreen(
@@ -69,7 +81,8 @@ fun OpportunityDetailScreen(
     onDescriptionChange: (String) -> Unit,
     onSourceChange: (OpportunitySource) -> Unit,
     onSourceLabelChange: (String) -> Unit,
-    onNotesChange: (String) -> Unit,
+    onAddNote: (String) -> Unit,
+    onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
     deleteFailed: Boolean,
     onDeleteErrorDismiss: () -> Unit,
@@ -140,7 +153,8 @@ fun OpportunityDetailScreen(
                     onDescriptionChange = onDescriptionChange,
                     onSourceChange = onSourceChange,
                     onSourceLabelChange = onSourceLabelChange,
-                    onNotesChange = onNotesChange,
+                    onAddNote = onAddNote,
+                    onDeleteNote = onDeleteNote,
                     onAppliedMessageChange = onAppliedMessageChange,
                 )
         }
@@ -166,7 +180,8 @@ private fun DetailContent(
     onDescriptionChange: (String) -> Unit,
     onSourceChange: (OpportunitySource) -> Unit,
     onSourceLabelChange: (String) -> Unit,
-    onNotesChange: (String) -> Unit,
+    onAddNote: (String) -> Unit,
+    onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
 ) {
     var sourceOpen by remember { mutableStateOf(false) }
@@ -188,6 +203,64 @@ private fun DetailContent(
         InlineTitle(value = content.title, onCommit = onTitleChange)
         Spacer(Modifier.height(12.dp))
 
+        Box(modifier = Modifier.align(alignment = Alignment.End)){
+            StageTrigger(
+                stage = content.pipelineStage,
+                open = stageOpen,
+                onClick = {
+                    stageOpen = !stageOpen
+                    sourceOpen = false
+                },
+            )
+        }
+
+        AnimatedVisibility(visible = stageOpen) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PipelineStage.entries.forEach { st ->
+                    StageChip(
+                        stage = st,
+                        selected = content.pipelineStage == st,
+                        onClick = {
+                            onStageChange(st)
+                            stageOpen = false
+                        },
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        EditableCard(
+            label = stringResource(R.string.field_description),
+            value = content.description,
+            placeholder = stringResource(R.string.detail_description_hint),
+            emptyText = stringResource(R.string.detail_description_empty),
+            onCommit = onDescriptionChange,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        EditableCard(
+            label = stringResource(R.string.field_applied_message),
+            value = content.appliedMessage,
+            placeholder = stringResource(R.string.applied_message_hint),
+            emptyText = stringResource(R.string.applied_message_empty),
+            onCommit = onAppliedMessageChange,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        NotesSection(
+            notes = content.notes,
+            onAdd = onAddNote,
+            onDelete = onDeleteNote,
+        )
+        Spacer(Modifier.height(12.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -202,16 +275,8 @@ private fun DetailContent(
                 },
             )
             Spacer(Modifier.width(12.dp))
-            StageTrigger(
-                stage = content.pipelineStage,
-                open = stageOpen,
-                onClick = {
-                    stageOpen = !stageOpen
-                    sourceOpen = false
-                },
-            )
+            Text(text = formatNoteTimestamp(content.createdAt), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp), color = TracebackTheme.colors.textFaint)
         }
-
         AnimatedVisibility(visible = sourceOpen) {
             Column {
                 Spacer(Modifier.height(12.dp))
@@ -244,56 +309,6 @@ private fun DetailContent(
                 }
             }
         }
-
-        AnimatedVisibility(visible = stageOpen) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                PipelineStage.entries.forEach { st ->
-                    StageChip(
-                        stage = st,
-                        selected = content.pipelineStage == st,
-                        onClick = {
-                            onStageChange(st)
-                            stageOpen = false
-                        },
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(18.dp))
-
-        EditableCard(
-            label = stringResource(R.string.field_description),
-            value = content.description,
-            placeholder = stringResource(R.string.detail_description_hint),
-            emptyText = stringResource(R.string.detail_description_empty),
-            onCommit = onDescriptionChange,
-        )
-        Spacer(Modifier.height(12.dp))
-
-        EditableCard(
-            label = stringResource(R.string.field_applied_message),
-            value = content.appliedMessage,
-            placeholder = stringResource(R.string.applied_message_hint),
-            emptyText = stringResource(R.string.applied_message_empty),
-            onCommit = onAppliedMessageChange,
-        )
-        Spacer(Modifier.height(12.dp))
-
-        EditableCard(
-            label = stringResource(R.string.field_notes),
-            value = content.notes,
-            placeholder = stringResource(R.string.notes_hint),
-            emptyText = stringResource(R.string.notes_empty),
-            onCommit = onNotesChange,
-        )
-        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -414,6 +429,170 @@ private fun EditableCard(
 }
 
 @Composable
+private fun NotesSection(
+    notes: List<Note>,
+    onAdd: (String) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    var composing by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            CardLabel(stringResource(R.string.field_notes))
+            AddNoteToggle(expanded = composing, onClick = { composing = !composing })
+        }
+
+        AnimatedVisibility(visible = composing) {
+            Column {
+                Spacer(Modifier.height(14.dp))
+                NoteComposer(
+                    onSubmit = { text ->
+                        onAdd(text)
+                        composing = false
+                    },
+                )
+            }
+        }
+
+        if (notes.isEmpty()) {
+            if (!composing) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.notes_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TracebackTheme.colors.textFaint,
+                )
+            }
+        } else {
+            Spacer(Modifier.height(14.dp))
+            // Newest first
+            notes.sortedByDescending { it.createdAt }.forEachIndexed { index, note ->
+                if (index > 0) Spacer(Modifier.height(12.dp))
+                NoteRow(note = note, onDelete = { onDelete(note.id) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit) {
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 45f else 0f,
+        label = "addNoteRotation",
+    )
+    Box(
+        modifier = Modifier
+            .size(26.dp)
+            .clip(CircleShape)
+            .background(TracebackTheme.colors.accentDim)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = stringResource(
+                if (expanded) R.string.cd_cancel else R.string.notes_add
+            ),
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(16.dp)
+                .rotate(rotation),
+        )
+    }
+}
+
+@Composable
+private fun NoteRow(note: Note, onDelete: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = formatNoteTimestamp(note.createdAt),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    letterSpacing = 0.sp,
+                ),
+                color = TracebackTheme.colors.textFaint,
+            )
+            Spacer(Modifier.height(3.dp))
+            Text(
+                text = note.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = stringResource(R.string.cd_delete),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .size(16.dp)
+                .clickable(onClick = onDelete),
+        )
+    }
+}
+
+@Composable
+private fun NoteComposer(onSubmit: (String) -> Unit) {
+    var buffer by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            TbTextField(
+                value = buffer,
+                onValueChange = { buffer = it },
+                placeholder = stringResource(R.string.notes_hint),
+                modifier = Modifier.focusRequester(focusRequester),
+                singleLine = false,
+                minLines = 1,
+                maxLines = 4,
+            )
+        }
+        IconButton(
+            onClick = {
+                val text = buffer.trim()
+                if (text.isNotBlank()) onSubmit(text)
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = stringResource(R.string.cd_confirm),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+private val noteDateFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.ENGLISH)
+
+private fun formatNoteTimestamp(instant: Instant): String {
+    val platformInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
+    val local = java.time.LocalDateTime.ofInstant(platformInstant, ZoneId.systemDefault())
+    return noteDateFormatter.format(local)
+}
+
+@Composable
 private fun CardLabel(text: String) {
     Text(
         text = text.uppercase(),
@@ -516,8 +695,20 @@ private fun OpportunityDetailScreenPreview() {
                 source = OpportunitySource.UPWORK,
                 sourceLabel = null,
                 pipelineStage = PipelineStage.APPLIED,
+                createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
                 appliedMessage = null,
-                notes = "Client wants a Loom walkthrough before the call. Follow up Monday if no reply.",
+                notes = listOf(
+                    Note(
+                        id = "n1",
+                        createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
+                        text = "Client wants a Loom walkthrough before the call.",
+                    ),
+                    Note(
+                        id = "n2",
+                        createdAt = Instant.fromEpochMilliseconds(1_723_700_000_000L),
+                        text = "Followed up Monday, no reply yet.",
+                    ),
+                ),
             ),
             onBack = {},
             onDelete = {},
@@ -526,7 +717,8 @@ private fun OpportunityDetailScreenPreview() {
             onDescriptionChange = {},
             onSourceChange = {},
             onSourceLabelChange = {},
-            onNotesChange = {},
+            onAddNote = {},
+            onDeleteNote = {},
             onAppliedMessageChange = {},
             deleteFailed = false,
             onDeleteErrorDismiss = {},

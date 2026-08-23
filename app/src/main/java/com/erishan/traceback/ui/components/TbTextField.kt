@@ -24,6 +24,7 @@ fun TbTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
+    modifier: Modifier = Modifier,
     singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = 1,
@@ -32,7 +33,7 @@ fun TbTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().then(modifier),
         placeholder = { Text(placeholder, color = TracebackTheme.colors.textFaint) },
         singleLine = singleLine,
         minLines = minLines,

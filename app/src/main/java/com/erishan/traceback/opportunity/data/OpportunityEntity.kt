@@ -1,5 +1,6 @@
 package com.erishan.traceback.opportunity.data
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import com.erishan.traceback.core.enums.OpportunitySource
@@ -14,5 +15,6 @@ data class OpportunityEntity(
     val sourceLabel: String?,
     val pipelineStage: PipelineStage,
     val notes: String?,
+    @ColumnInfo(defaultValue = "0") val createdAt: Long,
     val appliedMessage: String?,
 )

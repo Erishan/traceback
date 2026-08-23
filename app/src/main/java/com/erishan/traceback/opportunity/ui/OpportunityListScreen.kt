@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import kotlin.time.Instant
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.LoadingState
@@ -243,7 +244,8 @@ private fun OpportunityListScreenPreview() {
                         source = OpportunitySource.UPWORK,
                         sourceLabel = null,
                         pipelineStage = PipelineStage.APPLIED,
-                        notes = null,
+                        createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
+                        notes = emptyList(),
                         appliedMessage = null,
                     ),
                     Opportunity(
@@ -253,7 +255,8 @@ private fun OpportunityListScreenPreview() {
                         source = OpportunitySource.LINKEDIN,
                         sourceLabel = null,
                         pipelineStage = PipelineStage.INTERVIEW,
-                        notes = null,
+                        createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
+                        notes = emptyList(),
                         appliedMessage = null,
                     ),
                     Opportunity(
@@ -263,7 +266,8 @@ private fun OpportunityListScreenPreview() {
                         source = OpportunitySource.REFERRAL,
                         sourceLabel = null,
                         pipelineStage = PipelineStage.IN_CONVERSATION,
-                        notes = null,
+                        createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
+                        notes = emptyList(),
                         appliedMessage = null,
                     ),
                 ),

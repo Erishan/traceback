@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.time.Clock
 
 class OpportunityCreateViewModel(
     private val repository: OpportunityRepository
@@ -69,11 +70,12 @@ class OpportunityCreateViewModel(
                     Opportunity(
                         id = UUID.randomUUID().toString(),
                         title = new.title,
-                        description = new.description?.takeIf { it.isNotBlank()},
+                        description = new.description?.takeIf { it.isNotBlank() },
                         source = new.source,
                         sourceLabel = new.sourceLabel?.takeIf { new.source == OpportunitySource.OTHER },
                         pipelineStage = new.pipelineStage,
-                        notes = null,
+                        createdAt = Clock.System.now(),
+                        notes = emptyList(),
                         appliedMessage = null
                     )
                 )
