@@ -12,6 +12,7 @@ import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Note
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import kotlin.time.Clock
 
@@ -37,25 +40,11 @@ class OpportunityDetailViewModel(
         }
     }
 
-    private fun currentOpportunity(): Opportunity? =
-        (uiState.value as? OpportunityDetailUiState.Content)?.let { c ->
-            Opportunity(
-                id = id,
-                title = c.title,
-                description = c.description,
-                source = c.source,
-                sourceLabel = c.sourceLabel,
-                pipelineStage = c.pipelineStage,
-                createdAt = c.createdAt,
-                notes = c.notes,
-                appliedMessage = c.appliedMessage,
-            )
-        }
-
     private val _events = Channel<DetailEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     private val _status = MutableStateFlow(EditStatus())
+    private val editMutex = Mutex()
 
     val uiState: StateFlow<OpportunityDetailUiState> =
         combine(repository.observeById(id), _status) { opp, status ->
@@ -83,13 +72,23 @@ class OpportunityDetailViewModel(
         )
 
     private fun saveEdit(transform: (Opportunity) -> Opportunity) = viewModelScope.launch {
-        val current = currentOpportunity() ?: return@launch
-        _status.update { it.copy(isSaving = true, saveFailed = false) }
+        var failed = false
+        _status.update { it.copy(pendingSaves = it.pendingSaves + 1, saveFailed = false) }
         try {
-            repository.save(transform(current))
-            _status.update { it.copy(isSaving = false) }
+            editMutex.withLock {
+                repository.update(id, transform)
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            _status.update { it.copy(isSaving = false, saveFailed = true) }
+            failed = true
+        } finally {
+            _status.update {
+                it.copy(
+                    pendingSaves = (it.pendingSaves - 1).coerceAtLeast(0),
+                    saveFailed = it.saveFailed || failed
+                )
+            }
         }
     }
 
@@ -141,8 +140,11 @@ class OpportunityDetailViewModel(
 }
 
 private data class EditStatus(
-    val isSaving: Boolean = false,
+    val pendingSaves: Int = 0,
     val saveFailed: Boolean = false,
-)
+) {
+    val isSaving: Boolean
+        get() = pendingSaves > 0
+}
 
 enum class DetailEvent { Deleted, DeleteFailed }

@@ -10,6 +10,8 @@ interface OpportunityDao {
     @Upsert
     suspend fun save(opportunity: OpportunityEntity)
     @Query("SELECT * FROM opportunities WHERE id = :id")
+    suspend fun getById(id: String): OpportunityEntity?
+    @Query("SELECT * FROM opportunities WHERE id = :id")
     fun observeById(id: String): Flow<OpportunityEntity?>
     @Query("DELETE FROM opportunities WHERE id = :id")
     suspend fun delete(id: String)

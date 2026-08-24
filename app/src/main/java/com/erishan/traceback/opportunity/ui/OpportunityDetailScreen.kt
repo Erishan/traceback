@@ -118,7 +118,10 @@ fun OpportunityDetailScreen(
         },
         actions = {
             if (content != null) {
-                IconButton(onClick = { showConfirm = true }) {
+                IconButton(
+                    onClick = { showConfirm = true },
+                    enabled = !content.isSaving,
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.DeleteSweep,
                         contentDescription = stringResource(R.string.cd_delete),
@@ -186,6 +189,7 @@ private fun DetailContent(
 ) {
     var sourceOpen by remember { mutableStateOf(false) }
     var stageOpen by remember { mutableStateOf(false) }
+    val editEnabled = !content.isSaving
 
     Column(
         modifier = Modifier
@@ -200,7 +204,7 @@ private fun DetailContent(
             ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
         }
 
-        InlineTitle(value = content.title, onCommit = onTitleChange)
+        InlineTitle(value = content.title, onCommit = onTitleChange, enabled = editEnabled)
         Spacer(Modifier.height(20.dp))
 
         StagePipeline(
@@ -211,6 +215,7 @@ private fun DetailContent(
                 sourceOpen = false
             },
             modifier = Modifier.fillMaxWidth(),
+            enabled = editEnabled,
         )
 
         AnimatedVisibility(visible = stageOpen) {
@@ -229,6 +234,7 @@ private fun DetailContent(
                             onStageChange(st)
                             stageOpen = false
                         },
+                        enabled = editEnabled,
                     )
                 }
             }
@@ -242,6 +248,7 @@ private fun DetailContent(
             placeholder = stringResource(R.string.detail_description_hint),
             emptyText = stringResource(R.string.detail_description_empty),
             onCommit = onDescriptionChange,
+            enabled = editEnabled,
         )
         Spacer(Modifier.height(12.dp))
 
@@ -251,6 +258,7 @@ private fun DetailContent(
             placeholder = stringResource(R.string.applied_message_hint),
             emptyText = stringResource(R.string.applied_message_empty),
             onCommit = onAppliedMessageChange,
+            enabled = editEnabled,
         )
         Spacer(Modifier.height(12.dp))
 
@@ -258,6 +266,7 @@ private fun DetailContent(
             notes = content.notes,
             onAdd = onAddNote,
             onDelete = onDeleteNote,
+            enabled = editEnabled,
         )
         Spacer(Modifier.height(12.dp))
         Row(
@@ -272,6 +281,7 @@ private fun DetailContent(
                     sourceOpen = !sourceOpen
                     stageOpen = false
                 },
+                enabled = editEnabled,
             )
             Spacer(Modifier.width(12.dp))
             Text(text = formatNoteTimestamp(content.createdAt), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp), color = TracebackTheme.colors.textFaint)
@@ -292,6 +302,7 @@ private fun DetailContent(
                             selectedBg = TracebackTheme.colors.accentDim,
                             selectedFg = MaterialTheme.colorScheme.primary,
                             onClick = { onSourceChange(s) },
+                            enabled = editEnabled,
                         )
                     }
                 }
@@ -303,6 +314,7 @@ private fun DetailContent(
                             value = content.sourceLabel.orEmpty(),
                             onValueChange = onSourceLabelChange,
                             placeholder = stringResource(R.string.create_source_label_hint),
+                            enabled = editEnabled,
                         )
                     }
                 }
@@ -312,7 +324,11 @@ private fun DetailContent(
 }
 
 @Composable
-private fun InlineTitle(value: String, onCommit: (String) -> Unit) {
+private fun InlineTitle(
+    value: String,
+    onCommit: (String) -> Unit,
+    enabled: Boolean,
+) {
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
 
@@ -323,6 +339,7 @@ private fun InlineTitle(value: String, onCommit: (String) -> Unit) {
                 onValueChange = { buffer = it },
                 placeholder = stringResource(R.string.detail_title_hint),
                 imeAction = ImeAction.Done,
+                enabled = enabled,
             )
             EditActions(
                 onCancel = { editing = false },
@@ -330,19 +347,25 @@ private fun InlineTitle(value: String, onCommit: (String) -> Unit) {
                     if (buffer.isNotBlank()) onCommit(buffer)
                     editing = false
                 },
+                enabled = enabled,
             )
         }
     } else {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
+        val modifier = if (enabled) {
+            Modifier
                 .fillMaxWidth()
                 .clickable {
                     buffer = value
                     editing = true
-                },
+                }
+        } else {
+            Modifier.fillMaxWidth()
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = modifier,
         )
     }
 }
@@ -352,12 +375,13 @@ private fun SourcePill(
     source: OpportunitySource,
     sourceLabel: String?,
     onClick: () -> Unit,
+    enabled: Boolean,
 ) {
     Row(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
             .background(color = Color.Transparent)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 11.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -384,6 +408,7 @@ private fun EditableCard(
     placeholder: String,
     emptyText: String,
     onCommit: (String) -> Unit,
+    enabled: Boolean,
 ) {
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
@@ -392,7 +417,7 @@ private fun EditableCard(
         .fillMaxWidth()
         .clip(MaterialTheme.shapes.medium)
         .background(MaterialTheme.colorScheme.surface)
-    val container = if (editing) base else base.clickable {
+    val container = if (editing || !enabled) base else base.clickable {
         buffer = value.orEmpty()
         editing = true
     }
@@ -408,6 +433,7 @@ private fun EditableCard(
                 singleLine = false,
                 minLines = 2,
                 maxLines = 8,
+                enabled = enabled,
             )
             EditActions(
                 onCancel = { editing = false },
@@ -415,6 +441,7 @@ private fun EditableCard(
                     onCommit(buffer)
                     editing = false
                 },
+                enabled = enabled,
             )
         } else {
             Text(
@@ -432,6 +459,7 @@ private fun NotesSection(
     notes: List<Note>,
     onAdd: (String) -> Unit,
     onDelete: (String) -> Unit,
+    enabled: Boolean,
 ) {
     var composing by remember { mutableStateOf(false) }
 
@@ -448,7 +476,11 @@ private fun NotesSection(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             CardLabel(stringResource(R.string.field_notes))
-            AddNoteToggle(expanded = composing, onClick = { composing = !composing })
+            AddNoteToggle(
+                expanded = composing,
+                onClick = { composing = !composing },
+                enabled = enabled,
+            )
         }
 
         AnimatedVisibility(visible = composing) {
@@ -459,6 +491,7 @@ private fun NotesSection(
                         onAdd(text)
                         composing = false
                     },
+                    enabled = enabled,
                 )
             }
         }
@@ -477,14 +510,14 @@ private fun NotesSection(
             // Newest first
             notes.sortedByDescending { it.createdAt }.forEachIndexed { index, note ->
                 if (index > 0) Spacer(Modifier.height(12.dp))
-                NoteRow(note = note, onDelete = { onDelete(note.id) })
+                NoteRow(note = note, onDelete = { onDelete(note.id) }, enabled = enabled)
             }
         }
     }
 }
 
 @Composable
-private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit) {
+private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boolean) {
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 45f else 0f,
         label = "addNoteRotation",
@@ -494,7 +527,7 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit) {
             .size(26.dp)
             .clip(CircleShape)
             .background(TracebackTheme.colors.accentDim)
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -511,7 +544,7 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun NoteRow(note: Note, onDelete: () -> Unit) {
+private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -539,13 +572,13 @@ private fun NoteRow(note: Note, onDelete: () -> Unit) {
             modifier = Modifier
                 .padding(start = 10.dp)
                 .size(16.dp)
-                .clickable(onClick = onDelete),
+                .clickable(enabled = enabled, onClick = onDelete),
         )
     }
 }
 
 @Composable
-private fun NoteComposer(onSubmit: (String) -> Unit) {
+private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
     var buffer by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
@@ -565,6 +598,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit) {
                 singleLine = false,
                 minLines = 1,
                 maxLines = 4,
+                enabled = enabled,
             )
         }
         IconButton(
@@ -572,6 +606,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit) {
                 val text = buffer.trim()
                 if (text.isNotBlank()) onSubmit(text)
             },
+            enabled = enabled,
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
@@ -601,20 +636,20 @@ private fun CardLabel(text: String) {
 }
 
 @Composable
-private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit) {
+private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onCancel) {
+        IconButton(onClick = onCancel, enabled = enabled) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.cd_cancel),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        IconButton(onClick = onConfirm) {
+        IconButton(onClick = onConfirm, enabled = enabled) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.cd_confirm),

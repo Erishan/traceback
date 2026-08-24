@@ -15,7 +15,12 @@ import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 @Composable
-fun StageChip(stage: PipelineStage, selected: Boolean, onClick: () -> Unit) {
+fun StageChip(
+    stage: PipelineStage,
+    selected: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
     val c = stageColor(stage)
     ChoiceChip(
         label = stringResource(stageLabelRes(stage)),
@@ -24,6 +29,7 @@ fun StageChip(stage: PipelineStage, selected: Boolean, onClick: () -> Unit) {
         selectedFg = c,
         onClick = onClick,
         leadingDot = c,
+        enabled = enabled,
     )
 }
 

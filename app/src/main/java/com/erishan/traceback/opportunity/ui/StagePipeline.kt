@@ -51,6 +51,7 @@ fun StagePipeline(
     pickerOpen: Boolean,
     onOpenPicker: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val color by animateColorAsState(targetValue = stageColor(stage), label = "stageColor")
     val pipeAlpha by animateFloatAsState(
@@ -66,9 +67,21 @@ fun StagePipeline(
         Pipe(trackIndex = stage.trackIndex, color = color, alpha = pipeAlpha)
         Spacer(Modifier.height(if (stage.isTerminal) 12.dp else 6.dp))
         if (stage.isTerminal) {
-            TerminalBadge(stage = stage, color = color, caret = caret, onClick = onOpenPicker)
+            TerminalBadge(
+                stage = stage,
+                color = color,
+                caret = caret,
+                onClick = onOpenPicker,
+                enabled = enabled,
+            )
         } else {
-            TrackLabel(stage = stage, color = color, caret = caret, onClick = onOpenPicker)
+            TrackLabel(
+                stage = stage,
+                color = color,
+                caret = caret,
+                onClick = onOpenPicker,
+                enabled = enabled,
+            )
         }
     }
 }
@@ -111,11 +124,13 @@ private fun TrackLabel(
     color: Color,
     caret: Float,
     onClick: () -> Unit,
+    enabled: Boolean,
 ) {
     Row(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .clickable(onClick = onClick, role = Role.Button)
+            .clickable(enabled = enabled, onClick = onClick, role = Role.Button)
+            .alpha(if (enabled) 1f else 0.55f)
             .padding(vertical = 8.dp, horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -135,6 +150,7 @@ private fun TerminalBadge(
     color: Color,
     caret: Float,
     onClick: () -> Unit,
+    enabled: Boolean,
 ) {
     val shape = MaterialTheme.shapes.small
     Row(
@@ -142,7 +158,8 @@ private fun TerminalBadge(
             .clip(shape)
             .background(color.copy(alpha = BadgeFillAlpha))
             .border(width = 1.dp, color = color.copy(alpha = BadgeBorderAlpha), shape = shape)
-            .clickable(onClick = onClick, role = Role.Button)
+            .clickable(enabled = enabled, onClick = onClick, role = Role.Button)
+            .alpha(if (enabled) 1f else 0.55f)
             .padding(start = 10.dp, end = 6.dp, top = 7.dp, bottom = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),

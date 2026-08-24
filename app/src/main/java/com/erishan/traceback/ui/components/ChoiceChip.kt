@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,12 +30,14 @@ fun ChoiceChip(
     selectedFg: Color,
     onClick: () -> Unit,
     leadingDot: Color? = null,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
             .background(if (selected) selectedBg else MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
+            .alpha(if (enabled) 1f else 0.55f)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -1,16 +1,29 @@
 package com.erishan.traceback.opportunity.data
 
+import androidx.room3.withWriteTransaction
+import com.erishan.traceback.core.db.AppDatabase
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class OpportunityRepositoryImpl(
-    private val opportunityDao: OpportunityDao
+    private val database: AppDatabase
 ) : OpportunityRepository {
+    private val opportunityDao = database.opportunityDao()
+
     override suspend fun save(opportunity: Opportunity) {
         val entity = opportunity.toEntity()
         opportunityDao.save(entity)
+    }
+
+    override suspend fun update(
+        id: String,
+        transform: (Opportunity) -> Opportunity
+    ): Boolean = database.withWriteTransaction {
+        val current = opportunityDao.getById(id)?.toDomain() ?: return@withWriteTransaction false
+        opportunityDao.save(transform(current).toEntity())
+        true
     }
 
     override suspend fun delete(id: String) {

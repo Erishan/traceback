@@ -16,6 +16,6 @@ class AppContainer(context: Context) {
     }
 
     val opportunityRepository: OpportunityRepository by lazy {
-        OpportunityRepositoryImpl(database.opportunityDao())
+        OpportunityRepositoryImpl(database)
     }
 }

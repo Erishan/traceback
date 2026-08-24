@@ -29,11 +29,13 @@ fun TbTextField(
     minLines: Int = 1,
     maxLines: Int = 1,
     imeAction: ImeAction = ImeAction.Done,
+    enabled: Boolean = true,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth().then(modifier),
+        enabled = enabled,
         placeholder = { Text(placeholder, color = TracebackTheme.colors.textFaint) },
         singleLine = singleLine,
         minLines = minLines,
