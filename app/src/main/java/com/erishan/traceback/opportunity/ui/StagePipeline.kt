@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,10 +42,19 @@ import com.erishan.traceback.ui.theme.TracebackTheme
 
 private val SegmentHeight = 6.dp
 private val SegmentGap = 6.dp
-private const val CompletedAlpha = 0.5f
-private const val ExitedAlpha = 0.5f
+
+internal val MinStagePickerSize = 48.dp
+
+internal const val CompletedSegmentAlpha = 0.50f
+
+internal const val ExitedRailAlpha = 0.30f
+
 private const val BadgeFillAlpha = 0.14f
 private const val BadgeBorderAlpha = 0.24f
+private const val DisabledTriggerAlpha = 0.55f
+
+internal fun pipeRailAlpha(isTerminal: Boolean): Float =
+    if (isTerminal) ExitedRailAlpha else 1f
 
 internal enum class PipeSegmentTone {
     Completed,
@@ -70,7 +81,7 @@ fun StagePipeline(
 ) {
     val color by animateColorAsState(targetValue = stageColor(stage), label = "stageColor")
     val pipeAlpha by animateFloatAsState(
-        targetValue = if (stage.isTerminal) ExitedAlpha else 1f,
+        targetValue = pipeRailAlpha(stage.isTerminal),
         label = "pipeAlpha",
     )
     val caret by animateFloatAsState(
@@ -112,7 +123,7 @@ private fun Pipe(trackIndex: Int?, color: Color, alpha: Float) {
     ) {
         PipelineStage.track.forEachIndexed { index, _ ->
             val target = when (pipeSegmentTone(trackIndex, index)) {
-                PipeSegmentTone.Completed -> color.copy(alpha = CompletedAlpha)
+                PipeSegmentTone.Completed -> color.copy(alpha = CompletedSegmentAlpha)
                 PipeSegmentTone.Current -> color
                 PipeSegmentTone.Empty -> trackColor
             }
@@ -137,12 +148,16 @@ private fun TrackLabel(
     onClick: () -> Unit,
     enabled: Boolean,
 ) {
+    val changeStageLabel = stringResource(R.string.cd_change_stage)
     Row(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .clickable(enabled = enabled, onClick = onClick, role = Role.Button)
-            .alpha(if (enabled) 1f else 0.55f)
-            .padding(vertical = 8.dp, horizontal = 2.dp),
+            .stagePickerTrigger(
+                enabled = enabled,
+                onClick = onClick,
+                onClickLabel = changeStageLabel,
+            )
+            .padding(horizontal = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -164,14 +179,18 @@ private fun TerminalBadge(
     enabled: Boolean,
 ) {
     val shape = MaterialTheme.shapes.small
+    val changeStageLabel = stringResource(R.string.cd_change_stage)
     Row(
         modifier = Modifier
             .clip(shape)
             .background(color.copy(alpha = BadgeFillAlpha))
             .border(width = 1.dp, color = color.copy(alpha = BadgeBorderAlpha), shape = shape)
-            .clickable(enabled = enabled, onClick = onClick, role = Role.Button)
-            .alpha(if (enabled) 1f else 0.55f)
-            .padding(start = 10.dp, end = 6.dp, top = 7.dp, bottom = 7.dp),
+            .stagePickerTrigger(
+                enabled = enabled,
+                onClick = onClick,
+                onClickLabel = changeStageLabel,
+            )
+            .padding(start = 10.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -194,13 +213,28 @@ private fun TerminalBadge(
 private fun Caret(color: Color, rotation: Float) {
     Icon(
         imageVector = Icons.Default.KeyboardArrowDown,
-        contentDescription = stringResource(R.string.cd_change_stage),
+        contentDescription = null,
         tint = color,
         modifier = Modifier
             .size(18.dp)
             .rotate(rotation),
     )
 }
+
+private fun Modifier.stagePickerTrigger(
+    enabled: Boolean,
+    onClick: () -> Unit,
+    onClickLabel: String,
+): Modifier =
+    minimumInteractiveComponentSize()
+        .sizeIn(minWidth = MinStagePickerSize, minHeight = MinStagePickerSize)
+        .clickable(
+            enabled = enabled,
+            onClick = onClick,
+            onClickLabel = onClickLabel,
+            role = Role.Button,
+        )
+        .alpha(if (enabled) 1f else DisabledTriggerAlpha)
 
 @Preview(showBackground = true, backgroundColor = 0xFF0A0B0D, widthDp = 320)
 @Composable
