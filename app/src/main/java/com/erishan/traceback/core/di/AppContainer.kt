@@ -2,14 +2,20 @@ package com.erishan.traceback.core.di
 
 import android.content.Context
 import androidx.room3.Room
+import com.erishan.traceback.ai.data.SecretStoreImpl
+import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.core.db.AppDatabase
+import com.erishan.traceback.me.data.UserContextRepositoryImpl
+import com.erishan.traceback.me.domain.UserContextRepository
 import com.erishan.traceback.opportunity.data.OpportunityRepositoryImpl
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
 
 class AppContainer(context: Context) {
+    private val appContext = context.applicationContext
+
     private val database: AppDatabase by lazy {
         Room.databaseBuilder(
-            context = context.applicationContext,
+            context = appContext,
             klass = AppDatabase::class.java,
             name = "traceback.db"
         ).build()
@@ -17,5 +23,13 @@ class AppContainer(context: Context) {
 
     val opportunityRepository: OpportunityRepository by lazy {
         OpportunityRepositoryImpl(database)
+    }
+
+    val userContextRepository: UserContextRepository by lazy {
+        UserContextRepositoryImpl(database)
+    }
+
+    val secretStore: SecretStore by lazy {
+        SecretStoreImpl(appContext)
     }
 }
