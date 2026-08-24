@@ -22,6 +22,9 @@ rule for which is truth and what happens to writes made offline.
   and invisible.
 - Domain and UI never learn whether a remote source exists; they see Room-backed
   data through the repository interface.
+- OpenAI (ADR-0014) is not a source of truth. A brief is a user-initiated
+  command: the client calls `api.openai.com`, then writes the result to Room.
+  The UI observes the row, never the HTTP response.
 - Entities never cross into the domain — the mapping boundary keeps the
   abstraction from leaking, and lets persistence and business rules evolve
   independently.

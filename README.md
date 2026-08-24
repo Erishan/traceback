@@ -27,7 +27,10 @@ your real win rate is.
 - Open it later to see how far it got, edit anything inline, and drop dated
   notes as the conversation goes on.
 - Filter the list down to what is active, won, or lost.
-- Everything stays on your phone. No account, no sync, no network.
+- Everything stays on your phone. No account, no Traceback server, no sync.
+  The only network call is a job brief you start, sent to OpenAI with the
+  API key you typed in. The key never leaves the device except as an
+  Authorization header to `api.openai.com`.
 
 ## Under the hood
 
@@ -45,4 +48,9 @@ Open it in Android Studio and hit Run
 
 ## Next
 
-Payment tracking, then an iOS build.
+v1.1 is the OpenAI brief: a **Me** screen (profile + key) and five boxes on
+an opportunity (fit, proposal, price, duration, approach). Implementation is
+two agent sprints in [docs/sprints](docs/sprints).
+
+Claude, Gemini, payment tracking, and a Compose Multiplatform iOS build come
+after that loop works on Android.

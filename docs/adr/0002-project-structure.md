@@ -5,9 +5,10 @@ Status: Accepted · 2026-07-25
 ## Context
 
 v1 is small: a few screens, one local data source, one feature (opportunity
-management), with payment (v1.1) and statistics (v1.2) on the roadmap. Two
-structural questions precede code: modules vs packages, and organizing by layer
-vs by feature.
+management). v1.1 adds a `me` profile feature and an `ai` package for a local
+OpenAI key and job brief. Payment, statistics, and a Compose Multiplatform
+extract are later. Two structural questions precede code: modules vs packages,
+and organizing by layer vs by feature.
 
 ## Decision
 

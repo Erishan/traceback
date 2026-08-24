@@ -25,8 +25,8 @@ of scope. Enums persist as strings, not ordinals.
 ## Consequences
 
 - Pipeline and payment are separate axes: a deposit can precede, follow, or
-  never accompany delivery, which one chain cannot represent. Payment ships in
-  v1.1 as the first feature increment (schema migration).
+  never accompany delivery, which one chain cannot represent. Payment is a
+  later increment, not the next one (amendment 2026-08-25).
 - LOST keeps the app a real pipeline rather than a log of won work, and makes
   win rate computable.
 - A closed source enum prevents the "Upwork / upwork / UpWork" fragmentation a
@@ -37,3 +37,9 @@ of scope. Enums persist as strings, not ordinals.
 
 Cheap to add an enum value or stage. Expensive to merge the two axes or change
 enum storage format — both require a data migration.
+
+## Amendment 2026-08-25
+
+v1.1 is a local OpenAI job brief driven by an on-device profile (ADR-0014,
+ADR-0015). Payment tracking, statistics, other model providers, and Compose
+Multiplatform are deferred. The v1 opportunity pipeline is unchanged.
