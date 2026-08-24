@@ -1,5 +1,6 @@
 package com.erishan.traceback.opportunity.ui
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.core.enums.PipelineStage
 import org.junit.Assert.assertEquals
@@ -27,18 +28,24 @@ class StagePipelineTest {
     }
 
     @Test
-    fun `terminal stages leave every pipe segment empty`() {
+    fun `terminal stages paint every pipe segment as an exit in the stage color`() {
+        val lost = Color(0xFFF87171)
+        val track = Color(0xFF22262E)
+
         PipelineStage.entries
             .filter { it.isTerminal }
             .forEach { stage ->
                 PipelineStage.track.indices.forEach { segmentIndex ->
                     assertEquals(
                         "${stage.name} should not imply progress at segment $segmentIndex",
-                        PipeSegmentTone.Empty,
+                        PipeSegmentTone.Exited,
                         pipeSegmentTone(stage.trackIndex, segmentIndex),
                     )
                 }
             }
+
+        assertEquals(lost, pipeSegmentColor(PipeSegmentTone.Exited, stageColor = lost, trackColor = track))
+        assertEquals(track, pipeSegmentColor(PipeSegmentTone.Empty, stageColor = lost, trackColor = track))
     }
 
     @Test

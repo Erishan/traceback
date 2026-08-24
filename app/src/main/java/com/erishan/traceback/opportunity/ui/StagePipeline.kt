@@ -60,15 +60,23 @@ internal enum class PipeSegmentTone {
     Completed,
     Current,
     Empty,
+    Exited,
 }
 
 internal fun pipeSegmentTone(trackIndex: Int?, segmentIndex: Int): PipeSegmentTone =
     when {
-        // terminal stages have no track position, so the rail stays empty
-        trackIndex == null -> PipeSegmentTone.Empty
+        trackIndex == null -> PipeSegmentTone.Exited
         segmentIndex < trackIndex -> PipeSegmentTone.Completed
         segmentIndex == trackIndex -> PipeSegmentTone.Current
         else -> PipeSegmentTone.Empty
+    }
+
+internal fun pipeSegmentColor(tone: PipeSegmentTone, stageColor: Color, trackColor: Color): Color =
+    when (tone) {
+        PipeSegmentTone.Completed -> stageColor.copy(alpha = CompletedSegmentAlpha)
+        PipeSegmentTone.Current -> stageColor
+        PipeSegmentTone.Empty -> trackColor
+        PipeSegmentTone.Exited -> stageColor
     }
 
 @Composable
@@ -122,11 +130,11 @@ private fun Pipe(trackIndex: Int?, color: Color, alpha: Float) {
         horizontalArrangement = Arrangement.spacedBy(SegmentGap),
     ) {
         PipelineStage.track.forEachIndexed { index, _ ->
-            val target = when (pipeSegmentTone(trackIndex, index)) {
-                PipeSegmentTone.Completed -> color.copy(alpha = CompletedSegmentAlpha)
-                PipeSegmentTone.Current -> color
-                PipeSegmentTone.Empty -> trackColor
-            }
+            val target = pipeSegmentColor(
+                tone = pipeSegmentTone(trackIndex, index),
+                stageColor = color,
+                trackColor = trackColor,
+            )
 
             val segment by animateColorAsState(targetValue = target, label = "segment$index")
             Box(
