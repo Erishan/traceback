@@ -45,6 +45,21 @@ private const val ExitedAlpha = 0.5f
 private const val BadgeFillAlpha = 0.14f
 private const val BadgeBorderAlpha = 0.24f
 
+internal enum class PipeSegmentTone {
+    Completed,
+    Current,
+    Empty,
+}
+
+internal fun pipeSegmentTone(trackIndex: Int?, segmentIndex: Int): PipeSegmentTone =
+    when {
+        // terminal stages have no track position, so the rail stays empty
+        trackIndex == null -> PipeSegmentTone.Empty
+        segmentIndex < trackIndex -> PipeSegmentTone.Completed
+        segmentIndex == trackIndex -> PipeSegmentTone.Current
+        else -> PipeSegmentTone.Empty
+    }
+
 @Composable
 fun StagePipeline(
     stage: PipelineStage,
@@ -96,14 +111,10 @@ private fun Pipe(trackIndex: Int?, color: Color, alpha: Float) {
         horizontalArrangement = Arrangement.spacedBy(SegmentGap),
     ) {
         PipelineStage.track.forEachIndexed { index, _ ->
-            val target = if (trackIndex == null) {
-                color
-            } else {
-                when {
-                    index > trackIndex -> trackColor
-                    index == trackIndex -> color
-                    else -> color.copy(alpha = CompletedAlpha)
-                }
+            val target = when (pipeSegmentTone(trackIndex, index)) {
+                PipeSegmentTone.Completed -> color.copy(alpha = CompletedAlpha)
+                PipeSegmentTone.Current -> color
+                PipeSegmentTone.Empty -> trackColor
             }
 
             val segment by animateColorAsState(targetValue = target, label = "segment$index")
