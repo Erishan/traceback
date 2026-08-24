@@ -7,7 +7,7 @@
     <string name="opportunities_count">%1$d total</string>
     <string name="new_opportunity">New opportunity</string>
     <string name="empty_opportunities_list_title">No opportunities yet</string>
-    <string name="empty_opportunities_list_message">Tap + to track your first one, from proposal to payment.</string>
+    <string name="empty_opportunities_list_message">Tap + to track your first one, from draft to hired.</string>
 
     <!-- Filters -->
     <string name="filter_all">All</string>
@@ -33,7 +33,7 @@
 
     <!-- Create opportunity sheet -->
     <string name="create_opportunity_title">New opportunity</string>
-    <string name="create_opportunity_lead">Track it from proposal to payment.</string>
+    <string name="create_opportunity_lead">Track it from draft to hired.</string>
     <string name="field_title">Title</string>
     <string name="field_description">Description</string>
     <string name="field_optional">optional</string>
@@ -74,4 +74,23 @@
     <string name="delete_confirm_title">Delete opportunity?</string>
     <string name="delete_confirm_message">This can\'t be undone.</string>
     <string name="action_delete">Delete</string>
+
+    <!-- Me -->
+    <string name="me_title">Me</string>
+    <string name="cd_open_me">Me</string>
+    <string name="field_about">About</string>
+    <string name="field_rate_band">Rate band</string>
+    <string name="field_pace">Pace</string>
+    <string name="field_openai_key">OpenAI key</string>
+    <string name="me_about_hint">Stack, what you won\'t do, how you sound</string>
+    <string name="me_rate_band_hint">e.g. mid, or a range</string>
+    <string name="me_pace_hint">e.g. one client at a time</string>
+    <string name="me_key_hint">Paste your API key</string>
+    <string name="me_key_saved">Key saved · ••••%1$s</string>
+    <string name="action_save_profile">Save profile</string>
+    <string name="action_save_key">Save key</string>
+    <string name="action_clear_key">Clear</string>
+    <string name="me_profile_could_not_save">Profile couldn\'t save</string>
+    <string name="me_key_could_not_save">Key couldn\'t save</string>
+    <string name="me_key_blank">Key can\'t be blank.</string>
 </resources>

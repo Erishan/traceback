@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun OpportunityListRoute(
     onOpenOpportunity: (String) -> Unit,
+    onOpenMe: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OpportunityListViewModel = viewModel(
         factory = OpportunityListViewModel.Factory
@@ -25,6 +26,7 @@ fun OpportunityListRoute(
         onAddClick = { showCreate = true },
         onFilterSelected = viewModel::onFilterSelected,
         onOpenOpportunity = onOpenOpportunity,
+        onOpenMe = onOpenMe,
         modifier = modifier,
     )
 

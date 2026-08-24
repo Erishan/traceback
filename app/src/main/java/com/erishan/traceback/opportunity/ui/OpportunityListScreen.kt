@@ -20,8 +20,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +54,7 @@ fun OpportunityListScreen(
     onAddClick: () -> Unit,
     onFilterSelected: (OpportunityFilter) -> Unit,
     onOpenOpportunity: (String) -> Unit,
+    onOpenMe: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TbScaffold(
@@ -72,7 +75,7 @@ fun OpportunityListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            ListSubheader(total = uiState.total)
+            ListSubheader(total = uiState.total, onOpenMe = onOpenMe)
             FilterRow(selected = uiState.selectedFilter, onSelect = onFilterSelected)
 
             when {
@@ -96,25 +99,42 @@ fun OpportunityListScreen(
 }
 
 @Composable
-private fun ListSubheader(total: Int) {
-    Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 8.dp, bottom = 10.dp)) {
-        Text(
-            text = stringResource(R.string.pipeline_overline).uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.opportunities_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.opportunities_count, total),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+private fun ListSubheader(total: Int, onOpenMe: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 22.dp, end = 10.dp, top = 8.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.pipeline_overline).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.opportunities_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.opportunities_count, total),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(
+            onClick = onOpenMe,
+            modifier = Modifier.size(48.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Person,
+                contentDescription = stringResource(R.string.cd_open_me),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
@@ -276,6 +296,7 @@ private fun OpportunityListScreenPreview() {
             onAddClick = {},
             onFilterSelected = {},
             onOpenOpportunity = {},
+            onOpenMe = {},
         )
     }
 }

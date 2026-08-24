@@ -6,6 +6,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.erishan.traceback.me.ui.MeKey
+import com.erishan.traceback.me.ui.meEntries
 import com.erishan.traceback.opportunity.ui.OpportunitiesListKey
 import com.erishan.traceback.opportunity.ui.OpportunityDetailKey
 import com.erishan.traceback.opportunity.ui.opportunitiesEntries
@@ -24,6 +26,10 @@ fun App() {
         entryProvider = entryProvider {
             opportunitiesEntries(
                 onOpenOpportunity = { id -> backStack.add(OpportunityDetailKey(id)) },
+                onOpenMe = { backStack.add(MeKey) },
+                onBack = { backStack.removeLastOrNull() },
+            )
+            meEntries(
                 onBack = { backStack.removeLastOrNull() },
             )
         },

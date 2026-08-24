@@ -5,10 +5,14 @@ import androidx.navigation3.runtime.NavKey
 
 fun EntryProviderScope<NavKey>.opportunitiesEntries(
     onOpenOpportunity: (String) -> Unit,
+    onOpenMe: () -> Unit,
     onBack: () -> Unit,
 ) {
     entry<OpportunitiesListKey> {
-        OpportunityListRoute(onOpenOpportunity = onOpenOpportunity)
+        OpportunityListRoute(
+            onOpenOpportunity = onOpenOpportunity,
+            onOpenMe = onOpenMe,
+        )
     }
     entry<OpportunityDetailKey> { key ->
         OpportunityDetailRoute(id = key.id, onBack = onBack)
