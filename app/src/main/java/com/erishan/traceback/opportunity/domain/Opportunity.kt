@@ -11,7 +11,7 @@ data class Opportunity(
     val source: OpportunitySource,
     val sourceLabel: String?,
     val pipelineStage: PipelineStage,
-    val createdAt: Instant,
+    val createdAt: Instant?,
     val notes: List<Note>,
     val appliedMessage: String?,
 )

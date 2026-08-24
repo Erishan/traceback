@@ -1,7 +1,6 @@
 package com.erishan.traceback.opportunity.data
 
 import com.erishan.traceback.opportunity.domain.Opportunity
-import kotlin.time.Instant
 
 fun OpportunityEntity.toDomain(): Opportunity {
     return Opportunity(
@@ -11,7 +10,7 @@ fun OpportunityEntity.toDomain(): Opportunity {
         source = this.source,
         sourceLabel = this.sourceLabel,
         pipelineStage = this.pipelineStage,
-        createdAt = Instant.fromEpochMilliseconds(this.createdAt),
+        createdAt = this.createdAt.toKnownInstantOrNull(),
         notes = this.notes.toNotes(this.createdAt),
         appliedMessage = this.appliedMessage,
     )
@@ -30,7 +29,7 @@ fun Opportunity.toEntity(): OpportunityEntity {
         sourceLabel = this.sourceLabel,
         pipelineStage = this.pipelineStage,
         notes = this.notes.toNotesColumn(),
-        createdAt = this.createdAt.toEpochMilliseconds(),
+        createdAt = this.createdAt.toStoredEpochMillis(),
         appliedMessage = this.appliedMessage,
     )
 }

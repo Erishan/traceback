@@ -284,7 +284,11 @@ private fun DetailContent(
                 enabled = editEnabled,
             )
             Spacer(Modifier.width(12.dp))
-            Text(text = formatNoteTimestamp(content.createdAt), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp), color = TracebackTheme.colors.textFaint)
+            Text(
+                text = formatTimestampOrUnknown(content.createdAt),
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
+                color = TracebackTheme.colors.textFaint,
+            )
         }
         AnimatedVisibility(visible = sourceOpen) {
             Column {
@@ -507,8 +511,10 @@ private fun NotesSection(
             }
         } else {
             Spacer(Modifier.height(14.dp))
-            // Newest first
-            notes.sortedByDescending { it.createdAt }.forEachIndexed { index, note ->
+            val sortedNotes = notes.sortedByDescending {
+                it.createdAt?.toEpochMilliseconds() ?: Long.MIN_VALUE
+            }
+            sortedNotes.forEachIndexed { index, note ->
                 if (index > 0) Spacer(Modifier.height(12.dp))
                 NoteRow(note = note, onDelete = { onDelete(note.id) }, enabled = enabled)
             }
@@ -552,7 +558,7 @@ private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = formatNoteTimestamp(note.createdAt),
+                text = formatTimestampOrUnknown(note.createdAt),
                 style = MaterialTheme.typography.labelSmall.copy(
                     letterSpacing = 0.sp,
                 ),
@@ -619,6 +625,10 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
 
 private val noteDateFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.ENGLISH)
+
+@Composable
+private fun formatTimestampOrUnknown(instant: Instant?): String =
+    instant?.let(::formatNoteTimestamp) ?: stringResource(R.string.date_unknown)
 
 private fun formatNoteTimestamp(instant: Instant): String {
     val platformInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())

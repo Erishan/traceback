@@ -47,7 +47,11 @@ class OpportunityMigrationTest {
             assertTrue("expected the legacy row to survive the migration", stmt.step())
             assertEquals("Legacy opportunity", stmt.getText(0))
             assertEquals("a note from v1", stmt.getText(1))
-            assertEquals(0L, stmt.getLong(2))
+            assertEquals(
+                "legacy rows should keep the unknown-date sentinel in storage",
+                0L,
+                stmt.getLong(2)
+            )
         }
         v2.close()
     }

@@ -14,7 +14,7 @@ sealed interface OpportunityDetailUiState {
         val source: OpportunitySource,
         val sourceLabel: String?,
         val pipelineStage: PipelineStage,
-        val createdAt: Instant,
+        val createdAt: Instant?,
         val appliedMessage: String?,
         val notes: List<Note>,
         val isSaving: Boolean = false,

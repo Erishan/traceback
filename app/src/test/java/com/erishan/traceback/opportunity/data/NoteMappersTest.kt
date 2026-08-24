@@ -44,6 +44,27 @@ class NoteMappersTest {
     }
 
     @Test
+    fun `a legacy note with an unknown fallback date keeps the date unknown`() {
+        val legacy = "a note written before opportunity createdAt existed"
+
+        val notes = legacy.toNotes(fallbackCreatedAtMillis = 0L)
+
+        assertEquals(1, notes.size)
+        assertEquals(legacy, notes.single().text)
+        assertNull(notes.single().createdAt)
+    }
+
+    @Test
+    fun `a serialized note with a zero timestamp keeps the date unknown`() {
+        val notes = """[{"id":"n1","createdAtEpochMillis":0,"text":"Legacy note"}]"""
+            .toNotes(fallbackCreatedAtMillis = 42L)
+
+        assertEquals(1, notes.size)
+        assertEquals("Legacy note", notes.single().text)
+        assertNull(notes.single().createdAt)
+    }
+
+    @Test
     fun `a malformed json array degrades instead of failing the read`() {
         val notes = """[{"id":"n1"}]""".toNotes(fallbackCreatedAtMillis = 7L)
 

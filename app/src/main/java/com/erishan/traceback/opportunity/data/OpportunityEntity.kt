@@ -15,6 +15,6 @@ data class OpportunityEntity(
     val sourceLabel: String?,
     val pipelineStage: PipelineStage,
     val notes: String?,
-    @ColumnInfo(defaultValue = "0") val createdAt: Long,
+    @ColumnInfo(defaultValue = UNKNOWN_CREATED_AT_SQL_DEFAULT) val createdAt: Long,
     val appliedMessage: String?,
 )

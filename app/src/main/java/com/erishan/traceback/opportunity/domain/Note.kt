@@ -4,6 +4,6 @@ import kotlin.time.Instant
 
 data class Note(
     val id: String,
-    val createdAt: Instant,
+    val createdAt: Instant?,
     val text: String,
 )
