@@ -46,7 +46,10 @@ fun OpportunityListRoute(
             onSourceLabelChange = createViewModel::onSourceLabelChange,
             onStageChange = createViewModel::onPipelineStageChange,
             onSave = createViewModel::onSave,
-            onDismiss = { showCreate = false }
+            onDismiss = {
+                createViewModel.reset()
+                showCreate = false
+            }
         )
     }
 }

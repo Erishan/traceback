@@ -11,6 +11,7 @@ import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +33,9 @@ class OpportunityCreateViewModel(
 
     private val _uiState = MutableStateFlow(OpportunityCreateUiState())
     val uiState: StateFlow<OpportunityCreateUiState> = _uiState.asStateFlow()
+
+    // Bumps on reset() so an in-flight save cannot mark a fresh sheet as already saved.
+    private var saveGeneration = 0
 
     fun onTitleChange(value: String) {
         _uiState.update { it.copy(title = value) }
@@ -61,24 +65,32 @@ class OpportunityCreateViewModel(
     }
 
     fun onSave() {
+        val snapshot = _uiState.value
+        if (snapshot.isSaving || snapshot.isSaved) return
+        val title = snapshot.title.trim()
+        if (title.isEmpty()) return
+        val generation = ++saveGeneration
+        _uiState.update { it.copy(isSaving = true, hasError = false) }
         viewModelScope.launch {
-            val new = _uiState.value
-            _uiState.update { it.copy(isSaving = true, hasError = false) }
             try {
                 repository.save(
                     Opportunity(
                         id = UUID.randomUUID().toString(),
-                        title = new.title,
-                        description = new.description?.takeIf { it.isNotBlank()},
-                        source = new.source,
-                        sourceLabel = new.sourceLabel?.takeIf { new.source == OpportunitySource.OTHER },
-                        pipelineStage = new.pipelineStage,
+                        title = title,
+                        description = snapshot.description?.takeIf { it.isNotBlank() },
+                        source = snapshot.source,
+                        sourceLabel = snapshot.sourceLabel?.takeIf { snapshot.source == OpportunitySource.OTHER },
+                        pipelineStage = snapshot.pipelineStage,
                         notes = null,
                         appliedMessage = null
                     )
                 )
-                _uiState.update { it.copy(isSaving = false, isSaved = true) }
+                if (generation != saveGeneration) return@launch
+                _uiState.update { it.copy(isSaved = true) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (generation != saveGeneration) return@launch
                 _uiState.update {
                     it.copy(
                         isSaving = false,
@@ -90,6 +102,7 @@ class OpportunityCreateViewModel(
     }
 
     fun reset() {
+        saveGeneration++
         _uiState.value = OpportunityCreateUiState()
     }
 }

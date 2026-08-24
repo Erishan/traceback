@@ -267,7 +267,7 @@ private fun CreateSheetContent(
             }
             Button(
                 onClick = onSave,
-                enabled = uiState.title.isNotBlank() && !uiState.isSaving,
+                enabled = uiState.title.isNotBlank() && !uiState.isSaving && !uiState.isSaved,
                 modifier = Modifier.weight(1f),
                 shape = ButtonShape,
             ) {
