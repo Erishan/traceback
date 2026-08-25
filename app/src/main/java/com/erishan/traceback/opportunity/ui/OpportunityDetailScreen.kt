@@ -4,15 +4,18 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,13 +63,19 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.opportunity.domain.Approach
+import com.erishan.traceback.opportunity.domain.DurationEstimate
+import com.erishan.traceback.opportunity.domain.Fit
 import com.erishan.traceback.opportunity.domain.JobBrief
 import com.erishan.traceback.opportunity.domain.Note
+import com.erishan.traceback.opportunity.domain.Price
 import com.erishan.traceback.ui.components.ChoiceChip
+import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
@@ -74,6 +83,7 @@ import com.erishan.traceback.ui.components.TbBarIconButton
 import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
+import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.PillShape
 import com.erishan.traceback.ui.theme.TracebackTheme
@@ -91,9 +101,25 @@ private val BriefSpinnerSize = 16.dp
 private val BriefSpinnerStroke = 2.dp
 private val ScrollBottomInset = 40.dp
 
+private val SkeletonKeyHeight = 8.dp
+private val SkeletonValueHeight = 15.dp
+private val SkeletonSupportHeight = 9.dp
+
 private const val ErrorFillAlpha = 0.12f
 private const val ErrorEdgeAlpha = 0.36f
 private const val PlusToCloseRotation = 45f
+
+private const val BriefActionFillAlpha = 0.15f
+private const val BriefActionEdgeAlpha = 0.38f
+
+private const val SkeletonKeyWidthFraction = 0.34f
+private const val SkeletonValueWidthFraction = 0.62f
+private const val SkeletonSupportWidthFraction = 0.88f
+
+private const val BoxSupportMaxLines = 2
+private const val ApproachSummaryMaxLines = 2
+private const val ProposalCollapsedMaxLines = 6
+private const val SkeletonRows = 2
 
 @Composable
 fun OpportunityDetailScreen(
@@ -109,6 +135,7 @@ fun OpportunityDetailScreen(
     onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
     onBrief: () -> Unit,
+    onOpenMe: () -> Unit,
     deleteFailed: Boolean,
     onDeleteErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -182,6 +209,7 @@ fun OpportunityDetailScreen(
                     onDeleteNote = onDeleteNote,
                     onAppliedMessageChange = onAppliedMessageChange,
                     onBrief = onBrief,
+                    onOpenMe = onOpenMe,
                 )
         }
     }
@@ -210,6 +238,7 @@ private fun DetailContent(
     onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
     onBrief: () -> Unit,
+    onOpenMe: () -> Unit,
 ) {
     val dimens = TracebackTheme.dimens
     var sourceOpen by remember { mutableStateOf(false) }
@@ -280,6 +309,7 @@ private fun DetailContent(
             content = content,
             onBrief = onBrief,
             onUseProposalAsAppliedMessage = onAppliedMessageChange,
+            onOpenMe = onOpenMe,
             enabled = editEnabled,
         )
         Spacer(Modifier.height(dimens.spaceS))
@@ -794,8 +824,11 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
 }
 
 @Composable
-private fun ErrorBanner(text: String) {
-    val colors = TracebackTheme.colors
+private fun ErrorBanner(
+    text: String,
+    actionText: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
     val dimens = TracebackTheme.dimens
     val error = MaterialTheme.colorScheme.error
 
@@ -822,7 +855,35 @@ private fun ErrorBanner(text: String) {
                 color = error,
                 modifier = Modifier.weight(1f),
             )
+            if (actionText != null && onAction != null) {
+                TextAction(text = actionText, color = error, onClick = onAction)
+            }
         }
+    }
+}
+
+@Composable
+private fun TextAction(
+    text: String,
+    color: Color,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    Box(
+        modifier = Modifier
+            .heightIn(min = MinTouchTarget)
+            .clip(ButtonShape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (enabled) color else colors.textFaint,
+            modifier = Modifier.padding(horizontal = dimens.spaceXs),
+        )
     }
 }
 
@@ -883,32 +944,75 @@ private fun BriefSection(
     content: OpportunityDetailUiState.Content,
     onBrief: () -> Unit,
     onUseProposalAsAppliedMessage: (String) -> Unit,
+    onOpenMe: () -> Unit,
     enabled: Boolean,
+) {
+    val dimens = TracebackTheme.dimens
+    val brief = content.aiBrief
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+    ) {
+        BriefHeader(
+            hasBrief = brief != null,
+            inFlight = content.briefInFlight,
+            actionEnabled = content.briefActionEnabled,
+            onBrief = onBrief,
+        )
+
+        if (content.briefFailed != null) {
+            ErrorBanner(
+                text = stringResource(briefFailureRes(content.briefFailed)),
+                actionText = stringResource(R.string.action_try_again),
+                onAction = onBrief.takeIf { content.briefActionEnabled },
+            )
+        }
+
+        if (content.briefGateReason != null) {
+            BriefGateCard(
+                reason = content.briefGateReason,
+                onOpenMe = onOpenMe,
+                enabled = enabled,
+            )
+        }
+
+        when {
+            content.briefInFlight -> BriefSkeleton()
+
+            brief != null -> BriefBoxes(
+                brief = brief,
+                onUseProposalAsAppliedMessage = onUseProposalAsAppliedMessage,
+                enabled = enabled,
+            )
+
+            // Gated and empty: the gate card above already says why there is nothing here.
+            content.briefGateReason == null -> BriefEmptyCard()
+        }
+    }
+}
+
+@Composable
+private fun BriefHeader(
+    hasBrief: Boolean,
+    inFlight: Boolean,
+    actionEnabled: Boolean,
+    onBrief: () -> Unit,
 ) {
     val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
 
-    Column(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(dimens.spaceS),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
+        FieldLabel(text = stringResource(R.string.field_brief), spacer = false)
         Row(
-            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
         ) {
-            TextButton(
-                onClick = onBrief,
-                enabled = content.briefActionEnabled,
-                modifier = Modifier.heightIn(min = MinTouchTarget),
-            ) {
-                Text(
-                    text = stringResource(R.string.action_brief),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (content.briefActionEnabled) colors.textHigh else colors.textFaint,
-                )
-            }
-            if (content.briefInFlight) {
+            if (inFlight) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(BriefSpinnerSize),
                     strokeWidth = BriefSpinnerStroke,
@@ -916,53 +1020,218 @@ private fun BriefSection(
                     trackColor = Color.Transparent,
                 )
             }
-        }
-        if (content.briefFailed != null) {
-            ErrorBanner(text = stringResource(briefFailureRes(content.briefFailed)))
-        }
-        if (!content.canBrief && content.briefGateReason != null) {
-            Text(
-                text = stringResource(briefGateReasonRes(content.briefGateReason)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.textFaint,
+            BriefActionButton(
+                text = stringResource(
+                    if (hasBrief) R.string.action_brief_rerun else R.string.action_brief
+                ),
+                enabled = actionEnabled,
+                onClick = onBrief,
             )
-        }
-        val brief = content.aiBrief
-        if (brief == null) {
-            Text(
-                text = stringResource(R.string.brief_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.textFaint,
-            )
-        } else {
-            FitCard(brief)
-            ProposalCard(
-                proposal = brief.proposal,
-                onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
-                enabled = enabled,
-            )
-            PriceCard(brief)
-            DurationCard(brief)
-            ApproachCard(brief)
         }
     }
 }
 
 @Composable
-private fun FitCard(brief: JobBrief) {
+private fun BriefActionButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     val colors = TracebackTheme.colors
-    ReadOnlyCard(label = stringResource(R.string.field_fit)) {
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(
+        modifier = Modifier
+            .minTouchTarget()
+            .clip(ButtonShape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+        shape = ButtonShape,
+        fill = if (enabled) colors.accent.copy(alpha = BriefActionFillAlpha) else null,
+        edge = if (enabled) colors.accent.copy(alpha = BriefActionEdgeAlpha) else null,
+    ) {
         Text(
-            text = stringResource(fitVerdictRes(brief.fit.verdict)),
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.textHigh,
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (enabled) colors.accent else colors.textFaint,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = dimens.spaceM),
         )
-        Spacer(Modifier.height(TracebackTheme.dimens.spaceXxs))
+    }
+}
+
+@Composable
+private fun BriefEmptyCard() {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = brief.fit.summary,
+            text = stringResource(R.string.brief_empty),
             style = MaterialTheme.typography.bodyMedium,
-            color = colors.textDim,
+            color = colors.textFaint,
+            modifier = Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS),
         )
+    }
+}
+
+@Composable
+private fun BriefGateCard(
+    reason: BriefGateReason,
+    onOpenMe: () -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(horizontal = dimens.spaceXs, vertical = dimens.spaceXs),
+        ) {
+            Text(
+                text = stringResource(briefGateReasonRes(reason)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textFaint,
+                modifier = Modifier.padding(horizontal = dimens.spaceXs),
+            )
+            TextAction(
+                text = stringResource(R.string.brief_open_me),
+                color = colors.accent,
+                onClick = onOpenMe,
+                enabled = enabled,
+            )
+        }
+    }
+}
+
+// brief · boxes
+
+@Composable
+private fun BriefBoxes(
+    brief: JobBrief,
+    onUseProposalAsAppliedMessage: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceXs)) {
+        BriefRow {
+            BriefBox(
+                label = stringResource(R.string.field_fit),
+                value = stringResource(fitVerdictRes(brief.fit.verdict)),
+                valueColor = fitVerdictColor(brief.fit.verdict),
+                support = brief.fit.summary,
+                modifier = Modifier.weight(1f),
+            )
+            BriefBox(
+                label = stringResource(R.string.field_price),
+                value = stringResource(
+                    R.string.brief_price_range,
+                    brief.price.low,
+                    brief.price.high,
+                ),
+                valueColor = colors.textHigh,
+                support = brief.price.rationale,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        BriefRow {
+            BriefBox(
+                label = stringResource(R.string.field_duration),
+                value = stringResource(R.string.brief_duration_hours, brief.duration.hours),
+                valueColor = colors.textHigh,
+                support = stringResource(
+                    R.string.brief_duration_support,
+                    brief.duration.range,
+                    stringResource(durationBasisRes(brief.duration.basis)),
+                ),
+                modifier = Modifier.weight(1f),
+            )
+            ApproachBox(approach = brief.approach, modifier = Modifier.weight(1f))
+        }
+        ProposalCard(
+            proposal = brief.proposal,
+            onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
+            enabled = enabled,
+        )
+    }
+}
+
+@Composable
+private fun BriefRow(content: @Composable RowScope.() -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs),
+        content = content,
+    )
+}
+
+@Composable
+private fun BriefBox(
+    label: String,
+    value: String,
+    valueColor: Color,
+    support: String?,
+    modifier: Modifier = Modifier,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = modifier.fillMaxHeight()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimens.spaceS, vertical = dimens.spaceS),
+        ) {
+            FieldLabel(label)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = valueColor,
+                maxLines = BoxSupportMaxLines,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (support != null) {
+                Spacer(Modifier.height(dimens.spaceXxs))
+                Text(
+                    text = support,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textDim,
+                    maxLines = BoxSupportMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApproachBox(approach: Approach, modifier: Modifier = Modifier) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = modifier.fillMaxHeight()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimens.spaceS, vertical = dimens.spaceS),
+        ) {
+            FieldLabel(stringResource(R.string.field_approach))
+            Text(
+                text = approach.summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textHigh,
+                maxLines = ApproachSummaryMaxLines,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (approach.technologies.isNotEmpty()) {
+                Spacer(Modifier.height(dimens.spaceXxs))
+                Text(
+                    text = approach.technologies.joinToString(", "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textDim,
+                    maxLines = BoxSupportMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
@@ -973,102 +1242,106 @@ private fun ProposalCard(
     enabled: Boolean,
 ) {
     val colors = TracebackTheme.colors
-    ReadOnlyCard(label = stringResource(R.string.field_proposal)) {
-        Text(
-            text = proposal,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textHigh,
-        )
-        TextButton(
-            onClick = { onUseAsAppliedMessage(proposal) },
-            enabled = enabled,
-            modifier = Modifier.heightIn(min = MinTouchTarget),
-        ) {
-            Text(
-                text = stringResource(R.string.brief_use_as_applied),
-                style = MaterialTheme.typography.labelLarge,
-                color = colors.textDim,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PriceCard(brief: JobBrief) {
-    val colors = TracebackTheme.colors
-    ReadOnlyCard(label = stringResource(R.string.field_price)) {
-        Text(
-            text = stringResource(R.string.brief_price_range, brief.price.low, brief.price.high),
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.textHigh,
-        )
-        Spacer(Modifier.height(TracebackTheme.dimens.spaceXxs))
-        Text(
-            text = brief.price.rationale,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textDim,
-        )
-    }
-}
-
-@Composable
-private fun DurationCard(brief: JobBrief) {
-    val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
-    ReadOnlyCard(label = stringResource(R.string.field_duration)) {
-        Text(
-            text = brief.duration.range,
-            style = MaterialTheme.typography.titleSmall,
-            color = colors.textHigh,
-        )
-        Spacer(Modifier.height(dimens.spaceXxs))
-        Text(
-            text = stringResource(R.string.brief_duration_hours, brief.duration.hours),
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textDim,
-        )
-        Spacer(Modifier.height(dimens.spaceXxs))
-        Text(
-            text = stringResource(durationBasisRes(brief.duration.basis)),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.textFaint,
-        )
-    }
-}
 
-@Composable
-private fun ApproachCard(brief: JobBrief) {
-    val colors = TracebackTheme.colors
-    ReadOnlyCard(label = stringResource(R.string.field_approach)) {
-        Text(
-            text = brief.approach.summary,
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.textHigh,
-        )
-        if (brief.approach.technologies.isNotEmpty()) {
-            Spacer(Modifier.height(TracebackTheme.dimens.spaceXs))
-            Text(
-                text = brief.approach.technologies.joinToString(", "),
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.textDim,
-            )
-        }
-    }
-}
+    var expanded by remember { mutableStateOf(false) }
+    var clipped by remember { mutableStateOf(false) }
 
-@Composable
-private fun ReadOnlyCard(
-    label: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val dimens = TracebackTheme.dimens
     TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
-            FieldLabel(label)
-            content()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimens.spaceXs, vertical = dimens.spaceXs),
+        ) {
+            Column(modifier = Modifier.padding(horizontal = dimens.spaceXs)) {
+                FieldLabel(stringResource(R.string.field_proposal))
+                Text(
+                    text = proposal,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.textHigh,
+                    maxLines = if (expanded) Int.MAX_VALUE else ProposalCollapsedMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                    // Only the collapsed pass can tell us there is more to read.
+                    onTextLayout = { if (!expanded) clipped = it.hasVisualOverflow },
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                TextAction(
+                    text = stringResource(R.string.brief_use_as_applied),
+                    color = colors.textDim,
+                    onClick = { onUseAsAppliedMessage(proposal) },
+                    enabled = enabled,
+                )
+                if (clipped) {
+                    TextAction(
+                        text = stringResource(
+                            if (expanded) R.string.action_show_less else R.string.action_show_more
+                        ),
+                        color = colors.textDim,
+                        onClick = { expanded = !expanded },
+                    )
+                }
+            }
         }
     }
 }
+
+// brief · loading
+
+@Composable
+private fun BriefSkeleton() {
+    val dimens = TracebackTheme.dimens
+
+    Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceXs)) {
+        repeat(SkeletonRows) {
+            BriefRow {
+                SkeletonBox(Modifier.weight(1f))
+                SkeletonBox(Modifier.weight(1f))
+            }
+        }
+        SkeletonBox(Modifier.fillMaxWidth())
+    }
+}
+
+// Every skeleton box holds the same fixed bars, so they line up without filling the row -
+// and filling it under the screen's scrolling column would ask for an infinite height.
+@Composable
+private fun SkeletonBox(modifier: Modifier = Modifier) {
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimens.spaceS, vertical = dimens.spaceS),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+        ) {
+            SkeletonBar(widthFraction = SkeletonKeyWidthFraction, height = SkeletonKeyHeight)
+            SkeletonBar(widthFraction = SkeletonValueWidthFraction, height = SkeletonValueHeight)
+            SkeletonBar(
+                widthFraction = SkeletonSupportWidthFraction,
+                height = SkeletonSupportHeight,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SkeletonBar(widthFraction: Float, height: Dp) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(widthFraction)
+            .height(height)
+            .clip(PillShape)
+            .background(TracebackTheme.colors.track)
+    )
+}
+
+// brief · mapping
 
 private fun briefFailureRes(kind: BriefFailureKind): Int = when (kind) {
     BriefFailureKind.BadKey -> R.string.brief_failed_bad_key
@@ -1084,13 +1357,180 @@ private fun briefGateReasonRes(reason: BriefGateReason): Int = when (reason) {
 }
 
 private fun fitVerdictRes(verdict: String): Int = when (verdict) {
-    "yes" -> R.string.brief_verdict_yes
-    "no" -> R.string.brief_verdict_no
+    VerdictYes -> R.string.brief_verdict_yes
+    VerdictNo -> R.string.brief_verdict_no
     else -> R.string.brief_verdict_stretch
 }
 
+@Composable
+private fun fitVerdictColor(verdict: String): Color = with(TracebackTheme.colors) {
+    when (verdict) {
+        VerdictYes -> stageHired
+        VerdictNo -> stageLost
+        else -> stageInConversation
+    }
+}
+
 private fun durationBasisRes(basis: String): Int =
-    if (basis == "profile") R.string.brief_basis_profile else R.string.brief_basis_typical
+    if (basis == BasisProfile) R.string.brief_basis_profile else R.string.brief_basis_typical
+
+private const val VerdictYes = "yes"
+private const val VerdictNo = "no"
+private const val BasisProfile = "profile"
+
+// brief · previews
+
+private val BriefPreviewShortHeight = 200.dp
+private val BriefPreviewTallHeight = 520.dp
+
+private val PreviewBrief = JobBrief(
+    generatedAtEpochMillis = 1_723_600_000_000L,
+    model = "gpt-4o",
+    fit = Fit(
+        verdict = VerdictYes,
+        summary = "Compose work with a clear funnel goal - squarely your stack.",
+    ),
+    proposal = "I rebuilt a five-step signup into two screens for a B2B trial last quarter and " +
+        "cut drop-off by a third. I would start by instrumenting the current funnel so we " +
+        "argue from numbers, then ship the new flow behind a flag and compare cohorts. " +
+        "Two weeks of build, one week watching it, and you keep the measurement harness " +
+        "either way. Happy to walk the current flow with you before we scope it.",
+    price = Price(
+        low = "$3.2k",
+        high = "$4.5k",
+        rationale = "Two weeks at your mid band, plus a week of measurement.",
+    ),
+    duration = DurationEstimate(
+        range = "40-56 hours",
+        hours = "48",
+        basis = BasisProfile,
+    ),
+    approach = Approach(
+        summary = "Instrument the funnel, then rebuild signup as two screens behind a flag.",
+        technologies = listOf("Compose", "Firebase", "Figma"),
+    ),
+)
+
+private fun previewBriefState(
+    aiBrief: JobBrief? = null,
+    canBrief: Boolean = true,
+    briefInFlight: Boolean = false,
+    briefFailed: BriefFailureKind? = null,
+    briefGateReason: BriefGateReason? = null,
+) = previewContent(PipelineStage.APPLIED).copy(
+    aiBrief = aiBrief,
+    canBrief = canBrief,
+    briefInFlight = briefInFlight,
+    briefFailed = briefFailed,
+    briefGateReason = briefGateReason,
+)
+
+@Composable
+private fun BriefSectionPreview(
+    darkTheme: Boolean,
+    content: OpportunityDetailUiState.Content,
+    height: Dp,
+) {
+    ComponentPreview(darkTheme = darkTheme, height = height) {
+        BriefSection(
+            content = content,
+            onBrief = {},
+            onUseProposalAsAppliedMessage = {},
+            onOpenMe = {},
+            enabled = true,
+        )
+    }
+}
+
+@Preview(name = "brief · empty · dark", widthDp = 360)
+@Composable
+private fun BriefEmptyDarkPreview() {
+    BriefSectionPreview(true, previewBriefState(), BriefPreviewShortHeight)
+}
+
+@Preview(name = "brief · empty · light", widthDp = 360)
+@Composable
+private fun BriefEmptyLightPreview() {
+    BriefSectionPreview(false, previewBriefState(), BriefPreviewShortHeight)
+}
+
+@Preview(name = "brief · gated · dark", widthDp = 360)
+@Composable
+private fun BriefGatedDarkPreview() {
+    BriefSectionPreview(
+        darkTheme = true,
+        content = previewBriefState(
+            canBrief = false,
+            briefGateReason = BriefGateReason.MissingAboutAndKey,
+        ),
+        height = BriefPreviewShortHeight,
+    )
+}
+
+@Preview(name = "brief · gated · light", widthDp = 360)
+@Composable
+private fun BriefGatedLightPreview() {
+    BriefSectionPreview(
+        darkTheme = false,
+        content = previewBriefState(
+            canBrief = false,
+            briefGateReason = BriefGateReason.MissingAboutAndKey,
+        ),
+        height = BriefPreviewShortHeight,
+    )
+}
+
+@Preview(name = "brief · loading · dark", widthDp = 360)
+@Composable
+private fun BriefLoadingDarkPreview() {
+    BriefSectionPreview(
+        darkTheme = true,
+        content = previewBriefState(briefInFlight = true),
+        height = BriefPreviewTallHeight,
+    )
+}
+
+@Preview(name = "brief · loading · light", widthDp = 360)
+@Composable
+private fun BriefLoadingLightPreview() {
+    BriefSectionPreview(
+        darkTheme = false,
+        content = previewBriefState(briefInFlight = true),
+        height = BriefPreviewTallHeight,
+    )
+}
+
+@Preview(name = "brief · failed · dark", widthDp = 360)
+@Composable
+private fun BriefFailedDarkPreview() {
+    BriefSectionPreview(
+        darkTheme = true,
+        content = previewBriefState(briefFailed = BriefFailureKind.BadKey),
+        height = BriefPreviewShortHeight,
+    )
+}
+
+@Preview(name = "brief · failed · light", widthDp = 360)
+@Composable
+private fun BriefFailedLightPreview() {
+    BriefSectionPreview(
+        darkTheme = false,
+        content = previewBriefState(briefFailed = BriefFailureKind.BadKey),
+        height = BriefPreviewShortHeight,
+    )
+}
+
+@Preview(name = "brief · full · dark", widthDp = 360)
+@Composable
+private fun BriefFullDarkPreview() {
+    BriefSectionPreview(true, previewBriefState(aiBrief = PreviewBrief), BriefPreviewTallHeight)
+}
+
+@Preview(name = "brief · full · light", widthDp = 360)
+@Composable
+private fun BriefFullLightPreview() {
+    BriefSectionPreview(false, previewBriefState(aiBrief = PreviewBrief), BriefPreviewTallHeight)
+}
 
 // timestamps
 
@@ -1153,6 +1593,7 @@ private fun DetailPreview(darkTheme: Boolean, uiState: OpportunityDetailUiState)
             onDeleteNote = {},
             onAppliedMessageChange = {},
             onBrief = {},
+            onOpenMe = {},
             deleteFailed = false,
             onDeleteErrorDismiss = {},
             modifier = Modifier.fillMaxWidth(),
@@ -1168,7 +1609,7 @@ private fun DetailActiveDarkPreview() {
         uiState = previewContent(
             stage = PipelineStage.INTERVIEW,
             appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
-        ),
+        ).copy(aiBrief = PreviewBrief, canBrief = true),
     )
 }
 
@@ -1180,7 +1621,7 @@ private fun DetailActiveLightPreview() {
         uiState = previewContent(
             stage = PipelineStage.INTERVIEW,
             appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
-        ),
+        ).copy(aiBrief = PreviewBrief, canBrief = true),
     )
 }
 

@@ -15,6 +15,6 @@ fun EntryProviderScope<NavKey>.opportunitiesEntries(
         )
     }
     entry<OpportunityDetailKey> { key ->
-        OpportunityDetailRoute(id = key.id, onBack = onBack)
+        OpportunityDetailRoute(id = key.id, onBack = onBack, onOpenMe = onOpenMe)
     }
 }

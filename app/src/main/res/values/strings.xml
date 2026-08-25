@@ -79,7 +79,13 @@
     <string name="action_delete">Delete</string>
 
     <!-- Brief -->
+    <string name="field_brief">Brief</string>
     <string name="action_brief">Brief</string>
+    <string name="action_brief_rerun">Re-run</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_show_more">More</string>
+    <string name="action_show_less">Less</string>
+    <string name="brief_open_me">Open Me</string>
     <string name="brief_empty">Brief this job to get fit, a proposal, price, time, and approach.</string>
     <string name="brief_disabled_no_about">Add who you are on Me before briefing.</string>
     <string name="brief_disabled_no_key">Paste an OpenAI key on Me before briefing.</string>
@@ -98,9 +104,10 @@
     <string name="brief_verdict_stretch">Stretch</string>
     <string name="brief_verdict_no">No</string>
     <string name="brief_price_range">%1$s – %2$s</string>
-    <string name="brief_duration_hours">%1$s hours</string>
+    <string name="brief_duration_hours">%1$s h</string>
+    <string name="brief_duration_support">%1$s · %2$s</string>
     <string name="brief_basis_profile">From your pace</string>
-    <string name="brief_basis_typical">Typical for this kind of job</string>
+    <string name="brief_basis_typical">Typical</string>
 
     <!-- Me -->
     <string name="me_title">Me</string>

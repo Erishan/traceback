@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun OpportunityDetailRoute(
     id: String,
     onBack: () -> Unit,
+    onOpenMe: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: OpportunityDetailViewModel = viewModel(
         factory = OpportunityDetailViewModel.provideFactory(id)
@@ -44,6 +45,7 @@ fun OpportunityDetailRoute(
         onDeleteNote = viewModel::onDeleteNote,
         onAppliedMessageChange = viewModel::onAppliedMessageChange,
         onBrief = viewModel::onBrief,
+        onOpenMe = onOpenMe,
         deleteFailed = deleteFailed,
         onDeleteErrorDismiss = { deleteFailed = false },
         modifier = modifier,
