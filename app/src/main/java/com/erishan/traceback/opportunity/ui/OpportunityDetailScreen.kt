@@ -88,6 +88,7 @@ import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.PillShape
 import com.erishan.traceback.ui.theme.TracebackTheme
+import com.erishan.traceback.ui.theme.TracebackTheme.colors
 import com.erishan.traceback.ui.theme.minTouchTarget
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -107,7 +108,7 @@ private val SkeletonSupportHeight = 9.dp
 
 private const val PlusToCloseRotation = 45f
 
-private const val BriefActionFillAlpha = 0.15f
+private const val BriefActionFillAlpha = 0.10f
 private const val BriefActionEdgeAlpha = 0.38f
 
 private const val SkeletonKeyWidthFraction = 0.34f
@@ -767,6 +768,8 @@ private fun SourcePicker(
                     label = stringResource(sourceLabelRes(entry)),
                     selected = source == entry,
                     onClick = { onSourceChange(entry) },
+                    selectionColor = colors.textHigh,
+                    selectedFill = colors.glassStrong,
                     enabled = enabled,
                 )
             }
@@ -982,7 +985,7 @@ private fun BriefActionButton(text: String, enabled: Boolean, onClick: () -> Uni
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) colors.accent else colors.textFaint,
+            color = if (enabled) colors.accentText else colors.textFaint,
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(horizontal = dimens.spaceM),
@@ -1026,7 +1029,7 @@ private fun BriefGateCard(
             )
             TextAction(
                 text = stringResource(R.string.brief_open_me),
-                color = colors.accent,
+                color = colors.accentText,
                 onClick = onOpenMe,
                 enabled = enabled,
             )
@@ -1535,29 +1538,40 @@ private fun DetailPreview(darkTheme: Boolean, uiState: OpportunityDetailUiState)
     }
 }
 
+@Composable
+internal fun DetailScreenShowcase(darkTheme: Boolean) {
+    TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
+        OpportunityDetailScreen(
+            uiState = previewContent(
+                stage = PipelineStage.INTERVIEW,
+                appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
+            ).copy(aiBrief = PreviewBrief, canBrief = true),
+            onBack = {},
+            onDelete = {},
+            onStageChange = {},
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onSourceChange = {},
+            onSourceLabelChange = {},
+            onAddNote = {},
+            onDeleteNote = {},
+            onAppliedMessageChange = {},
+            onBrief = {},
+            onOpenMe = {},
+            deleteFailed = false,
+            onDeleteErrorDismiss = {},
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
 @Preview(name = "active · dark", widthDp = 360, heightDp = 860)
 @Composable
-private fun DetailActiveDarkPreview() {
-    DetailPreview(
-        darkTheme = true,
-        uiState = previewContent(
-            stage = PipelineStage.INTERVIEW,
-            appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
-        ).copy(aiBrief = PreviewBrief, canBrief = true),
-    )
-}
+private fun DetailActiveDarkPreview() = DetailScreenShowcase(darkTheme = true)
 
 @Preview(name = "active · light", widthDp = 360, heightDp = 860)
 @Composable
-private fun DetailActiveLightPreview() {
-    DetailPreview(
-        darkTheme = false,
-        uiState = previewContent(
-            stage = PipelineStage.INTERVIEW,
-            appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
-        ).copy(aiBrief = PreviewBrief, canBrief = true),
-    )
-}
+private fun DetailActiveLightPreview() = DetailScreenShowcase(darkTheme = false)
 
 @Preview(name = "lost · dark", widthDp = 360, heightDp = 860)
 @Composable

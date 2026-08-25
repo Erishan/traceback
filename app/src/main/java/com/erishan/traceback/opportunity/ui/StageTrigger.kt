@@ -38,6 +38,8 @@ import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 260.dp
+
 internal val MinStagePickerSize = MinTouchTarget
 
 private const val BadgeFillAlpha = 0.14f
@@ -163,11 +165,11 @@ private fun StageTriggerPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun StageTriggerDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 260.dp) { StageTriggerPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StageTriggerPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun StageTriggerLightPreview() {
-    ComponentPreview(darkTheme = false, height = 260.dp) { StageTriggerPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StageTriggerPreviewContent() }
 }

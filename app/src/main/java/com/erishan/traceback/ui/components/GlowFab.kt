@@ -8,7 +8,6 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,15 +34,13 @@ fun GlowFab(
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier
-            .drawBehind {
-                accentBloom(
-                    color = accent,
-                    reach = dimens.fabGlow.toPx(),
-                    centerAlpha = FabBloomCenterAlpha,
-                    midAlpha = FabBloomMidAlpha,
-                    drop = FabBloomDrop,
-                )
-            }
+            .bloom(
+                color = accent,
+                reach = dimens.fabGlow,
+                centerAlpha = FabBloomCenterAlpha,
+                midAlpha = FabBloomMidAlpha,
+                drop = FabBloomDrop,
+            )
             .size(dimens.fabSize),
         shape = FabShape,
         containerColor = accent,

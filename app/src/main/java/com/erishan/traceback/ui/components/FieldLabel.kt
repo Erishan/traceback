@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 140.dp
+
 @Composable
 fun FieldLabel(
     text: String,
@@ -49,11 +51,11 @@ private fun FieldLabelPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun FieldLabelDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 140.dp) { FieldLabelPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { FieldLabelPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun FieldLabelLightPreview() {
-    ComponentPreview(darkTheme = false, height = 140.dp) { FieldLabelPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { FieldLabelPreviewContent() }
 }

@@ -160,7 +160,7 @@ private fun ListHeader(distribution: StageDistribution, onOpenMe: () -> Unit) {
             Text(
                 text = stringResource(R.string.pipeline_overline).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = colors.accent,
+                color = colors.accentText,
             )
             Spacer(Modifier.height(dimens.spaceXxs))
             Text(
@@ -401,7 +401,7 @@ private fun StagePill(stage: PipelineStage) {
         Text(
             text = stringResource(stageLabelRes(stage)).uppercase(),
             style = MaterialTheme.typography.labelMedium,
-            color = color,
+            color = TracebackTheme.colors.textHigh,
             maxLines = 1,
         )
     }
@@ -538,31 +538,30 @@ private fun ListScreenPreview(darkTheme: Boolean, uiState: OpportunityListUiStat
     }
 }
 
+@Composable
+internal fun ListScreenShowcase(darkTheme: Boolean) {
+    TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
+        OpportunityListScreen(
+            uiState = OpportunityListUiState(
+                opportunities = PreviewOpportunities,
+                distribution = PreviewDistribution,
+                isLoading = false,
+            ),
+            onAddClick = {},
+            onFilterSelected = {},
+            onOpenOpportunity = {},
+            onOpenMe = {},
+        )
+    }
+}
+
 @Preview(name = "dark", widthDp = 400, heightDp = 880)
 @Composable
-private fun OpportunityListDarkPreview() {
-    ListScreenPreview(
-        darkTheme = true,
-        uiState = OpportunityListUiState(
-            opportunities = PreviewOpportunities,
-            distribution = PreviewDistribution,
-            isLoading = false,
-        ),
-    )
-}
+private fun OpportunityListDarkPreview() = ListScreenShowcase(darkTheme = true)
 
 @Preview(name = "light", widthDp = 400, heightDp = 880)
 @Composable
-private fun OpportunityListLightPreview() {
-    ListScreenPreview(
-        darkTheme = false,
-        uiState = OpportunityListUiState(
-            opportunities = PreviewOpportunities,
-            distribution = PreviewDistribution,
-            isLoading = false,
-        ),
-    )
-}
+private fun OpportunityListLightPreview() = ListScreenShowcase(darkTheme = false)
 
 @Preview(name = "empty dark", widthDp = 400, heightDp = 880)
 @Composable

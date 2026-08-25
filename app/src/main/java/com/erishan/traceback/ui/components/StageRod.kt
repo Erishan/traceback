@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 320.dp
+
 private const val BloomAlpha = 0.7f
 
 private val PreviewCardHeight = 76.dp
@@ -85,11 +87,11 @@ private fun StageRodPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun StageRodDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 320.dp) { StageRodPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StageRodPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun StageRodLightPreview() {
-    ComponentPreview(darkTheme = false, height = 320.dp) { StageRodPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StageRodPreviewContent() }
 }

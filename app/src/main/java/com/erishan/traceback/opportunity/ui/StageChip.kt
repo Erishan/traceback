@@ -14,7 +14,7 @@ import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private const val StageChipFillAlpha = 0.16f
+private val PreviewFrameHeight = 120.dp
 
 @Composable
 fun StageChip(
@@ -27,8 +27,7 @@ fun StageChip(
     ChoiceChip(
         label = stringResource(stageLabelRes(stage)),
         selected = selected,
-        selectedBg = color.copy(alpha = StageChipFillAlpha),
-        selectedFg = color,
+        selectionColor = color,
         onClick = onClick,
         leadingDot = color,
         enabled = enabled,
@@ -54,11 +53,11 @@ private fun StageChipPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun StageChipDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 120.dp) { StageChipPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StageChipPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun StageChipLightPreview() {
-    ComponentPreview(darkTheme = false, height = 120.dp) { StageChipPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StageChipPreviewContent() }
 }

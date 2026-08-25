@@ -24,13 +24,13 @@ class StagePipelineTest {
     }
 
     @Test
-    fun `completed segments stay at 50 percent and do not share the terminal fade`() {
-        assertEquals(0.50f, CompletedSegmentAlpha, 0f)
+    fun `completed segments keep their colour and do not share the terminal fade`() {
+        assertEquals(0.45f, CompletedSegmentAlpha, 0f)
         assertNotEquals(CompletedSegmentAlpha, ExitedRailAlpha)
     }
 
     @Test
-    fun `terminal stages paint every pipe segment as an exit in the stage color`() {
+    fun `terminal stages empty every pipe segment back to the track`() {
         val lost = Color(0xFFF87171)
         val track = Color(0xFF22262E)
 
@@ -46,8 +46,9 @@ class StagePipelineTest {
                 }
             }
 
-        assertEquals(lost, pipeSegmentColor(PipeSegmentTone.Exited, stageColor = lost, trackColor = track))
+        assertEquals(track, pipeSegmentColor(PipeSegmentTone.Exited, stageColor = lost, trackColor = track))
         assertEquals(track, pipeSegmentColor(PipeSegmentTone.Empty, stageColor = lost, trackColor = track))
+        assertEquals(lost, pipeSegmentColor(PipeSegmentTone.Current, stageColor = lost, trackColor = track))
     }
 
     @Test

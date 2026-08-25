@@ -26,6 +26,8 @@ import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 220.dp
+
 private val ErrorGlyph = 16.dp
 
 private const val ErrorFillAlpha = 0.12f
@@ -114,11 +116,11 @@ private fun ErrorBannerPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun ErrorBannerDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 220.dp) { ErrorBannerPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { ErrorBannerPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun ErrorBannerLightPreview() {
-    ComponentPreview(darkTheme = false, height = 220.dp) { ErrorBannerPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { ErrorBannerPreviewContent() }
 }

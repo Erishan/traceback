@@ -7,6 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.platform.LocalInspectionMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = AccentDark,
@@ -83,12 +84,13 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun TracebackTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    reducedMotion: Boolean = LocalInspectionMode.current,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalTracebackColors provides if (darkTheme) DarkExtras else LightExtras,
         LocalTracebackDimens provides DefaultDimens,
-        LocalTracebackMotion provides DefaultMotion,
+        LocalTracebackMotion provides if (reducedMotion) StillMotion else DefaultMotion,
     ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,

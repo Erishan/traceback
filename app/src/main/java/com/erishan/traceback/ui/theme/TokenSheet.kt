@@ -203,13 +203,14 @@ fun TokenSheet(modifier: Modifier = Modifier) {
             }
 
             Section("Text") {
-                Text("textHigh - values and titles", style = MaterialTheme.typography.bodyMedium, color = colors.textHigh)
-                Text("textDim - labels and meta", style = MaterialTheme.typography.bodyMedium, color = colors.textDim)
-                Text("textFaint - placeholders only", style = MaterialTheme.typography.bodyMedium, color = colors.textFaint)
+                Text("textHigh - values and titles - 12:1 floor", style = MaterialTheme.typography.bodyMedium, color = colors.textHigh)
+                Text("textDim - labels and meta - 7:1 floor", style = MaterialTheme.typography.bodyMedium, color = colors.textDim)
+                Text("textFaint - third rank - 4.5:1 floor", style = MaterialTheme.typography.bodyMedium, color = colors.textFaint)
             }
 
             Section("Accent") {
                 SwatchRow("accent", colors.accent, "FAB and one primary action")
+                SwatchRow("accentText", colors.accentText, "accent read as text")
                 SwatchRow("accentDim", colors.accentDim, "selected wash")
                 Box(
                     Modifier

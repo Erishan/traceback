@@ -8,7 +8,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 
-
 @Immutable
 data class TracebackMotion(
     /** State flips the eye should not have to follow: selection, colour, alpha. */
@@ -27,8 +26,19 @@ data class TracebackMotion(
         dampingRatio = 0.55f,
         stiffness = Spring.StiffnessMediumLow,
     ),
+    val stilled: Boolean = false,
 )
 
 internal val DefaultMotion = TracebackMotion()
+
+internal val StillMotion = TracebackMotion(
+    fast = 0,
+    medium = 0,
+    slow = 0,
+    ambient = 0,
+    stageBloom = 0,
+    pressSpring = spring<Float>(stiffness = Spring.StiffnessHigh),
+    stilled = true,
+)
 
 val LocalTracebackMotion = staticCompositionLocalOf { DefaultMotion }

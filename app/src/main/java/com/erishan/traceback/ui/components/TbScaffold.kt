@@ -44,7 +44,7 @@ fun TbScaffold(
                             shape = MaterialTheme.shapes.small,
                             containerColor = TracebackTheme.colors.glassStrong,
                             contentColor = TracebackTheme.colors.textHigh,
-                            actionColor = TracebackTheme.colors.accent,
+                            actionColor = TracebackTheme.colors.accentText,
                         )
                     }
                 }

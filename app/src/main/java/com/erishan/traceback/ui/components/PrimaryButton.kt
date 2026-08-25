@@ -15,12 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,13 +22,13 @@ import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 220.dp
+
 private const val BusyFillAlpha = 0.55f
 
 private const val ButtonBloomCenterAlpha = 0.34f
 private const val ButtonBloomMidAlpha = 0.12f
 private const val ButtonBloomDrop = 0.14f
-
-private const val BloomMidStop = 0.55f
 
 private val IndicatorSize = 18.dp
 private val IndicatorStroke = 2.dp
@@ -64,15 +58,13 @@ fun PrimaryButton(
             .heightIn(min = MinTouchTarget)
             .then(
                 if (lit) {
-                    Modifier.drawBehind {
-                        accentBloom(
-                            color = accent,
-                            reach = dimens.fabGlow.toPx(),
-                            centerAlpha = ButtonBloomCenterAlpha,
-                            midAlpha = ButtonBloomMidAlpha,
-                            drop = ButtonBloomDrop,
-                        )
-                    }
+                    Modifier.bloom(
+                        color = accent,
+                        reach = dimens.fabGlow,
+                        centerAlpha = ButtonBloomCenterAlpha,
+                        midAlpha = ButtonBloomMidAlpha,
+                        drop = ButtonBloomDrop,
+                    )
                 } else {
                     Modifier
                 }
@@ -95,33 +87,6 @@ fun PrimaryButton(
                 color = content,
             )
         }
-    }
-}
-
-internal fun DrawScope.accentBloom(
-    color: Color,
-    reach: Float,
-    centerAlpha: Float,
-    midAlpha: Float,
-    drop: Float,
-) {
-    if (size.width <= 0f || size.height <= 0f) return
-    val radius = size.width / 2f + reach
-    val origin = Offset(center.x, center.y + size.height * drop)
-    scale(scaleX = 1f, scaleY = size.height / size.width, pivot = origin) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colorStops = arrayOf(
-                    0f to color.copy(alpha = centerAlpha),
-                    BloomMidStop to color.copy(alpha = midAlpha),
-                    1f to Color.Transparent,
-                ),
-                center = origin,
-                radius = radius,
-            ),
-            radius = radius,
-            center = origin,
-        )
     }
 }
 
@@ -148,11 +113,11 @@ private fun PrimaryButtonPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun PrimaryButtonDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 220.dp) { PrimaryButtonPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { PrimaryButtonPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun PrimaryButtonLightPreview() {
-    ComponentPreview(darkTheme = false, height = 220.dp) { PrimaryButtonPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { PrimaryButtonPreviewContent() }
 }

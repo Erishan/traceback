@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 import com.erishan.traceback.ui.theme.minTouchTarget
 
+private val PreviewFrameHeight = 120.dp
+
 private val BarButtonSize = 38.dp
 private val BarButtonGlyph = 18.dp
 
@@ -112,11 +114,11 @@ private fun TopAppBarPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun TbTopAppBarDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 120.dp) { TopAppBarPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { TopAppBarPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun TbTopAppBarLightPreview() {
-    ComponentPreview(darkTheme = false, height = 120.dp) { TopAppBarPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { TopAppBarPreviewContent() }
 }

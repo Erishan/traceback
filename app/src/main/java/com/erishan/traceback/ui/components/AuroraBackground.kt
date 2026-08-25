@@ -17,7 +17,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import com.erishan.traceback.ui.theme.TracebackTheme
 import kotlin.math.PI
@@ -49,10 +48,9 @@ private val FullTurn = (PI * 2.0).toFloat()
 @Composable
 fun AuroraBackground(modifier: Modifier = Modifier, tint: Color? = null) {
     val colors = TracebackTheme.colors
-    val ambient = TracebackTheme.motion.ambient
+    val motion = TracebackTheme.motion
 
-    val still = LocalInspectionMode.current || LocalReducedMotion.current
-    val phase = if (still) {
+    val phase = if (motion.stilled) {
         0f
     } else {
         val transition = rememberInfiniteTransition(label = "aurora")
@@ -60,7 +58,7 @@ fun AuroraBackground(modifier: Modifier = Modifier, tint: Color? = null) {
             initialValue = 0f,
             targetValue = FullTurn,
             animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = ambient, easing = LinearEasing),
+                animation = tween(durationMillis = motion.ambient, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart,
             ),
             label = "auroraDrift",

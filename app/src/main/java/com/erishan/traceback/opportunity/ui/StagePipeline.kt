@@ -20,13 +20,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.components.ComponentPreview
-import com.erishan.traceback.ui.components.LocalReducedMotion
 import com.erishan.traceback.ui.theme.TracebackTheme
+
+private val PreviewFrameHeight = 240.dp
 
 /** How far the lit segment's bloom reaches above and below the conduit. */
 private val ConduitBloomReach = 9.dp
@@ -84,7 +84,7 @@ fun StagePipeline(stage: PipelineStage, modifier: Modifier = Modifier) {
         label = "conduitRail",
     )
 
-    val still = LocalInspectionMode.current || LocalReducedMotion.current
+    val still = motion.stilled
     val bloom = remember { Animatable(ConduitBloomRest) }
     LaunchedEffect(stage, still) {
         if (still) {
@@ -187,11 +187,11 @@ private fun StagePipelinePreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun StagePipelineDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 240.dp) { StagePipelinePreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StagePipelinePreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun StagePipelineLightPreview() {
-    ComponentPreview(darkTheme = false, height = 240.dp) { StagePipelinePreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StagePipelinePreviewContent() }
 }

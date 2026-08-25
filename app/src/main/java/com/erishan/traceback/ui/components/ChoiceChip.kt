@@ -14,11 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -27,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 import com.erishan.traceback.ui.theme.minTouchTarget
 
+private val PreviewFrameHeight = 120.dp
+
 private const val SelectedFillAlpha = 0.16f
-private const val SelectedEdgeAlpha = 0.42f
 private const val SelectedBloomAlpha = 0.22f
-private const val SelectedBloomSpread = 0.85f
+private const val SelectedBloomMidAlpha = 0.11f
+private const val SelectedBloomDrop = 0f
 
 private val DotSize = 8.dp
 
@@ -38,27 +37,39 @@ private val DotSize = 8.dp
 fun ChoiceChip(
     label: String,
     selected: Boolean,
-    selectedBg: Color = TracebackTheme.colors.accent.copy(alpha = SelectedFillAlpha),
-    selectedFg: Color = TracebackTheme.colors.accent,
     onClick: () -> Unit,
+    selectionColor: Color = TracebackTheme.colors.accent,
+    selectedFill: Color = selectionColor.copy(alpha = SelectedFillAlpha),
     leadingDot: Color? = null,
     enabled: Boolean = true,
     shape: Shape = MaterialTheme.shapes.small,
 ) {
     val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
-    val contentColor = if (selected) selectedFg else colors.textDim
+    val contentColor = if (selected) colors.textHigh else colors.textDim
 
     TbGlassSurface(
         modifier = Modifier
             .minTouchTarget()
-            .then(if (selected) Modifier.drawBehind { bloom(selectedFg) } else Modifier)
+            .then(
+                if (selected) {
+                    Modifier.bloom(
+                        color = selectionColor,
+                        reach = dimens.rodGlow,
+                        centerAlpha = SelectedBloomAlpha,
+                        midAlpha = SelectedBloomMidAlpha,
+                        drop = SelectedBloomDrop,
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .clip(shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics { this.selected = selected },
         shape = shape,
-        fill = if (selected) selectedBg else null,
-        edge = if (selected) selectedFg.copy(alpha = SelectedEdgeAlpha) else null,
+        fill = if (selected) selectedFill else null,
+        edge = if (selected) selectionColor else null,
     ) {
         Row(
             modifier = Modifier
@@ -79,22 +90,6 @@ fun ChoiceChip(
     }
 }
 
-private fun DrawScope.bloom(color: Color) {
-    val radius = size.maxDimension * SelectedBloomSpread
-    drawCircle(
-        brush = Brush.radialGradient(
-            colorStops = arrayOf(
-                0f to color.copy(alpha = SelectedBloomAlpha),
-                1f to Color.Transparent,
-            ),
-            center = center,
-            radius = radius,
-        ),
-        radius = radius,
-        center = center,
-    )
-}
-
 @Composable
 private fun ChoiceChipPreviewContent() {
     Row(horizontalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs)) {
@@ -112,11 +107,11 @@ private fun ChoiceChipPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun ChoiceChipDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 120.dp) { ChoiceChipPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { ChoiceChipPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun ChoiceChipLightPreview() {
-    ComponentPreview(darkTheme = false, height = 120.dp) { ChoiceChipPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { ChoiceChipPreviewContent() }
 }

@@ -23,6 +23,7 @@ data class TracebackColors(
     /** Third rank: placeholders and empty-state text only. */
     val textFaint: Color,
     val accent: Color,
+    val accentText: Color,
     val onAccent: Color,
     /** Accent as a wash, for the one selected or primary surface. */
     val accentDim: Color,
@@ -37,10 +38,7 @@ data class TracebackColors(
     val stageDelivered: Color,
     val stageClosed: Color,
     val stageLost: Color,
-) {
-    /** Chip that names where an opportunity came from. Reads as raised glass. */
-    val sourceChipBg: Color get() = glassStrong
-}
+)
 
 internal val DarkExtras = TracebackColors(
     ground = GroundDark,
@@ -53,6 +51,7 @@ internal val DarkExtras = TracebackColors(
     textDim = TextDimDark,
     textFaint = TextFaintDark,
     accent = AccentDark,
+    accentText = AccentTextDark,
     onAccent = OnAccentDark,
     accentDim = AccentDimDark,
     auroraIndigo = AuroraIndigoDark,
@@ -79,6 +78,7 @@ internal val LightExtras = TracebackColors(
     textDim = TextDimLight,
     textFaint = TextFaintLight,
     accent = AccentLight,
+    accentText = AccentTextLight,
     onAccent = OnAccentLight,
     accentDim = AccentDimLight,
     auroraIndigo = AuroraIndigoLight,

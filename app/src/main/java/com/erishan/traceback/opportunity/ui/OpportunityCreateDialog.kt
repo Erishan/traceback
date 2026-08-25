@@ -188,8 +188,8 @@ private fun CreateSheetContent(
                 ChoiceChip(
                     label = stringResource(sourceLabelRes(source)),
                     selected = uiState.source == source,
-                    selectedBg = colors.glassStrong,
-                    selectedFg = colors.textHigh,
+                    selectionColor = colors.textHigh,
+                    selectedFill = colors.glassStrong,
                     onClick = { onSourceChange(source) },
                     enabled = editable,
                 )
@@ -291,7 +291,7 @@ private val SavingDraft = OtherSourceDraft.copy(
 
 @Composable
 private fun CreateSheetPreview(darkTheme: Boolean, uiState: OpportunityCreateUiState) {
-    TracebackTheme(darkTheme = darkTheme) {
+    TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
         Box(Modifier.fillMaxSize()) {
             AuroraBackground()
             Column(
@@ -325,13 +325,17 @@ private fun CreateSheetEmptyDarkPreview() = CreateSheetPreview(true, EmptyDraft)
 @Composable
 private fun CreateSheetEmptyLightPreview() = CreateSheetPreview(false, EmptyDraft)
 
+@Composable
+internal fun CreateSheetShowcase(darkTheme: Boolean) =
+    CreateSheetPreview(darkTheme = darkTheme, uiState = OtherSourceDraft)
+
 @Preview(name = "other source - dark", widthDp = 360, heightDp = 640)
 @Composable
-private fun CreateSheetOtherSourceDarkPreview() = CreateSheetPreview(true, OtherSourceDraft)
+private fun CreateSheetOtherSourceDarkPreview() = CreateSheetShowcase(darkTheme = true)
 
 @Preview(name = "other source - light", widthDp = 360, heightDp = 640)
 @Composable
-private fun CreateSheetOtherSourceLightPreview() = CreateSheetPreview(false, OtherSourceDraft)
+private fun CreateSheetOtherSourceLightPreview() = CreateSheetShowcase(darkTheme = false)
 
 @Preview(name = "saving - dark", widthDp = 360, heightDp = 640)
 @Composable

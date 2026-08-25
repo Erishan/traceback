@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
+private val PreviewFrameHeight = 240.dp
+
 private val RingWidth = 3.dp
 private const val RingAlpha = 0.14f
 
@@ -124,11 +126,11 @@ private fun TbTextFieldPreviewContent() {
 @Preview(name = "dark")
 @Composable
 private fun TbTextFieldDarkPreview() {
-    ComponentPreview(darkTheme = true, height = 240.dp) { TbTextFieldPreviewContent() }
+    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { TbTextFieldPreviewContent() }
 }
 
 @Preview(name = "light")
 @Composable
 private fun TbTextFieldLightPreview() {
-    ComponentPreview(darkTheme = false, height = 240.dp) { TbTextFieldPreviewContent() }
+    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { TbTextFieldPreviewContent() }
 }
