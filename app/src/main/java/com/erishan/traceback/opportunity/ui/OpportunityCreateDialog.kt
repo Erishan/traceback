@@ -2,7 +2,6 @@ package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +13,13 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -37,19 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
@@ -57,26 +46,16 @@ import com.erishan.traceback.ui.components.AuroraBackground
 import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.ErrorBanner
 import com.erishan.traceback.ui.components.FieldLabel
+import com.erishan.traceback.ui.components.PrimaryButton
 import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.components.TextAction
-import com.erishan.traceback.ui.theme.ButtonShape
-import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.SheetShape
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 private const val DescriptionMaxLines = 6
 
 private const val ScrimAlpha = 0.55f
-
-private const val SavingFillAlpha = 0.55f
-private const val BloomCenterAlpha = 0.34f
-private const val BloomMidStop = 0.55f
-private const val BloomMidAlpha = 0.12f
-private const val BloomDrop = 0.14f
-
-private val SaveIndicatorSize = 18.dp
-private val SaveIndicatorStroke = 2.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,8 +135,6 @@ private fun CreateSheetContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            // Outside the scroll, so the keyboard shrinks the viewport instead of hiding the end of
-            // it. safeDrawing's bottom side is whichever is taller right now: keyboard or navigation bar.
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
             .padding(horizontal = dimens.screenPadding)
@@ -285,84 +262,14 @@ private fun CreateSheetContent(
                 onClick = onDismiss,
                 modifier = Modifier.weight(1f),
             )
-            SaveButton(
+            PrimaryButton(
                 text = stringResource(R.string.action_save),
                 onClick = onSave,
-                enabled = uiState.title.isNotBlank() && !uiState.isSaving,
-                saving = uiState.isSaving,
                 modifier = Modifier.weight(1f),
+                enabled = uiState.title.isNotBlank() && !uiState.isSaving,
+                busy = uiState.isSaving,
             )
         }
-    }
-}
-
-@Composable
-private fun SaveButton(
-    text: String,
-    onClick: () -> Unit,
-    enabled: Boolean,
-    saving: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val colors = TracebackTheme.colors
-    val dimens = TracebackTheme.dimens
-    val accent = colors.accent
-    val lit = enabled || saving
-
-    val fill = when {
-        enabled -> accent
-        saving -> accent.copy(alpha = SavingFillAlpha)
-        else -> colors.glassStrong
-    }
-    val content = if (lit) colors.onAccent else colors.textFaint
-
-    Box(
-        modifier = modifier
-            .heightIn(min = MinTouchTarget)
-            .then(
-                if (lit) Modifier.drawBehind { accentBloom(accent, dimens.fabGlow.toPx()) }
-                else Modifier
-            )
-            .clip(ButtonShape)
-            .background(fill)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (saving) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(SaveIndicatorSize),
-                color = content,
-                strokeWidth = SaveIndicatorStroke,
-            )
-        } else {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                color = content,
-            )
-        }
-    }
-}
-
-/** Warm light behind the primary action. Flattened to the button's proportions, not a blob. */
-private fun DrawScope.accentBloom(color: Color, reach: Float) {
-    if (size.width <= 0f || size.height <= 0f) return
-    val radius = size.width / 2f + reach
-    val origin = Offset(center.x, center.y + size.height * BloomDrop)
-    scale(scaleX = 1f, scaleY = size.height / size.width, pivot = origin) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colorStops = arrayOf(
-                    0f to color.copy(alpha = BloomCenterAlpha),
-                    BloomMidStop to color.copy(alpha = BloomMidAlpha),
-                    1f to Color.Transparent,
-                ),
-                center = origin,
-                radius = radius,
-            ),
-            radius = radius,
-            center = origin,
-        )
     }
 }
 

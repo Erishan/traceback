@@ -111,7 +111,9 @@
 
     <!-- Me -->
     <string name="me_title">Me</string>
+    <string name="me_gate_hint">Brief unlocks when About and a key are saved.</string>
     <string name="cd_open_me">Me</string>
+    <string name="field_profile">Profile</string>
     <string name="field_about">About</string>
     <string name="field_rate_band">Rate band</string>
     <string name="field_pace">Pace</string>

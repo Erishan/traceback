@@ -9,9 +9,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -20,10 +17,9 @@ import com.erishan.traceback.ui.theme.TracebackTheme
 
 private val NoElevation = 0.dp
 
-private const val BloomDrop = 0.22f
-private const val BloomCenterAlpha = 0.42f
-private const val BloomMidStop = 0.55f
-private const val BloomMidAlpha = 0.14f
+private const val FabBloomCenterAlpha = 0.42f
+private const val FabBloomMidAlpha = 0.14f
+private const val FabBloomDrop = 0.22f
 
 @Composable
 fun GlowFab(
@@ -40,20 +36,12 @@ fun GlowFab(
         onClick = onClick,
         modifier = modifier
             .drawBehind {
-                val radius = size.minDimension / 2f + dimens.fabGlow.toPx()
-                val origin = Offset(center.x, center.y + size.height * BloomDrop)
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colorStops = arrayOf(
-                            0f to accent.copy(alpha = BloomCenterAlpha),
-                            BloomMidStop to accent.copy(alpha = BloomMidAlpha),
-                            1f to Color.Transparent,
-                        ),
-                        center = origin,
-                        radius = radius,
-                    ),
-                    radius = radius,
-                    center = origin,
+                accentBloom(
+                    color = accent,
+                    reach = dimens.fabGlow.toPx(),
+                    centerAlpha = FabBloomCenterAlpha,
+                    midAlpha = FabBloomMidAlpha,
+                    drop = FabBloomDrop,
                 )
             }
             .size(dimens.fabSize),

@@ -1,50 +1,54 @@
 package com.erishan.traceback.me.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.erishan.traceback.R
 import com.erishan.traceback.ui.components.ErrorBanner
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
+import com.erishan.traceback.ui.components.PrimaryButton
+import com.erishan.traceback.ui.components.TbBarIconButton
+import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
-import com.erishan.traceback.ui.theme.ButtonShape
-import com.erishan.traceback.ui.theme.MinTouchTarget
+import com.erishan.traceback.ui.components.TextAction
 import com.erishan.traceback.ui.theme.TracebackTheme
+
+private const val AboutMinLines = 3
+private const val AboutMaxLines = 8
 
 @Composable
 fun MeScreen(
@@ -59,19 +63,11 @@ fun MeScreen(
         modifier = modifier.fillMaxSize(),
         title = stringResource(R.string.me_title),
         navigationIcon = {
-            IconButton(
+            TbBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.cd_back),
                 onClick = onBack,
-                modifier = Modifier.size(MinTouchTarget),
-                colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    containerColor = Color.Transparent,
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.cd_back),
-                )
-            }
+            )
         },
     ) { innerPadding ->
         if (!uiState.isLoaded) {
@@ -83,9 +79,7 @@ fun MeScreen(
         } else {
             MeForm(
                 uiState = uiState,
-                contentPaddingModifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                innerPadding = innerPadding,
                 onSaveProfile = onSaveProfile,
                 onSaveKey = onSaveKey,
                 onClearKey = onClearKey,
@@ -97,11 +91,14 @@ fun MeScreen(
 @Composable
 private fun MeForm(
     uiState: MeUiState,
-    contentPaddingModifier: Modifier,
+    innerPadding: PaddingValues,
     onSaveProfile: (about: String, rateBand: String, pace: String) -> Unit,
     onSaveKey: (String) -> Unit,
     onClearKey: () -> Unit,
 ) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
     var about by remember { mutableStateOf(uiState.about) }
     var rateBand by remember { mutableStateOf(uiState.rateBand.orEmpty()) }
     var pace by remember { mutableStateOf(uiState.pace.orEmpty()) }
@@ -124,141 +121,217 @@ private fun MeForm(
     val keyEnabled = !uiState.isSavingKey
 
     Column(
-        modifier = contentPaddingModifier
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = innerPadding.calculateTopPadding())
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
-            .imePadding()
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = dimens.screenPadding),
     ) {
-        Spacer(Modifier.height(12.dp))
-        FieldLabel(stringResource(R.string.field_about))
-        TbTextField(
-            value = about,
-            onValueChange = {
+        Spacer(Modifier.height(dimens.spaceXs))
+
+        Text(
+            text = stringResource(R.string.me_gate_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.textFaint,
+        )
+
+        Spacer(Modifier.height(dimens.spaceL))
+
+        FieldLabel(stringResource(R.string.field_profile))
+        ProfileCard(
+            about = about,
+            rateBand = rateBand,
+            pace = pace,
+            enabled = profileEnabled,
+            saving = uiState.isSavingProfile,
+            saveFailed = uiState.profileSaveFailed,
+            onAboutChange = {
                 about = it
                 profileDirty = true
             },
-            placeholder = stringResource(R.string.me_about_hint),
-            singleLine = false,
-            minLines = 3,
-            maxLines = 8,
-            imeAction = ImeAction.Default,
-            enabled = profileEnabled,
-        )
-        Spacer(Modifier.height(14.dp))
-
-        FieldLabel(
-            text = stringResource(R.string.field_rate_band),
-            trailing = stringResource(R.string.field_optional),
-        )
-        TbTextField(
-            value = rateBand,
-            onValueChange = {
+            onRateBandChange = {
                 rateBand = it
                 profileDirty = true
             },
-            placeholder = stringResource(R.string.me_rate_band_hint),
-            imeAction = ImeAction.Next,
-            enabled = profileEnabled,
-        )
-        Spacer(Modifier.height(14.dp))
-
-        FieldLabel(
-            text = stringResource(R.string.field_pace),
-            trailing = stringResource(R.string.field_optional),
-        )
-        TbTextField(
-            value = pace,
-            onValueChange = {
+            onPaceChange = {
                 pace = it
                 profileDirty = true
             },
-            placeholder = stringResource(R.string.me_pace_hint),
-            imeAction = ImeAction.Done,
-            enabled = profileEnabled,
+            onSave = { onSaveProfile(about, rateBand, pace) },
         )
-        Spacer(Modifier.height(18.dp))
 
-        if (uiState.profileSaveFailed) {
-            ErrorBanner(text = stringResource(R.string.me_profile_could_not_save))
-            Spacer(Modifier.height(12.dp))
-        }
-
-        Button(
-            onClick = { onSaveProfile(about, rateBand, pace) },
-            enabled = profileEnabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = MinTouchTarget),
-            shape = ButtonShape,
-        ) {
-            Text(stringResource(R.string.action_save_profile))
-        }
-
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(dimens.spaceL))
 
         FieldLabel(stringResource(R.string.field_openai_key))
-        if (uiState.hasKey) {
-            Text(
-                text = stringResource(R.string.me_key_saved, uiState.lastFour.orEmpty()),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            TextButton(
-                onClick = onClearKey,
-                enabled = keyEnabled,
-                modifier = Modifier.heightIn(min = MinTouchTarget),
-            ) {
-                Text(stringResource(R.string.action_clear_key))
-            }
-        } else {
+        KeyCard(
+            uiState = uiState,
+            keyDraft = keyDraft,
+            enabled = keyEnabled,
+            onKeyDraftChange = { keyDraft = it },
+            onSaveKey = { onSaveKey(keyDraft) },
+            onClearKey = onClearKey,
+        )
+
+        Spacer(Modifier.height(dimens.spaceXl))
+    }
+}
+
+@Composable
+private fun ProfileCard(
+    about: String,
+    rateBand: String,
+    pace: String,
+    enabled: Boolean,
+    saving: Boolean,
+    saveFailed: Boolean,
+    onAboutChange: (String) -> Unit,
+    onRateBandChange: (String) -> Unit,
+    onPaceChange: (String) -> Unit,
+    onSave: () -> Unit,
+) {
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
+            FieldLabel(stringResource(R.string.field_about))
             TbTextField(
-                value = keyDraft,
-                onValueChange = { keyDraft = it },
-                placeholder = stringResource(R.string.me_key_hint),
-                enabled = keyEnabled,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardType = KeyboardType.Password,
-                capitalization = KeyboardCapitalization.None,
+                value = about,
+                onValueChange = onAboutChange,
+                placeholder = stringResource(R.string.me_about_hint),
+                singleLine = false,
+                minLines = AboutMinLines,
+                maxLines = AboutMaxLines,
+                imeAction = ImeAction.Default,
+                enabled = enabled,
             )
-            Spacer(Modifier.height(12.dp))
-            if (uiState.keyRejectedBlank) {
-                ErrorBanner(text = stringResource(R.string.me_key_blank))
-                Spacer(Modifier.height(12.dp))
-            }
-            Button(
-                onClick = { onSaveKey(keyDraft) },
-                enabled = keyEnabled && keyDraft.isNotBlank(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = MinTouchTarget),
-                shape = ButtonShape,
-            ) {
-                Text(stringResource(R.string.action_save_key))
-            }
-        }
+            Spacer(Modifier.height(dimens.spaceS))
 
-        if (uiState.keySaveFailed) {
-            Spacer(Modifier.height(12.dp))
-            ErrorBanner(text = stringResource(R.string.me_key_could_not_save))
-        }
+            FieldLabel(
+                text = stringResource(R.string.field_rate_band),
+                trailing = stringResource(R.string.field_optional),
+            )
+            TbTextField(
+                value = rateBand,
+                onValueChange = onRateBandChange,
+                placeholder = stringResource(R.string.me_rate_band_hint),
+                imeAction = ImeAction.Next,
+                enabled = enabled,
+            )
+            Spacer(Modifier.height(dimens.spaceS))
 
-        Spacer(Modifier.height(24.dp))
+            FieldLabel(
+                text = stringResource(R.string.field_pace),
+                trailing = stringResource(R.string.field_optional),
+            )
+            TbTextField(
+                value = pace,
+                onValueChange = onPaceChange,
+                placeholder = stringResource(R.string.me_pace_hint),
+                imeAction = ImeAction.Done,
+                enabled = enabled,
+            )
+            Spacer(Modifier.height(dimens.spaceM))
+
+            if (saveFailed) {
+                ErrorBanner(text = stringResource(R.string.me_profile_could_not_save))
+                Spacer(Modifier.height(dimens.spaceS))
+            }
+
+            PrimaryButton(
+                text = stringResource(R.string.action_save_profile),
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
+                busy = saving,
+            )
+        }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A0B0D, widthDp = 360)
 @Composable
-private fun MeScreenPreview() {
-    TracebackTheme {
+private fun KeyCard(
+    uiState: MeUiState,
+    keyDraft: String,
+    enabled: Boolean,
+    onKeyDraftChange: (String) -> Unit,
+    onSaveKey: () -> Unit,
+    onClearKey: () -> Unit,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
+            if (uiState.hasKey) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+                ) {
+                    Text(
+                        text = stringResource(R.string.me_key_saved, uiState.lastFour.orEmpty()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textHigh,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextAction(
+                        text = stringResource(R.string.action_clear_key),
+                        color = colors.textDim,
+                        onClick = onClearKey,
+                        enabled = enabled,
+                    )
+                }
+            } else {
+                TbTextField(
+                    value = keyDraft,
+                    onValueChange = onKeyDraftChange,
+                    placeholder = stringResource(R.string.me_key_hint),
+                    enabled = enabled,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardType = KeyboardType.Password,
+                    capitalization = KeyboardCapitalization.None,
+                )
+                Spacer(Modifier.height(dimens.spaceS))
+
+                if (uiState.keyRejectedBlank) {
+                    ErrorBanner(text = stringResource(R.string.me_key_blank))
+                    Spacer(Modifier.height(dimens.spaceS))
+                }
+
+                PrimaryButton(
+                    text = stringResource(R.string.action_save_key),
+                    onClick = onSaveKey,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = enabled && keyDraft.isNotBlank(),
+                    busy = uiState.isSavingKey,
+                )
+            }
+
+            if (uiState.keySaveFailed) {
+                Spacer(Modifier.height(dimens.spaceS))
+                ErrorBanner(text = stringResource(R.string.me_key_could_not_save))
+            }
+        }
+    }
+}
+
+private val SavedKeyState = MeUiState(
+    about = "Android + Compose. No blockchain. Direct, short emails.",
+    rateBand = "mid",
+    pace = "one client at a time",
+    hasKey = true,
+    lastFour = "4H2K",
+    isLoaded = true,
+)
+
+private val NoKeyState = MeUiState(isLoaded = true)
+
+@Composable
+private fun MeScreenPreview(darkTheme: Boolean, uiState: MeUiState) {
+    TracebackTheme(darkTheme = darkTheme) {
         MeScreen(
-            uiState = MeUiState(
-                about = "Android + Compose. No blockchain. Direct, short emails.",
-                rateBand = "mid",
-                pace = "one client at a time",
-                hasKey = true,
-                lastFour = "ABCD",
-                isLoaded = true,
-            ),
+            uiState = uiState,
             onBack = {},
             onSaveProfile = { _, _, _ -> },
             onSaveKey = {},
@@ -267,16 +340,18 @@ private fun MeScreenPreview() {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A0B0D, widthDp = 360)
+@Preview(name = "key saved - dark", widthDp = 400, heightDp = 880)
 @Composable
-private fun MeScreenEmptyKeyPreview() {
-    TracebackTheme {
-        MeScreen(
-            uiState = MeUiState(isLoaded = true),
-            onBack = {},
-            onSaveProfile = { _, _, _ -> },
-            onSaveKey = {},
-            onClearKey = {},
-        )
-    }
-}
+private fun MeScreenSavedKeyDarkPreview() = MeScreenPreview(true, SavedKeyState)
+
+@Preview(name = "key saved - light", widthDp = 400, heightDp = 880)
+@Composable
+private fun MeScreenSavedKeyLightPreview() = MeScreenPreview(false, SavedKeyState)
+
+@Preview(name = "no key - dark", widthDp = 400, heightDp = 880)
+@Composable
+private fun MeScreenNoKeyDarkPreview() = MeScreenPreview(true, NoKeyState)
+
+@Preview(name = "no key - light", widthDp = 400, heightDp = 880)
+@Composable
+private fun MeScreenNoKeyLightPreview() = MeScreenPreview(false, NoKeyState)
