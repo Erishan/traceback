@@ -1,58 +1,45 @@
 package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.PipelineStage
-import com.erishan.traceback.ui.theme.MinTouchTarget
+import com.erishan.traceback.ui.components.ComponentPreview
+import com.erishan.traceback.ui.components.LocalReducedMotion
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val SegmentHeight = 6.dp
-private val SegmentGap = 6.dp
+/** How far the lit segment's bloom reaches above and below the conduit. */
+private val ConduitBloomReach = 9.dp
 
-internal val MinStagePickerSize = MinTouchTarget
+/** Bloom alpha the current segment sits at, and the peak of the single breath a stage change buys. */
+private const val ConduitBloomRest = 0.34f
+private const val ConduitBloomPeak = 0.90f
 
-internal const val CompletedSegmentAlpha = 0.50f
+/** Stages already passed keep their colour, at the rank of something finished. */
+internal const val CompletedSegmentAlpha = 0.45f
 
+/** An opportunity that left the track: the channel empties and falls back to this. */
 internal const val ExitedRailAlpha = 0.30f
-
-private const val BadgeFillAlpha = 0.14f
-private const val BadgeBorderAlpha = 0.24f
-private const val DisabledTriggerAlpha = 0.55f
 
 internal fun pipeRailAlpha(isTerminal: Boolean): Float =
     if (isTerminal) ExitedRailAlpha else 1f
@@ -77,187 +64,134 @@ internal fun pipeSegmentColor(tone: PipeSegmentTone, stageColor: Color, trackCol
         PipeSegmentTone.Completed -> stageColor.copy(alpha = CompletedSegmentAlpha)
         PipeSegmentTone.Current -> stageColor
         PipeSegmentTone.Empty -> trackColor
-        PipeSegmentTone.Exited -> stageColor
+        PipeSegmentTone.Exited -> trackColor
     }
 
 @Composable
-fun StagePipeline(
-    stage: PipelineStage,
-    pickerOpen: Boolean,
-    onOpenPicker: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val color by animateColorAsState(targetValue = stageColor(stage), label = "stageColor")
-    val pipeAlpha by animateFloatAsState(
+fun StagePipeline(stage: PipelineStage, modifier: Modifier = Modifier) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    val motion = TracebackTheme.motion
+
+    val color by animateColorAsState(
+        targetValue = stageColor(stage),
+        animationSpec = tween(motion.slow, easing = motion.standardEasing),
+        label = "conduitColor",
+    )
+    val railAlpha by animateFloatAsState(
         targetValue = pipeRailAlpha(stage.isTerminal),
-        label = "pipeAlpha",
-    )
-    val caret by animateFloatAsState(
-        targetValue = if (pickerOpen) 180f else 0f,
-        label = "caret",
+        animationSpec = tween(motion.slow, easing = motion.standardEasing),
+        label = "conduitRail",
     )
 
-    Column(modifier = modifier) {
-        Pipe(trackIndex = stage.trackIndex, color = color, alpha = pipeAlpha)
-        Spacer(Modifier.height(if (stage.isTerminal) 12.dp else 6.dp))
-        if (stage.isTerminal) {
-            TerminalBadge(
-                stage = stage,
-                color = color,
-                caret = caret,
-                onClick = onOpenPicker,
-                enabled = enabled,
-            )
-        } else {
-            TrackLabel(
-                stage = stage,
-                color = color,
-                caret = caret,
-                onClick = onOpenPicker,
-                enabled = enabled,
-            )
+    val still = LocalInspectionMode.current || LocalReducedMotion.current
+    val bloom = remember { Animatable(ConduitBloomRest) }
+    LaunchedEffect(stage, still) {
+        if (still) {
+            bloom.snapTo(ConduitBloomRest)
+            return@LaunchedEffect
         }
+        val half = motion.stageBloom / 2
+        bloom.animateTo(ConduitBloomPeak, tween(half, easing = motion.standardEasing))
+        bloom.animateTo(ConduitBloomRest, tween(half, easing = motion.standardEasing))
     }
-}
 
-@Composable
-private fun Pipe(trackIndex: Int?, color: Color, alpha: Float) {
-    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-    Row(
-        modifier = Modifier
+    val trackColor = colors.track
+    val trackIndex = stage.trackIndex
+    val bloomAlpha = bloom.value
+
+    Canvas(
+        modifier = modifier
             .fillMaxWidth()
-            .alpha(alpha),
-        horizontalArrangement = Arrangement.spacedBy(SegmentGap),
+            .height(dimens.conduitHeight + ConduitBloomReach * 2)
     ) {
-        PipelineStage.track.forEachIndexed { index, _ ->
-            val target = pipeSegmentColor(
-                tone = pipeSegmentTone(trackIndex, index),
-                stageColor = color,
-                trackColor = trackColor,
-            )
+        val count = PipelineStage.track.size
+        val thickness = dimens.conduitHeight.toPx()
+        val gap = dimens.conduitGap.toPx()
+        val centerY = size.height / 2f
+        val segment = ((size.width - gap * (count - 1)) / count).coerceAtLeast(thickness)
+        val radius = thickness / 2f
+        val reach = ConduitBloomReach.toPx()
 
-            val segment by animateColorAsState(targetValue = target, label = "segment$index")
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(SegmentHeight)
-                    .clip(CircleShape)
-                    .background(segment)
+        repeat(count) { index ->
+            val left = index * (segment + gap)
+            val tone = pipeSegmentTone(trackIndex, index)
+            if (tone == PipeSegmentTone.Current) {
+                drawSegmentBloom(color, left, segment, centerY, reach, bloomAlpha)
+            }
+            drawSegment(
+                color = pipeSegmentColor(tone, color, trackColor),
+                left = left,
+                width = segment,
+                centerY = centerY,
+                thickness = thickness,
+                radius = radius,
+                alpha = railAlpha,
             )
         }
     }
 }
 
-@Composable
-private fun TrackLabel(
-    stage: PipelineStage,
+private fun DrawScope.drawSegment(
     color: Color,
-    caret: Float,
-    onClick: () -> Unit,
-    enabled: Boolean,
+    left: Float,
+    width: Float,
+    centerY: Float,
+    thickness: Float,
+    radius: Float,
+    alpha: Float,
 ) {
-    val changeStageLabel = stringResource(R.string.cd_change_stage)
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .stagePickerTrigger(
-                enabled = enabled,
-                onClick = onClick,
-                onClickLabel = changeStageLabel,
-            )
-            .padding(horizontal = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = stringResource(stageLabelRes(stage)),
-            style = MaterialTheme.typography.titleSmall,
-            color = color,
-        )
-        Caret(color = color, rotation = caret)
-    }
-}
-
-@Composable
-private fun TerminalBadge(
-    stage: PipelineStage,
-    color: Color,
-    caret: Float,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    val shape = MaterialTheme.shapes.small
-    val changeStageLabel = stringResource(R.string.cd_change_stage)
-    Row(
-        modifier = Modifier
-            .clip(shape)
-            .background(color.copy(alpha = BadgeFillAlpha))
-            .border(width = 1.dp, color = color.copy(alpha = BadgeBorderAlpha), shape = shape)
-            .stagePickerTrigger(
-                enabled = enabled,
-                onClick = onClick,
-                onClickLabel = changeStageLabel,
-            )
-            .padding(start = 10.dp, end = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(15.dp),
-        )
-        Text(
-            text = stringResource(stageLabelRes(stage)),
-            style = MaterialTheme.typography.titleSmall,
-            color = color,
-        )
-        Caret(color = color, rotation = caret)
-    }
-}
-
-@Composable
-private fun Caret(color: Color, rotation: Float) {
-    Icon(
-        imageVector = Icons.Default.KeyboardArrowDown,
-        contentDescription = null,
-        tint = color,
-        modifier = Modifier
-            .size(18.dp)
-            .rotate(rotation),
+    drawLine(
+        color = color,
+        start = Offset(left + radius, centerY),
+        end = Offset(left + width - radius, centerY),
+        strokeWidth = thickness,
+        cap = StrokeCap.Round,
+        alpha = alpha,
     )
 }
 
-private fun Modifier.stagePickerTrigger(
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onClickLabel: String,
-): Modifier =
-    minimumInteractiveComponentSize()
-        .sizeIn(minWidth = MinStagePickerSize, minHeight = MinStagePickerSize)
-        .clickable(
-            enabled = enabled,
-            onClick = onClick,
-            onClickLabel = onClickLabel,
-            role = Role.Button,
-        )
-        .alpha(if (enabled) 1f else DisabledTriggerAlpha)
+private fun DrawScope.drawSegmentBloom(
+    color: Color,
+    left: Float,
+    width: Float,
+    centerY: Float,
+    reach: Float,
+    alpha: Float,
+) {
+    drawRect(
+        brush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                0f to Color.Transparent,
+                0.5f to color.copy(alpha = alpha),
+                1f to Color.Transparent,
+            ),
+            startY = centerY - reach,
+            endY = centerY + reach,
+        ),
+        topLeft = Offset(left, centerY - reach),
+        size = Size(width, reach * 2f),
+    )
+}
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A0B0D, widthDp = 320)
 @Composable
-private fun StagePipelinePreview() {
-    TracebackTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                StagePipeline(PipelineStage.APPLIED, pickerOpen = false, onOpenPicker = {})
-                StagePipeline(PipelineStage.INTERVIEW, pickerOpen = true, onOpenPicker = {})
-                StagePipeline(PipelineStage.LOST, pickerOpen = false, onOpenPicker = {})
-            }
-        }
+private fun StagePipelinePreviewContent() {
+    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceL)) {
+        StagePipeline(PipelineStage.DRAFT)
+        StagePipeline(PipelineStage.INTERVIEW)
+        StagePipeline(PipelineStage.DELIVERED)
+        StagePipeline(PipelineStage.LOST)
     }
+}
+
+@Preview(name = "dark")
+@Composable
+private fun StagePipelineDarkPreview() {
+    ComponentPreview(darkTheme = true, height = 240.dp) { StagePipelinePreviewContent() }
+}
+
+@Preview(name = "light")
+@Composable
+private fun StagePipelineLightPreview() {
+    ComponentPreview(darkTheme = false, height = 240.dp) { StagePipelinePreviewContent() }
 }

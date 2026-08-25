@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,9 +41,9 @@ fun TbTopAppBar(
         title = {
             if (title != null) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.textHigh,
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.textDim,
                 )
             }
         },
@@ -53,7 +53,7 @@ fun TbTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
-            titleContentColor = colors.textHigh,
+            titleContentColor = colors.textDim,
             navigationIconContentColor = colors.textDim,
             actionIconContentColor = colors.textDim,
         ),
@@ -66,20 +66,22 @@ fun TbBarIconButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
+    val colors = TracebackTheme.colors
     Box(modifier = modifier.minTouchTarget(), contentAlignment = Alignment.Center) {
         TbGlassSurface(
             modifier = Modifier
                 .size(BarButtonSize)
                 .clip(MaterialTheme.shapes.extraSmall)
-                .clickable(role = Role.Button, onClick = onClick),
+                .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
             shape = MaterialTheme.shapes.extraSmall,
             strong = true,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = TracebackTheme.colors.textDim,
+                tint = if (enabled) colors.textDim else colors.textFaint,
                 modifier = Modifier.size(BarButtonGlyph).align(Alignment.Center),
             )
         }
@@ -99,8 +101,8 @@ private fun TopAppBarPreviewContent() {
         },
         actions = {
             TbBarIconButton(
-                icon = Icons.Default.MoreVert,
-                contentDescription = "More",
+                icon = Icons.Outlined.DeleteOutline,
+                contentDescription = "Delete",
                 onClick = {},
             )
         },

@@ -58,6 +58,7 @@
     <string name="cd_delete">Delete</string>
     <string name="cd_edit">Edit</string>
     <string name="cd_change_stage">Change stage</string>
+    <string name="cd_change_source">Change source</string>
     <string name="cd_confirm">Save</string>
     <string name="cd_cancel">Cancel</string>
     <string name="field_applied_message">Applied message</string>
@@ -79,7 +80,6 @@
 
     <!-- Brief -->
     <string name="action_brief">Brief</string>
-    <string name="cd_brief">Brief this job</string>
     <string name="brief_empty">Brief this job to get fit, a proposal, price, time, and approach.</string>
     <string name="brief_disabled_no_about">Add who you are on Me before briefing.</string>
     <string name="brief_disabled_no_key">Paste an OpenAI key on Me before briefing.</string>

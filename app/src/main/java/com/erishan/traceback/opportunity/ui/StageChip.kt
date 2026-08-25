@@ -2,9 +2,8 @@ package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -12,7 +11,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.components.ChoiceChip
+import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.theme.TracebackTheme
+
+private const val StageChipFillAlpha = 0.16f
 
 @Composable
 fun StageChip(
@@ -21,30 +23,42 @@ fun StageChip(
     onClick: () -> Unit,
     enabled: Boolean = true,
 ) {
-    val c = stageColor(stage)
+    val color = stageColor(stage)
     ChoiceChip(
         label = stringResource(stageLabelRes(stage)),
         selected = selected,
-        selectedBg = c.copy(alpha = 0.16f),
-        selectedFg = c,
+        selectedBg = color.copy(alpha = StageChipFillAlpha),
+        selectedFg = color,
         onClick = onClick,
-        leadingDot = c,
+        leadingDot = color,
         enabled = enabled,
     )
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A0B0D)
 @Composable
-private fun StageChipPreview() {
-    TracebackTheme {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Row(
-                Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                StageChip(stage = PipelineStage.APPLIED, selected = true, onClick = {})
-                StageChip(stage = PipelineStage.DRAFT, selected = false, onClick = {})
-            }
+private fun StageChipPreviewContent() {
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs),
+    ) {
+        PipelineStage.entries.forEach { stage ->
+            StageChip(
+                stage = stage,
+                selected = stage == PipelineStage.INTERVIEW,
+                onClick = {},
+            )
         }
     }
+}
+
+@Preview(name = "dark")
+@Composable
+private fun StageChipDarkPreview() {
+    ComponentPreview(darkTheme = true, height = 120.dp) { StageChipPreviewContent() }
+}
+
+@Preview(name = "light")
+@Composable
+private fun StageChipLightPreview() {
+    ComponentPreview(darkTheme = false, height = 120.dp) { StageChipPreviewContent() }
 }

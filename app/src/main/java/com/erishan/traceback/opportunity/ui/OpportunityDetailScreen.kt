@@ -1,9 +1,9 @@
 package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,23 +22,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.outlined.DeleteSweep
-import androidx.compose.material.icons.outlined.PlayForWork
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,12 +57,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
@@ -71,15 +70,30 @@ import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
+import com.erishan.traceback.ui.components.TbBarIconButton
+import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.MinTouchTarget
+import com.erishan.traceback.ui.theme.PillShape
 import com.erishan.traceback.ui.theme.TracebackTheme
 import com.erishan.traceback.ui.theme.minTouchTarget
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.time.Instant
+
+private val AddNoteToggleSize = 30.dp
+private val AddNoteGlyph = 16.dp
+private val InlineGlyph = 20.dp
+private val ErrorGlyph = 16.dp
+private val BriefSpinnerSize = 16.dp
+private val BriefSpinnerStroke = 2.dp
+private val ScrollBottomInset = 40.dp
+
+private const val ErrorFillAlpha = 0.12f
+private const val ErrorEdgeAlpha = 0.36f
+private const val PlusToCloseRotation = 45f
 
 @Composable
 fun OpportunityDetailScreen(
@@ -99,6 +113,8 @@ fun OpportunityDetailScreen(
     onDeleteErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = TracebackTheme.colors
+    val motion = TracebackTheme.motion
     val snackbarHostState = remember { SnackbarHostState() }
     var showConfirm by remember { mutableStateOf(false) }
     val content = uiState as? OpportunityDetailUiState.Content
@@ -111,60 +127,42 @@ fun OpportunityDetailScreen(
         }
     }
 
+    val tintTarget = if (content != null) stageColor(content.pipelineStage) else colors.auroraWarm
+    val auroraTint by animateColorAsState(
+        targetValue = tintTarget,
+        animationSpec = tween(motion.slow, easing = motion.standardEasing),
+        label = "auroraTint",
+    )
+
     TbScaffold(
-        modifier = modifier.fillMaxSize(),
-        title = null,
+        modifier = modifier,
+        title = stringResource(R.string.detail_opportunity),
+        auroraTint = auroraTint,
         navigationIcon = {
-            IconButton(
+            TbBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.cd_back),
                 onClick = onBack,
-                modifier = Modifier.size(MinTouchTarget),
-                colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    containerColor = Color.Transparent
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.cd_back),
-                )
-            }
+            )
         },
         actions = {
             if (content != null) {
-                val briefCd = stringResource(R.string.cd_brief)
-                TextButton(
-                    onClick = onBrief,
-                    enabled = content.briefActionEnabled,
-                    modifier = Modifier
-                        .heightIn(min = MinTouchTarget)
-                        .semantics { contentDescription = briefCd },
-                ) {
-                    Text(stringResource(R.string.action_brief))
-                }
-                IconButton(
+                TbBarIconButton(
+                    icon = Icons.Outlined.DeleteOutline,
+                    contentDescription = stringResource(R.string.cd_delete),
                     onClick = { showConfirm = true },
                     enabled = !content.isBusy,
-                    modifier = Modifier.size(MinTouchTarget),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.DeleteSweep,
-                        contentDescription = stringResource(R.string.cd_delete),
-                    )
-                }
+                )
             }
         },
-        snackbarHostState =snackbarHostState,
+        snackbarHostState = snackbarHostState,
     ) { innerPadding ->
         when (uiState) {
             OpportunityDetailUiState.Loading ->
-                Box(Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)) { LoadingState() }
+                Box(Modifier.fillMaxSize().padding(innerPadding)) { LoadingState() }
 
             OpportunityDetailUiState.NotFound ->
-                Box(Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)) {
+                Box(Modifier.fillMaxSize().padding(innerPadding)) {
                     EmptyState(
                         title = stringResource(R.string.detail_not_found_title),
                         message = stringResource(R.string.detail_not_found_message),
@@ -213,51 +211,51 @@ private fun DetailContent(
     onAppliedMessageChange: (String) -> Unit,
     onBrief: () -> Unit,
 ) {
+    val dimens = TracebackTheme.dimens
     var sourceOpen by remember { mutableStateOf(false) }
     var stageOpen by remember { mutableStateOf(false) }
     val editEnabled = !content.isBusy
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .imePadding()
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = dimens.screenPadding),
     ) {
         if (content.saveFailed) {
-            Spacer(Modifier.height(12.dp))
             ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
+            Spacer(Modifier.height(dimens.spaceS))
         }
 
         InlineTitle(value = content.title, onCommit = onTitleChange, enabled = editEnabled)
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(dimens.spaceL))
 
-        StagePipeline(
+        StagePipeline(stage = content.pipelineStage)
+        StageTrigger(
             stage = content.pipelineStage,
-            pickerOpen = stageOpen,
-            onOpenPicker = {
+            open = stageOpen,
+            onClick = {
                 stageOpen = !stageOpen
                 sourceOpen = false
             },
-            modifier = Modifier.fillMaxWidth(),
             enabled = editEnabled,
         )
-
         AnimatedVisibility(visible = stageOpen) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = dimens.spaceXxs, bottom = dimens.spaceXs)
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
             ) {
-                PipelineStage.entries.forEach { st ->
+                PipelineStage.entries.forEach { stage ->
                     StageChip(
-                        stage = st,
-                        selected = content.pipelineStage == st,
+                        stage = stage,
+                        selected = content.pipelineStage == stage,
                         onClick = {
-                            onStageChange(st)
+                            onStageChange(stage)
                             stageOpen = false
                         },
                         enabled = editEnabled,
@@ -266,7 +264,7 @@ private fun DetailContent(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(dimens.spaceM))
 
         EditableCard(
             label = stringResource(R.string.field_description),
@@ -276,7 +274,7 @@ private fun DetailContent(
             onCommit = onDescriptionChange,
             enabled = editEnabled,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(dimens.spaceS))
 
         BriefSection(
             content = content,
@@ -284,7 +282,7 @@ private fun DetailContent(
             onUseProposalAsAppliedMessage = onAppliedMessageChange,
             enabled = editEnabled,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(dimens.spaceS))
 
         EditableCard(
             label = stringResource(R.string.field_applied_message),
@@ -294,7 +292,7 @@ private fun DetailContent(
             onCommit = onAppliedMessageChange,
             enabled = editEnabled,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(dimens.spaceS))
 
         NotesSection(
             notes = content.notes,
@@ -302,265 +300,30 @@ private fun DetailContent(
             onDelete = onDeleteNote,
             enabled = editEnabled,
         )
-        Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SourcePill(
+
+        Spacer(Modifier.height(dimens.spaceXl))
+        MetaFooter(
+            source = content.source,
+            sourceLabel = content.sourceLabel,
+            createdAt = content.createdAt,
+            onSourceClick = {
+                sourceOpen = !sourceOpen
+                stageOpen = false
+            },
+            enabled = editEnabled,
+        )
+        AnimatedVisibility(visible = sourceOpen) {
+            SourcePicker(
                 source = content.source,
                 sourceLabel = content.sourceLabel,
-                onClick = {
-                    sourceOpen = !sourceOpen
-                    stageOpen = false
-                },
+                onSourceChange = onSourceChange,
+                onSourceLabelChange = onSourceLabelChange,
                 enabled = editEnabled,
             )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = formatTimestampOrUnknown(content.createdAt),
-                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
-                color = TracebackTheme.colors.textFaint,
-            )
         }
-        AnimatedVisibility(visible = sourceOpen) {
-            Column {
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OpportunitySource.entries.forEach { s ->
-                        ChoiceChip(
-                            label = stringResource(sourceLabelRes(s)),
-                            selected = content.source == s,
-                            selectedBg = TracebackTheme.colors.accentDim,
-                            selectedFg = MaterialTheme.colorScheme.primary,
-                            onClick = { onSourceChange(s) },
-                            enabled = editEnabled,
-                        )
-                    }
-                }
-                AnimatedVisibility(visible = content.source == OpportunitySource.OTHER) {
-                    Column {
-                        Spacer(Modifier.height(12.dp))
-                        FieldLabel(stringResource(R.string.field_source_label))
-                        TbTextField(
-                            value = content.sourceLabel.orEmpty(),
-                            onValueChange = onSourceLabelChange,
-                            placeholder = stringResource(R.string.create_source_label_hint),
-                            enabled = editEnabled,
-                        )
-                    }
-                }
-            }
-        }
+        Spacer(Modifier.height(ScrollBottomInset))
     }
 }
-
-@Composable
-private fun BriefSection(
-    content: OpportunityDetailUiState.Content,
-    onBrief: () -> Unit,
-    onUseProposalAsAppliedMessage: (String) -> Unit,
-    enabled: Boolean,
-) {
-    val briefEnabled = content.briefActionEnabled
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            TextButton(
-                onClick = onBrief,
-                enabled = briefEnabled,
-                modifier = Modifier.heightIn(min = MinTouchTarget),
-            ) {
-                Text(stringResource(R.string.action_brief))
-            }
-            if (content.briefInFlight) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-        if (content.briefFailed != null) {
-            ErrorBanner(text = stringResource(briefFailureRes(content.briefFailed)))
-        }
-        if (!content.canBrief && content.briefGateReason != null) {
-            Text(
-                text = stringResource(briefGateReasonRes(content.briefGateReason)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = TracebackTheme.colors.textFaint,
-            )
-        }
-        val brief = content.aiBrief
-        if (brief == null) {
-            Text(
-                text = stringResource(R.string.brief_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = TracebackTheme.colors.textFaint,
-            )
-        } else {
-            FitCard(brief)
-            ProposalCard(
-                proposal = brief.proposal,
-                onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
-                enabled = enabled,
-            )
-            PriceCard(brief)
-            DurationCard(brief)
-            ApproachCard(brief)
-        }
-    }
-}
-
-@Composable
-private fun FitCard(brief: JobBrief) {
-    ReadOnlyCard(label = stringResource(R.string.field_fit)) {
-        Text(
-            text = stringResource(fitVerdictRes(brief.fit.verdict)),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = brief.fit.summary,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun ProposalCard(
-    proposal: String,
-    onUseAsAppliedMessage: (String) -> Unit,
-    enabled: Boolean,
-) {
-    ReadOnlyCard(label = stringResource(R.string.field_proposal)) {
-        Text(
-            text = proposal,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        TextButton(
-            onClick = { onUseAsAppliedMessage(proposal) },
-            enabled = enabled,
-            modifier = Modifier.heightIn(min = MinTouchTarget),
-        ) {
-            Text(stringResource(R.string.brief_use_as_applied))
-        }
-    }
-}
-
-@Composable
-private fun PriceCard(brief: JobBrief) {
-    ReadOnlyCard(label = stringResource(R.string.field_price)) {
-        Text(
-            text = stringResource(R.string.brief_price_range, brief.price.low, brief.price.high),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = brief.price.rationale,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun DurationCard(brief: JobBrief) {
-    ReadOnlyCard(label = stringResource(R.string.field_duration)) {
-        Text(
-            text = brief.duration.range,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = stringResource(R.string.brief_duration_hours, brief.duration.hours),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = stringResource(durationBasisRes(brief.duration.basis)),
-            style = MaterialTheme.typography.bodySmall,
-            color = TracebackTheme.colors.textFaint,
-        )
-    }
-}
-
-@Composable
-private fun ApproachCard(brief: JobBrief) {
-    ReadOnlyCard(label = stringResource(R.string.field_approach)) {
-        Text(
-            text = brief.approach.summary,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        if (brief.approach.technologies.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = brief.approach.technologies.joinToString(", "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ReadOnlyCard(
-    label: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
-        CardLabel(label)
-        Spacer(Modifier.height(9.dp))
-        content()
-    }
-}
-
-private fun briefFailureRes(kind: BriefFailureKind): Int = when (kind) {
-    BriefFailureKind.BadKey -> R.string.brief_failed_bad_key
-    BriefFailureKind.RateLimited -> R.string.brief_failed_rate_limit
-    BriefFailureKind.InvalidResponse -> R.string.brief_failed_invalid
-    BriefFailureKind.Network -> R.string.brief_failed_network
-}
-
-private fun briefGateReasonRes(reason: BriefGateReason): Int = when (reason) {
-    BriefGateReason.MissingAbout -> R.string.brief_disabled_no_about
-    BriefGateReason.MissingKey -> R.string.brief_disabled_no_key
-    BriefGateReason.MissingAboutAndKey -> R.string.brief_disabled_no_about_or_key
-}
-
-private fun fitVerdictRes(verdict: String): Int = when (verdict) {
-    "yes" -> R.string.brief_verdict_yes
-    "no" -> R.string.brief_verdict_no
-    else -> R.string.brief_verdict_stretch
-}
-
-private fun durationBasisRes(basis: String): Int =
-    if (basis == "profile") R.string.brief_basis_profile else R.string.brief_basis_typical
 
 @Composable
 private fun InlineTitle(
@@ -590,56 +353,27 @@ private fun InlineTitle(
             )
         }
     } else {
-        val modifier = if (enabled) {
-            Modifier
+        val editLabel = stringResource(R.string.cd_edit)
+        Box(
+            modifier = Modifier
                 .fillMaxWidth()
-                .minTouchTarget()
-                .clickable(role = Role.Button) {
-                    buffer = value
-                    editing = true
-                }
-        } else {
-            Modifier.fillMaxWidth()
-        }
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = modifier,
-        )
-    }
-}
-
-@Composable
-private fun SourcePill(
-    source: OpportunitySource,
-    sourceLabel: String?,
-    onClick: () -> Unit,
-    enabled: Boolean,
-) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        shape = MaterialTheme.shapes.small,
-        color = Color.Transparent,
-        modifier = Modifier.minTouchTarget(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                .heightIn(min = MinTouchTarget)
+                .then(
+                    if (enabled) {
+                        Modifier.clickable(role = Role.Button, onClickLabel = editLabel) {
+                            buffer = value
+                            editing = true
+                        }
+                    } else {
+                        Modifier
+                    }
+                ),
+            contentAlignment = Alignment.CenterStart,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.PlayForWork,
-                contentDescription = null,
-                modifier = Modifier.size(15.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
             Text(
-                text = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
-                    ?: stringResource(sourceLabelRes(source)),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = TracebackTheme.colors.textHigh,
             )
         }
     }
@@ -654,13 +388,33 @@ private fun EditableCard(
     onCommit: (String) -> Unit,
     enabled: Boolean,
 ) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    val shape = MaterialTheme.shapes.medium
+
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
+    val tappable = enabled && !editing
+    val editLabel = stringResource(R.string.cd_edit)
 
-    val body: @Composable () -> Unit = {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-            CardLabel(label)
-            Spacer(Modifier.height(9.dp))
+    TbGlassSurface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .then(
+                if (tappable) {
+                    Modifier.clickable(role = Role.Button, onClickLabel = editLabel) {
+                        buffer = value.orEmpty()
+                        editing = true
+                    }
+                } else {
+                    Modifier
+                }
+            ),
+        shape = shape,
+    ) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
+            FieldLabel(label)
             if (editing) {
                 TbTextField(
                     value = buffer,
@@ -683,31 +437,10 @@ private fun EditableCard(
                 Text(
                     text = value ?: emptyText,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (value == null) TracebackTheme.colors.textFaint
-                    else MaterialTheme.colorScheme.onSurface,
+                    color = if (value == null) colors.textFaint else colors.textHigh,
                 )
             }
         }
-    }
-
-    if (editing || !enabled) {
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth(),
-            content = body,
-        )
-    } else {
-        Surface(
-            onClick = {
-                buffer = value.orEmpty()
-                editing = true
-            },
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth(),
-            content = body,
-        )
     }
 }
 
@@ -718,58 +451,63 @@ private fun NotesSection(
     onDelete: (String) -> Unit,
     enabled: Boolean,
 ) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
     var composing by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            CardLabel(stringResource(R.string.field_notes))
-            AddNoteToggle(
-                expanded = composing,
-                onClick = { composing = !composing },
-                enabled = enabled,
-            )
-        }
-
-        AnimatedVisibility(visible = composing) {
-            Column {
-                Spacer(Modifier.height(14.dp))
-                NoteComposer(
-                    onSubmit = { text ->
-                        onAdd(text)
-                        composing = false
-                    },
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                FieldLabel(stringResource(R.string.field_notes), spacer = false)
+                AddNoteToggle(
+                    expanded = composing,
+                    onClick = { composing = !composing },
                     enabled = enabled,
                 )
             }
-        }
 
-        if (notes.isEmpty()) {
-            if (!composing) {
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.notes_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TracebackTheme.colors.textFaint,
-                )
+            AnimatedVisibility(visible = composing) {
+                Column {
+                    Spacer(Modifier.height(dimens.spaceXs))
+                    NoteComposer(
+                        onSubmit = { text ->
+                            onAdd(text)
+                            composing = false
+                        },
+                        enabled = enabled,
+                    )
+                }
             }
-        } else {
-            Spacer(Modifier.height(14.dp))
-            val sortedNotes = notes.sortedByDescending {
-                it.createdAt?.toEpochMilliseconds() ?: Long.MIN_VALUE
-            }
-            sortedNotes.forEachIndexed { index, note ->
-                if (index > 0) Spacer(Modifier.height(12.dp))
-                NoteRow(note = note, onDelete = { onDelete(note.id) }, enabled = enabled)
+
+            if (notes.isEmpty()) {
+                if (!composing) {
+                    Spacer(Modifier.height(dimens.spaceXs))
+                    Text(
+                        text = stringResource(R.string.notes_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textFaint,
+                    )
+                }
+            } else {
+                val sorted = notes.sortedByDescending {
+                    it.createdAt?.toEpochMilliseconds() ?: Long.MIN_VALUE
+                }
+                sorted.forEachIndexed { index, note ->
+                    if (index == 0) {
+                        Spacer(Modifier.height(dimens.spaceS))
+                    } else {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = dimens.spaceS),
+                            thickness = dimens.hairline,
+                            color = colors.edge,
+                        )
+                    }
+                    NoteRow(note = note, onDelete = { onDelete(note.id) }, enabled = enabled)
+                }
             }
         }
     }
@@ -777,8 +515,11 @@ private fun NotesSection(
 
 @Composable
 private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boolean) {
+    val colors = TracebackTheme.colors
+    val motion = TracebackTheme.motion
     val rotation by animateFloatAsState(
-        targetValue = if (expanded) 45f else 0f,
+        targetValue = if (expanded) PlusToCloseRotation else 0f,
+        animationSpec = tween(motion.fast, easing = motion.standardEasing),
         label = "addNoteRotation",
     )
     IconButton(
@@ -786,25 +527,24 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boole
         enabled = enabled,
         modifier = Modifier.size(MinTouchTarget),
         colors = IconButtonDefaults.iconButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
+            contentColor = colors.textDim,
             containerColor = Color.Transparent,
         ),
     ) {
-        Box(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(CircleShape)
-                .background(TracebackTheme.colors.accentDim),
-            contentAlignment = Alignment.Center,
+        TbGlassSurface(
+            modifier = Modifier.size(AddNoteToggleSize),
+            shape = CircleShape,
+            strong = true,
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = stringResource(
                     if (expanded) R.string.cd_cancel else R.string.notes_add
                 ),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = colors.textDim,
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(AddNoteGlyph)
+                    .align(Alignment.Center)
                     .rotate(rotation),
             )
         }
@@ -813,26 +553,26 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boole
 
 @Composable
 private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = formatTimestampOrUnknown(note.createdAt),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    letterSpacing = 0.sp,
-                ),
-                color = TracebackTheme.colors.textFaint,
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textFaint,
             )
-            Spacer(Modifier.height(3.dp))
+            Spacer(Modifier.height(dimens.spaceXxs))
             Text(
                 text = note.text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = colors.textHigh,
             )
         }
+        Spacer(Modifier.width(dimens.spaceXs))
         IconButton(
             onClick = onDelete,
             enabled = enabled,
@@ -841,7 +581,8 @@ private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.cd_delete),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = colors.textDim,
+                modifier = Modifier.size(InlineGlyph),
             )
         }
     }
@@ -849,6 +590,8 @@ private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
 
 @Composable
 private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
     var buffer by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
@@ -857,7 +600,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
     ) {
         Box(modifier = Modifier.weight(1f)) {
             TbTextField(
@@ -882,36 +625,142 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.cd_confirm),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = colors.accent,
+                modifier = Modifier.size(InlineGlyph),
             )
         }
     }
 }
 
-private val noteDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.ENGLISH)
-
+/**
+ * Where the record came from, and when it arrived.
+ *
+ * Both are nameplate, not control: they sit below the editing surface, behind a rule, in the
+ * quietest rank on the screen. Stage is the live control and reads that way; source is the label on
+ * the box, and only turns into a picker if you ask it to.
+ */
 @Composable
-private fun formatTimestampOrUnknown(instant: Instant?): String =
-    instant?.let(::formatNoteTimestamp) ?: stringResource(R.string.date_unknown)
+private fun MetaFooter(
+    source: OpportunitySource,
+    sourceLabel: String?,
+    createdAt: Instant?,
+    onSourceClick: () -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
 
-private fun formatNoteTimestamp(instant: Instant): String {
-    val platformInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
-    val local = java.time.LocalDateTime.ofInstant(platformInstant, ZoneId.systemDefault())
-    return noteDateFormatter.format(local)
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(thickness = dimens.hairline, color = colors.edge)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimens.spaceXxs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            SourcePill(
+                source = source,
+                sourceLabel = sourceLabel,
+                onClick = onSourceClick,
+                enabled = enabled,
+            )
+            Spacer(Modifier.width(dimens.spaceS))
+            Text(
+                text = formatTimestampOrUnknown(createdAt),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textFaint,
+                maxLines = 1,
+            )
+        }
+    }
 }
 
 @Composable
-private fun CardLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+private fun SourcePill(
+    source: OpportunitySource,
+    sourceLabel: String?,
+    onClick: () -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    val label = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
+        ?: stringResource(sourceLabelRes(source))
+    val changeSource = stringResource(R.string.cd_change_source)
+
+    Box(modifier = Modifier.minTouchTarget(), contentAlignment = Alignment.CenterStart) {
+        TbGlassSurface(
+            modifier = Modifier
+                .clip(PillShape)
+                .clickable(
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = changeSource,
+                    onClick = onClick,
+                ),
+            shape = PillShape,
+            strong = true,
+        ) {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.textDim,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(
+                    horizontal = dimens.spaceXs,
+                    vertical = dimens.spaceXxs,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SourcePicker(
+    source: OpportunitySource,
+    sourceLabel: String?,
+    onSourceChange: (OpportunitySource) -> Unit,
+    onSourceLabelChange: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val dimens = TracebackTheme.dimens
+    Column {
+        Spacer(Modifier.height(dimens.spaceS))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+        ) {
+            OpportunitySource.entries.forEach { entry ->
+                ChoiceChip(
+                    label = stringResource(sourceLabelRes(entry)),
+                    selected = source == entry,
+                    onClick = { onSourceChange(entry) },
+                    enabled = enabled,
+                )
+            }
+        }
+        AnimatedVisibility(visible = source == OpportunitySource.OTHER) {
+            Column {
+                Spacer(Modifier.height(dimens.spaceS))
+                FieldLabel(stringResource(R.string.field_source_label))
+                TbTextField(
+                    value = sourceLabel.orEmpty(),
+                    onValueChange = onSourceLabelChange,
+                    placeholder = stringResource(R.string.create_source_label_hint),
+                    enabled = enabled,
+                )
+            }
+        }
+    }
 }
 
 @Composable
 private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Boolean) {
+    val colors = TracebackTheme.colors
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
@@ -925,7 +774,8 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.cd_cancel),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = colors.textDim,
+                modifier = Modifier.size(InlineGlyph),
             )
         }
         IconButton(
@@ -936,99 +786,362 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.cd_confirm),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = colors.accent,
+                modifier = Modifier.size(InlineGlyph),
             )
         }
     }
 }
 
 @Composable
-private fun ErrorBanner(text: String, onDismiss: (() -> Unit)? = null) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+private fun ErrorBanner(text: String) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    val error = MaterialTheme.colorScheme.error
+
+    TbGlassSurface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        fill = error.copy(alpha = ErrorFillAlpha),
+        edge = error.copy(alpha = ErrorEdgeAlpha),
     ) {
-        Icon(
-            imageVector = Icons.Default.ErrorOutline,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(16.dp),
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.weight(1f),
-        )
-        if (onDismiss != null) {
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(MinTouchTarget),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.cd_cancel),
-                    tint = MaterialTheme.colorScheme.error,
+        Row(
+            modifier = Modifier.padding(horizontal = dimens.spaceS, vertical = dimens.spaceXs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+        ) {
+            Icon(
+                imageVector = Icons.Default.ErrorOutline,
+                contentDescription = null,
+                tint = error,
+                modifier = Modifier.size(ErrorGlyph),
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall,
+                color = error,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeleteConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        TbGlassSurface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            strong = true,
+        ) {
+            Column(Modifier.padding(dimens.spaceL)) {
+                Text(
+                    text = stringResource(R.string.delete_confirm_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.textHigh,
                 )
+                Spacer(Modifier.height(dimens.spaceXs))
+                Text(
+                    text = stringResource(R.string.delete_confirm_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.textDim,
+                )
+                Spacer(Modifier.height(dimens.spaceS))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(
+                            text = stringResource(R.string.action_cancel),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.textDim,
+                        )
+                    }
+                    TextButton(onClick = onConfirm) {
+                        Text(
+                            text = stringResource(R.string.action_delete),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+// brief
+
 @Composable
-private fun DeleteConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text(stringResource(R.string.delete_confirm_title)) },
-        text = { Text(stringResource(R.string.delete_confirm_message)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
+private fun BriefSection(
+    content: OpportunityDetailUiState.Content,
+    onBrief: () -> Unit,
+    onUseProposalAsAppliedMessage: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(dimens.spaceS),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            TextButton(
+                onClick = onBrief,
+                enabled = content.briefActionEnabled,
+                modifier = Modifier.heightIn(min = MinTouchTarget),
+            ) {
                 Text(
-                    text = stringResource(R.string.action_delete),
-                    color = TracebackTheme.colors.stageLost,
+                    text = stringResource(R.string.action_brief),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (content.briefActionEnabled) colors.textHigh else colors.textFaint,
                 )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
+            if (content.briefInFlight) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(BriefSpinnerSize),
+                    strokeWidth = BriefSpinnerStroke,
+                    color = colors.accent,
+                    trackColor = Color.Transparent,
+                )
             }
-        },
-    )
+        }
+        if (content.briefFailed != null) {
+            ErrorBanner(text = stringResource(briefFailureRes(content.briefFailed)))
+        }
+        if (!content.canBrief && content.briefGateReason != null) {
+            Text(
+                text = stringResource(briefGateReasonRes(content.briefGateReason)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textFaint,
+            )
+        }
+        val brief = content.aiBrief
+        if (brief == null) {
+            Text(
+                text = stringResource(R.string.brief_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textFaint,
+            )
+        } else {
+            FitCard(brief)
+            ProposalCard(
+                proposal = brief.proposal,
+                onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
+                enabled = enabled,
+            )
+            PriceCard(brief)
+            DurationCard(brief)
+            ApproachCard(brief)
+        }
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF0A0B0D, widthDp = 360)
 @Composable
-private fun OpportunityDetailScreenPreview() {
-    TracebackTheme {
+private fun FitCard(brief: JobBrief) {
+    val colors = TracebackTheme.colors
+    ReadOnlyCard(label = stringResource(R.string.field_fit)) {
+        Text(
+            text = stringResource(fitVerdictRes(brief.fit.verdict)),
+            style = MaterialTheme.typography.titleSmall,
+            color = colors.textHigh,
+        )
+        Spacer(Modifier.height(TracebackTheme.dimens.spaceXxs))
+        Text(
+            text = brief.fit.summary,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textDim,
+        )
+    }
+}
+
+@Composable
+private fun ProposalCard(
+    proposal: String,
+    onUseAsAppliedMessage: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val colors = TracebackTheme.colors
+    ReadOnlyCard(label = stringResource(R.string.field_proposal)) {
+        Text(
+            text = proposal,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textHigh,
+        )
+        TextButton(
+            onClick = { onUseAsAppliedMessage(proposal) },
+            enabled = enabled,
+            modifier = Modifier.heightIn(min = MinTouchTarget),
+        ) {
+            Text(
+                text = stringResource(R.string.brief_use_as_applied),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.textDim,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PriceCard(brief: JobBrief) {
+    val colors = TracebackTheme.colors
+    ReadOnlyCard(label = stringResource(R.string.field_price)) {
+        Text(
+            text = stringResource(R.string.brief_price_range, brief.price.low, brief.price.high),
+            style = MaterialTheme.typography.titleSmall,
+            color = colors.textHigh,
+        )
+        Spacer(Modifier.height(TracebackTheme.dimens.spaceXxs))
+        Text(
+            text = brief.price.rationale,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textDim,
+        )
+    }
+}
+
+@Composable
+private fun DurationCard(brief: JobBrief) {
+    val colors = TracebackTheme.colors
+    val dimens = TracebackTheme.dimens
+    ReadOnlyCard(label = stringResource(R.string.field_duration)) {
+        Text(
+            text = brief.duration.range,
+            style = MaterialTheme.typography.titleSmall,
+            color = colors.textHigh,
+        )
+        Spacer(Modifier.height(dimens.spaceXxs))
+        Text(
+            text = stringResource(R.string.brief_duration_hours, brief.duration.hours),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textDim,
+        )
+        Spacer(Modifier.height(dimens.spaceXxs))
+        Text(
+            text = stringResource(durationBasisRes(brief.duration.basis)),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.textFaint,
+        )
+    }
+}
+
+@Composable
+private fun ApproachCard(brief: JobBrief) {
+    val colors = TracebackTheme.colors
+    ReadOnlyCard(label = stringResource(R.string.field_approach)) {
+        Text(
+            text = brief.approach.summary,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.textHigh,
+        )
+        if (brief.approach.technologies.isNotEmpty()) {
+            Spacer(Modifier.height(TracebackTheme.dimens.spaceXs))
+            Text(
+                text = brief.approach.technologies.joinToString(", "),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.textDim,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyCard(
+    label: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val dimens = TracebackTheme.dimens
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
+            FieldLabel(label)
+            content()
+        }
+    }
+}
+
+private fun briefFailureRes(kind: BriefFailureKind): Int = when (kind) {
+    BriefFailureKind.BadKey -> R.string.brief_failed_bad_key
+    BriefFailureKind.RateLimited -> R.string.brief_failed_rate_limit
+    BriefFailureKind.InvalidResponse -> R.string.brief_failed_invalid
+    BriefFailureKind.Network -> R.string.brief_failed_network
+}
+
+private fun briefGateReasonRes(reason: BriefGateReason): Int = when (reason) {
+    BriefGateReason.MissingAbout -> R.string.brief_disabled_no_about
+    BriefGateReason.MissingKey -> R.string.brief_disabled_no_key
+    BriefGateReason.MissingAboutAndKey -> R.string.brief_disabled_no_about_or_key
+}
+
+private fun fitVerdictRes(verdict: String): Int = when (verdict) {
+    "yes" -> R.string.brief_verdict_yes
+    "no" -> R.string.brief_verdict_no
+    else -> R.string.brief_verdict_stretch
+}
+
+private fun durationBasisRes(basis: String): Int =
+    if (basis == "profile") R.string.brief_basis_profile else R.string.brief_basis_typical
+
+// timestamps
+
+private val DetailDateFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.ENGLISH)
+
+@Composable
+private fun formatTimestampOrUnknown(instant: Instant?): String =
+    instant?.let(::formatDetailTimestamp) ?: stringResource(R.string.date_unknown)
+
+private fun formatDetailTimestamp(instant: Instant): String {
+    val platformInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
+    val local = java.time.LocalDateTime.ofInstant(platformInstant, ZoneId.systemDefault())
+    return DetailDateFormatter.format(local)
+}
+
+// previews
+
+private val PreviewCreatedAt = Instant.fromEpochMilliseconds(1_723_600_000_000L)
+
+private fun previewContent(
+    stage: PipelineStage,
+    description: String? = "Rework the multi-step signup and cut mobile drop-off across the trial funnel.",
+    appliedMessage: String? = null,
+) = OpportunityDetailUiState.Content(
+    title = "SaaS onboarding flow redesign",
+    description = description,
+    source = OpportunitySource.UPWORK,
+    sourceLabel = null,
+    pipelineStage = stage,
+    createdAt = PreviewCreatedAt,
+    appliedMessage = appliedMessage,
+    notes = listOf(
+        Note(
+            id = "n1",
+            createdAt = PreviewCreatedAt,
+            text = "Client wants a Loom walkthrough before the call.",
+        ),
+        Note(
+            id = "n2",
+            createdAt = Instant.fromEpochMilliseconds(1_723_700_000_000L),
+            text = "Followed up Monday, no reply yet.",
+        ),
+    ),
+)
+
+@Composable
+private fun DetailPreview(darkTheme: Boolean, uiState: OpportunityDetailUiState) {
+    TracebackTheme(darkTheme = darkTheme) {
         OpportunityDetailScreen(
-            uiState = OpportunityDetailUiState.Content(
-                title = "SaaS onboarding flow redesign",
-                description = "Rework the multi-step signup, reduce mobile drop-off across the trial funnel.",
-                source = OpportunitySource.UPWORK,
-                sourceLabel = null,
-                pipelineStage = PipelineStage.APPLIED,
-                createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
-                appliedMessage = null,
-                notes = listOf(
-                    Note(
-                        id = "n1",
-                        createdAt = Instant.fromEpochMilliseconds(1_723_600_000_000L),
-                        text = "Client wants a Loom walkthrough before the call.",
-                    ),
-                    Note(
-                        id = "n2",
-                        createdAt = Instant.fromEpochMilliseconds(1_723_700_000_000L),
-                        text = "Followed up Monday, no reply yet.",
-                    ),
-                ),
-            ),
+            uiState = uiState,
             onBack = {},
             onDelete = {},
             onStageChange = {},
@@ -1042,6 +1155,61 @@ private fun OpportunityDetailScreenPreview() {
             onBrief = {},
             deleteFailed = false,
             onDeleteErrorDismiss = {},
+            modifier = Modifier.fillMaxWidth(),
         )
     }
+}
+
+@Preview(name = "active · dark", widthDp = 360, heightDp = 860)
+@Composable
+private fun DetailActiveDarkPreview() {
+    DetailPreview(
+        darkTheme = true,
+        uiState = previewContent(
+            stage = PipelineStage.INTERVIEW,
+            appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
+        ),
+    )
+}
+
+@Preview(name = "active · light", widthDp = 360, heightDp = 860)
+@Composable
+private fun DetailActiveLightPreview() {
+    DetailPreview(
+        darkTheme = false,
+        uiState = previewContent(
+            stage = PipelineStage.INTERVIEW,
+            appliedMessage = "Sent a two-paragraph note with the Loom link and a rate band.",
+        ),
+    )
+}
+
+@Preview(name = "lost · dark", widthDp = 360, heightDp = 860)
+@Composable
+private fun DetailLostDarkPreview() {
+    DetailPreview(
+        darkTheme = true,
+        uiState = previewContent(PipelineStage.LOST, description = null),
+    )
+}
+
+@Preview(name = "lost · light", widthDp = 360, heightDp = 860)
+@Composable
+private fun DetailLostLightPreview() {
+    DetailPreview(
+        darkTheme = false,
+        uiState = previewContent(PipelineStage.LOST, description = null),
+    )
+}
+
+@Preview(name = "not found · dark", widthDp = 360, heightDp = 420)
+@Composable
+private fun DetailNotFoundDarkPreview() {
+    DetailPreview(darkTheme = true, uiState = OpportunityDetailUiState.NotFound)
+}
+
+@Preview(name = "not found · light", widthDp = 360, heightDp = 420)
+@Composable
+private fun DetailNotFoundLightPreview() {
+    DetailPreview(darkTheme = false, uiState = OpportunityDetailUiState.NotFound)
 }
