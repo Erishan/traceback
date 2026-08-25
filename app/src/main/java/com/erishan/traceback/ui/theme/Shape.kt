@@ -4,12 +4,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-val Shapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),  // stage pill
-    small      = RoundedCornerShape(10.dp), // input & chip
-    medium     = RoundedCornerShape(16.dp), // card
-    large      = RoundedCornerShape(26.dp), // bottom sheet
+val TracebackShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),  // chip, small tile
+    small = RoundedCornerShape(12.dp),      // input, button
+    medium = RoundedCornerShape(18.dp),     // glass card
+    large = RoundedCornerShape(26.dp),      // bottom sheet
 )
 
-val ButtonShape = RoundedCornerShape(12.dp) // primary & ghost buttons
-val FabShape    = RoundedCornerShape(18.dp)
+/** Corners that carry identity rather than a size step. */
+val FabShape = RoundedCornerShape(19.dp)
+val PillShape = RoundedCornerShape(7.dp)
+val ButtonShape = TracebackShapes.small
