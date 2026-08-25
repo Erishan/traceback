@@ -32,7 +32,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,12 +76,14 @@ import com.erishan.traceback.opportunity.domain.Price
 import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.components.EmptyState
+import com.erishan.traceback.ui.components.ErrorBanner
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.TbBarIconButton
 import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
+import com.erishan.traceback.ui.components.TextAction
 import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.PillShape
@@ -96,7 +97,6 @@ import kotlin.time.Instant
 private val AddNoteToggleSize = 30.dp
 private val AddNoteGlyph = 16.dp
 private val InlineGlyph = 20.dp
-private val ErrorGlyph = 16.dp
 private val BriefSpinnerSize = 16.dp
 private val BriefSpinnerStroke = 2.dp
 private val ScrollBottomInset = 40.dp
@@ -105,8 +105,6 @@ private val SkeletonKeyHeight = 8.dp
 private val SkeletonValueHeight = 15.dp
 private val SkeletonSupportHeight = 9.dp
 
-private const val ErrorFillAlpha = 0.12f
-private const val ErrorEdgeAlpha = 0.36f
 private const val PlusToCloseRotation = 45f
 
 private const val BriefActionFillAlpha = 0.15f
@@ -820,70 +818,6 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
                 modifier = Modifier.size(InlineGlyph),
             )
         }
-    }
-}
-
-@Composable
-private fun ErrorBanner(
-    text: String,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null,
-) {
-    val dimens = TracebackTheme.dimens
-    val error = MaterialTheme.colorScheme.error
-
-    TbGlassSurface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        fill = error.copy(alpha = ErrorFillAlpha),
-        edge = error.copy(alpha = ErrorEdgeAlpha),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.spaceS, vertical = dimens.spaceXs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
-        ) {
-            Icon(
-                imageVector = Icons.Default.ErrorOutline,
-                contentDescription = null,
-                tint = error,
-                modifier = Modifier.size(ErrorGlyph),
-            )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodySmall,
-                color = error,
-                modifier = Modifier.weight(1f),
-            )
-            if (actionText != null && onAction != null) {
-                TextAction(text = actionText, color = error, onClick = onAction)
-            }
-        }
-    }
-}
-
-@Composable
-private fun TextAction(
-    text: String,
-    color: Color,
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-) {
-    val colors = TracebackTheme.colors
-    val dimens = TracebackTheme.dimens
-    Box(
-        modifier = Modifier
-            .heightIn(min = MinTouchTarget)
-            .clip(ButtonShape)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) color else colors.textFaint,
-            modifier = Modifier.padding(horizontal = dimens.spaceXs),
-        )
     }
 }
 
