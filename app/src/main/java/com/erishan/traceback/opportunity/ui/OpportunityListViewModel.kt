@@ -32,7 +32,7 @@ class OpportunityListViewModel(
             OpportunityListUiState(
                 opportunities = list.filter { filter.matches(it.pipelineStage) },
                 selectedFilter = filter,
-                total = list.size,
+                distribution = StageDistribution(list.groupingBy { it.pipelineStage }.eachCount()),
                 isLoading = false,
             )
         }.stateIn(

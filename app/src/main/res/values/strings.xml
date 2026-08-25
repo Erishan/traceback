@@ -4,10 +4,12 @@
     <!-- Opportunity list -->
     <string name="pipeline_overline">Pipeline</string>
     <string name="opportunities_title">Opportunities</string>
-    <string name="opportunities_count">%1$d total</string>
+    <string name="opportunities_count">%1$d total · %2$d active</string>
     <string name="new_opportunity">New opportunity</string>
     <string name="empty_opportunities_list_title">No opportunities yet</string>
     <string name="empty_opportunities_list_message">Tap + to track your first one, from draft to hired.</string>
+    <string name="empty_filter_title">Nothing in this filter</string>
+    <string name="empty_filter_message">Your pipeline has work in it — just not in this view.</string>
 
     <!-- Filters -->
     <string name="filter_all">All</string>
