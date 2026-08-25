@@ -1,13 +1,32 @@
 package com.erishan.traceback.ui.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.erishan.traceback.ui.theme.TracebackTheme
+import com.erishan.traceback.ui.theme.minTouchTarget
+
+private val BarButtonSize = 38.dp
+private val BarButtonGlyph = 18.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -17,18 +36,85 @@ fun TbTopAppBar(
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    val colors = TracebackTheme.colors
     CenterAlignedTopAppBar(
-        title = { if (title != null) Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        ) },
+        title = {
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.textHigh,
+                )
+            }
+        },
         modifier = modifier,
         navigationIcon = navigationIcon ?: {},
         actions = actions ?: {},
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            titleContentColor = colors.textHigh,
+            navigationIconContentColor = colors.textDim,
+            actionIconContentColor = colors.textDim,
         ),
     )
+}
 
+@Composable
+fun TbBarIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier.minTouchTarget(), contentAlignment = Alignment.Center) {
+        TbGlassSurface(
+            modifier = Modifier
+                .size(BarButtonSize)
+                .clip(MaterialTheme.shapes.extraSmall)
+                .clickable(role = Role.Button, onClick = onClick),
+            shape = MaterialTheme.shapes.extraSmall,
+            strong = true,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = TracebackTheme.colors.textDim,
+                modifier = Modifier.size(BarButtonGlyph).align(Alignment.Center),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TopAppBarPreviewContent() {
+    TbTopAppBar(
+        title = "Opportunity",
+        navigationIcon = {
+            TbBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                onClick = {},
+            )
+        },
+        actions = {
+            TbBarIconButton(
+                icon = Icons.Default.MoreVert,
+                contentDescription = "More",
+                onClick = {},
+            )
+        },
+    )
+}
+
+@Preview(name = "dark")
+@Composable
+private fun TbTopAppBarDarkPreview() {
+    ComponentPreview(darkTheme = true, height = 120.dp) { TopAppBarPreviewContent() }
+}
+
+@Preview(name = "light")
+@Composable
+private fun TbTopAppBarLightPreview() {
+    ComponentPreview(darkTheme = false, height = 120.dp) { TopAppBarPreviewContent() }
 }

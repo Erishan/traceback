@@ -1,5 +1,6 @@
 package com.erishan.traceback.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.erishan.traceback.ui.theme.TracebackTheme
 
 @Composable
 fun TbScaffold(
@@ -19,28 +22,35 @@ fun TbScaffold(
     actions: (@Composable RowScope.() -> Unit)? = null,
     snackbarHostState: SnackbarHostState? = null,
     floatingActionButton: (@Composable () -> Unit)? = null,
+    auroraTint: Color? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            if (title != null || navigationIcon != null || actions != null) {
-                TbTopAppBar(title = title, navigationIcon = navigationIcon, actions = actions)
-            }
-        },
-        snackbarHost = {
-            if (snackbarHostState != null) {
-                SnackbarHost(snackbarHostState) { data ->
-                    Snackbar(
-                        snackbarData = data,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    )
+    Box(modifier = modifier.fillMaxSize()) {
+        AuroraBackground(tint = auroraTint)
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            contentColor = TracebackTheme.colors.textHigh,
+            topBar = {
+                if (title != null || navigationIcon != null || actions != null) {
+                    TbTopAppBar(title = title, navigationIcon = navigationIcon, actions = actions)
                 }
-            }
-        },
-        floatingActionButton = { floatingActionButton?.invoke() },
-        content = content,
-    )
+            },
+            snackbarHost = {
+                if (snackbarHostState != null) {
+                    SnackbarHost(snackbarHostState) { data ->
+                        Snackbar(
+                            snackbarData = data,
+                            shape = MaterialTheme.shapes.small,
+                            containerColor = TracebackTheme.colors.glassStrong,
+                            contentColor = TracebackTheme.colors.textHigh,
+                            actionColor = TracebackTheme.colors.accent,
+                        )
+                    }
+                }
+            },
+            floatingActionButton = { floatingActionButton?.invoke() },
+            content = content,
+        )
+    }
 }
