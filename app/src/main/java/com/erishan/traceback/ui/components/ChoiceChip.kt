@@ -1,7 +1,6 @@
 package com.erishan.traceback.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,13 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.erishan.traceback.ui.theme.TracebackTheme
+import com.erishan.traceback.ui.theme.minTouchTarget
 
 @Composable
 fun ChoiceChip(
@@ -31,30 +31,35 @@ fun ChoiceChip(
     onClick: () -> Unit,
     leadingDot: Color? = null,
     enabled: Boolean = true,
+    shape: Shape = MaterialTheme.shapes.small,
 ) {
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(if (selected) selectedBg else MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(enabled = enabled, onClick = onClick)
-            .alpha(if (enabled) 1f else 0.55f)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = shape,
+        color = if (selected) selectedBg else MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = if (selected) selectedFg else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.minTouchTarget(),
     ) {
-        if (leadingDot != null) {
-            Box(
-                Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(leadingDot)
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (leadingDot != null) {
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(leadingDot)
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
+                color = if (selected) selectedFg else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
-            color = if (selected) selectedFg else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

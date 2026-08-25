@@ -48,9 +48,9 @@ Open it in Android Studio and hit Run
 
 ## Next
 
-v1.1 is the OpenAI brief: a **Me** screen (profile + key) and five boxes on
-an opportunity (fit, proposal, price, duration, approach). Implementation is
-two agent sprints in [docs/sprints](docs/sprints).
+The OpenAI brief is in: a **Me** screen (profile + key) and five boxes on an
+opportunity (fit, proposal, price, duration, approach). The decision record
+is [docs/adr/0015](docs/adr/0015-user-context-and-job-brief.md).
 
 Claude, Gemini, payment tracking, and a Compose Multiplatform iOS build come
 after that loop works on Android.

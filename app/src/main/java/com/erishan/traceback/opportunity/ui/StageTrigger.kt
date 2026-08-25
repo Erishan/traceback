@@ -2,7 +2,6 @@ package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -27,37 +26,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.theme.TracebackTheme
+import com.erishan.traceback.ui.theme.minTouchTarget
 
 @Composable
 fun StageTrigger(stage: PipelineStage, open: Boolean, onClick: () -> Unit) {
     val c = stageColor(stage)
     val caret by animateFloatAsState(if (open) 180f else 0f, label = "caret")
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(c.copy(alpha = 0.16f))
-            .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.small,
+        color = c.copy(alpha = 0.16f),
+        modifier = Modifier.minTouchTarget(),
     ) {
-        Box(
-            Modifier
-                .size(7.dp)
-                .clip(CircleShape)
-                .background(c)
-        )
-        Text(
-            text = stringResource(stageLabelRes(stage)),
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
-            color = c,
-        )
-        Icon(
-            imageVector = Icons.Default.ArrowDropDown,
-            contentDescription = null,
-            tint = c,
-            modifier = Modifier.rotate(caret),
-        )
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(c)
+            )
+            Text(
+                text = stringResource(stageLabelRes(stage)),
+                style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.sp),
+                color = c,
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = null,
+                tint = c,
+                modifier = Modifier.rotate(caret),
+            )
+        }
     }
 }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +48,7 @@ import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.ButtonShape
+import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 @Composable
@@ -64,6 +66,7 @@ fun MeScreen(
         navigationIcon = {
             IconButton(
                 onClick = onBack,
+                modifier = Modifier.size(MinTouchTarget),
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     containerColor = Color.Transparent,
@@ -188,7 +191,9 @@ private fun MeForm(
         Button(
             onClick = { onSaveProfile(about, rateBand, pace) },
             enabled = profileEnabled,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = MinTouchTarget),
             shape = ButtonShape,
         ) {
             Text(stringResource(R.string.action_save_profile))
@@ -206,6 +211,7 @@ private fun MeForm(
             TextButton(
                 onClick = onClearKey,
                 enabled = keyEnabled,
+                modifier = Modifier.heightIn(min = MinTouchTarget),
             ) {
                 Text(stringResource(R.string.action_clear_key))
             }
@@ -227,7 +233,9 @@ private fun MeForm(
             Button(
                 onClick = { onSaveKey(keyDraft) },
                 enabled = keyEnabled && keyDraft.isNotBlank(),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = MinTouchTarget),
                 shape = ButtonShape,
             ) {
                 Text(stringResource(R.string.action_save_key))

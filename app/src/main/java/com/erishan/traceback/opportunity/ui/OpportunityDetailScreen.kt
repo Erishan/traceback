@@ -38,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,6 +55,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +73,9 @@ import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
+import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
+import com.erishan.traceback.ui.theme.minTouchTarget
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -112,7 +116,9 @@ fun OpportunityDetailScreen(
         title = null,
         navigationIcon = {
             IconButton(
-                onClick = onBack, colors = IconButtonDefaults.iconButtonColors(
+                onClick = onBack,
+                modifier = Modifier.size(MinTouchTarget),
+                colors = IconButtonDefaults.iconButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     containerColor = Color.Transparent
                 )
@@ -130,7 +136,7 @@ fun OpportunityDetailScreen(
                     onClick = onBrief,
                     enabled = content.briefActionEnabled,
                     modifier = Modifier
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = MinTouchTarget)
                         .semantics { contentDescription = briefCd },
                 ) {
                     Text(stringResource(R.string.action_brief))
@@ -138,6 +144,7 @@ fun OpportunityDetailScreen(
                 IconButton(
                     onClick = { showConfirm = true },
                     enabled = !content.isBusy,
+                    modifier = Modifier.size(MinTouchTarget),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.DeleteSweep,
@@ -374,7 +381,7 @@ private fun BriefSection(
             TextButton(
                 onClick = onBrief,
                 enabled = briefEnabled,
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = MinTouchTarget),
             ) {
                 Text(stringResource(R.string.action_brief))
             }
@@ -449,7 +456,7 @@ private fun ProposalCard(
         TextButton(
             onClick = { onUseAsAppliedMessage(proposal) },
             enabled = enabled,
-            modifier = Modifier.heightIn(min = 48.dp),
+            modifier = Modifier.heightIn(min = MinTouchTarget),
         ) {
             Text(stringResource(R.string.brief_use_as_applied))
         }
@@ -586,7 +593,8 @@ private fun InlineTitle(
         val modifier = if (enabled) {
             Modifier
                 .fillMaxWidth()
-                .clickable {
+                .minTouchTarget()
+                .clickable(role = Role.Button) {
                     buffer = value
                     editing = true
                 }
@@ -609,27 +617,31 @@ private fun SourcePill(
     onClick: () -> Unit,
     enabled: Boolean,
 ) {
-    Row(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(color = Color.Transparent)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 11.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        color = Color.Transparent,
+        modifier = Modifier.minTouchTarget(),
     ) {
-        Icon(
-            imageVector = Icons.Outlined.PlayForWork,
-            contentDescription = null,
-            modifier = Modifier.size(15.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
-                ?: stringResource(sourceLabelRes(source)),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.PlayForWork,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
+                    ?: stringResource(sourceLabelRes(source)),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -645,44 +657,57 @@ private fun EditableCard(
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
 
-    val base = Modifier
-        .fillMaxWidth()
-        .clip(MaterialTheme.shapes.medium)
-        .background(MaterialTheme.colorScheme.surface)
-    val container = if (editing || !enabled) base else base.clickable {
-        buffer = value.orEmpty()
-        editing = true
+    val body: @Composable () -> Unit = {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            CardLabel(label)
+            Spacer(Modifier.height(9.dp))
+            if (editing) {
+                TbTextField(
+                    value = buffer,
+                    onValueChange = { buffer = it },
+                    placeholder = placeholder,
+                    singleLine = false,
+                    minLines = 2,
+                    maxLines = 8,
+                    enabled = enabled,
+                )
+                EditActions(
+                    onCancel = { editing = false },
+                    onConfirm = {
+                        onCommit(buffer)
+                        editing = false
+                    },
+                    enabled = enabled,
+                )
+            } else {
+                Text(
+                    text = value ?: emptyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (value == null) TracebackTheme.colors.textFaint
+                    else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
 
-    Column(modifier = container.padding(horizontal = 16.dp, vertical = 14.dp)) {
-        CardLabel(label)
-        Spacer(Modifier.height(9.dp))
-        if (editing) {
-            TbTextField(
-                value = buffer,
-                onValueChange = { buffer = it },
-                placeholder = placeholder,
-                singleLine = false,
-                minLines = 2,
-                maxLines = 8,
-                enabled = enabled,
-            )
-            EditActions(
-                onCancel = { editing = false },
-                onConfirm = {
-                    onCommit(buffer)
-                    editing = false
-                },
-                enabled = enabled,
-            )
-        } else {
-            Text(
-                text = value ?: emptyText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (value == null) TracebackTheme.colors.textFaint
-                else MaterialTheme.colorScheme.onSurface,
-            )
-        }
+    if (editing || !enabled) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth(),
+            content = body,
+        )
+    } else {
+        Surface(
+            onClick = {
+                buffer = value.orEmpty()
+                editing = true
+            },
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth(),
+            content = body,
+        )
     }
 }
 
@@ -756,24 +781,33 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boole
         targetValue = if (expanded) 45f else 0f,
         label = "addNoteRotation",
     )
-    Box(
-        modifier = Modifier
-            .size(26.dp)
-            .clip(CircleShape)
-            .background(TracebackTheme.colors.accentDim)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(MinTouchTarget),
+        colors = IconButtonDefaults.iconButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary,
+            containerColor = Color.Transparent,
+        ),
     ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = stringResource(
-                if (expanded) R.string.cd_cancel else R.string.notes_add
-            ),
-            tint = MaterialTheme.colorScheme.primary,
+        Box(
             modifier = Modifier
-                .size(16.dp)
-                .rotate(rotation),
-        )
+                .size(26.dp)
+                .clip(CircleShape)
+                .background(TracebackTheme.colors.accentDim),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(
+                    if (expanded) R.string.cd_cancel else R.string.notes_add
+                ),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(16.dp)
+                    .rotate(rotation),
+            )
+        }
     }
 }
 
@@ -799,15 +833,17 @@ private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = stringResource(R.string.cd_delete),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .size(16.dp)
-                .clickable(enabled = enabled, onClick = onDelete),
-        )
+        IconButton(
+            onClick = onDelete,
+            enabled = enabled,
+            modifier = Modifier.size(MinTouchTarget),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.cd_delete),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -841,6 +877,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
                 if (text.isNotBlank()) onSubmit(text)
             },
             enabled = enabled,
+            modifier = Modifier.size(MinTouchTarget),
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
@@ -880,14 +917,22 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onCancel, enabled = enabled) {
+        IconButton(
+            onClick = onCancel,
+            enabled = enabled,
+            modifier = Modifier.size(MinTouchTarget),
+        ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.cd_cancel),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        IconButton(onClick = onConfirm, enabled = enabled) {
+        IconButton(
+            onClick = onConfirm,
+            enabled = enabled,
+            modifier = Modifier.size(MinTouchTarget),
+        ) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.cd_confirm),
@@ -921,14 +966,16 @@ private fun ErrorBanner(text: String, onDismiss: (() -> Unit)? = null) {
             modifier = Modifier.weight(1f),
         )
         if (onDismiss != null) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.cd_cancel),
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable(onClick = onDismiss),
-            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(MinTouchTarget),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.cd_cancel),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }

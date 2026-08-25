@@ -2,7 +2,6 @@ package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,10 +40,12 @@ import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import kotlin.time.Instant
 import com.erishan.traceback.opportunity.domain.Opportunity
+import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.theme.FabShape
+import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 
@@ -127,7 +128,7 @@ private fun ListSubheader(total: Int, onOpenMe: () -> Unit) {
         }
         IconButton(
             onClick = onOpenMe,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(MinTouchTarget),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Person,
@@ -144,23 +145,18 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 22.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         OpportunityFilter.entries.forEach { f ->
-            val on = f == selected
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(if (on) TracebackTheme.colors.accentDim else MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onSelect(f) }
-                    .padding(horizontal = 13.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = stringResource(f.labelRes),
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
-                    color = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            ChoiceChip(
+                label = stringResource(f.labelRes),
+                selected = f == selected,
+                selectedBg = TracebackTheme.colors.accentDim,
+                selectedFg = MaterialTheme.colorScheme.primary,
+                onClick = { onSelect(f) },
+                shape = CircleShape,
+            )
         }
     }
 }
@@ -168,13 +164,11 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
 @Composable
 private fun OpportunityCard(o: Opportunity, onClick: () -> Unit) {
     Surface(
+        onClick = onClick,
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(

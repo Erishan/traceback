@@ -38,12 +38,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 private val SegmentHeight = 6.dp
 private val SegmentGap = 6.dp
 
-internal val MinStagePickerSize = 48.dp
+internal val MinStagePickerSize = MinTouchTarget
 
 internal const val CompletedSegmentAlpha = 0.50f
 

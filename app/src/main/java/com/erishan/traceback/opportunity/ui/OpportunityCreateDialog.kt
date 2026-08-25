@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -49,6 +50,7 @@ import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.theme.ButtonShape
+import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -245,7 +247,9 @@ private fun CreateSheetContent(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(
                 onClick = onDismiss,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = MinTouchTarget),
                 shape = ButtonShape,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -258,7 +262,9 @@ private fun CreateSheetContent(
             Button(
                 onClick = onSave,
                 enabled = uiState.title.isNotBlank() && !uiState.isSaving,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = MinTouchTarget),
                 shape = ButtonShape,
             ) {
                 Text(stringResource(R.string.action_save))
