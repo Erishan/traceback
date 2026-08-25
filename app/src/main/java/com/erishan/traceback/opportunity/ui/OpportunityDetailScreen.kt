@@ -128,7 +128,7 @@ fun OpportunityDetailScreen(
                 val briefCd = stringResource(R.string.cd_brief)
                 TextButton(
                     onClick = onBrief,
-                    enabled = content.canBrief && !content.briefInFlight,
+                    enabled = content.briefActionEnabled,
                     modifier = Modifier
                         .heightIn(min = 48.dp)
                         .semantics { contentDescription = briefCd },
@@ -137,7 +137,7 @@ fun OpportunityDetailScreen(
                 }
                 IconButton(
                     onClick = { showConfirm = true },
-                    enabled = !content.isSaving,
+                    enabled = !content.isBusy,
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.DeleteSweep,
@@ -208,7 +208,7 @@ private fun DetailContent(
 ) {
     var sourceOpen by remember { mutableStateOf(false) }
     var stageOpen by remember { mutableStateOf(false) }
-    val editEnabled = !content.isSaving
+    val editEnabled = !content.isBusy
 
     Column(
         modifier = Modifier
@@ -361,7 +361,7 @@ private fun BriefSection(
     onUseProposalAsAppliedMessage: (String) -> Unit,
     enabled: Boolean,
 ) {
-    val briefEnabled = content.canBrief && !content.briefInFlight
+    val briefEnabled = content.briefActionEnabled
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -408,7 +408,7 @@ private fun BriefSection(
             ProposalCard(
                 proposal = brief.proposal,
                 onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
-                enabled = enabled && !content.briefInFlight,
+                enabled = enabled,
             )
             PriceCard(brief)
             DurationCard(brief)

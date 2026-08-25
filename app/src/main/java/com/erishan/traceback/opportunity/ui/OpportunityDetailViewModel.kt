@@ -19,14 +19,12 @@ import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -58,7 +56,7 @@ class OpportunityDetailViewModel(
     private val _events = Channel<DetailEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    private val _status = MutableStateFlow(EditStatus())
+    private val mutationGate = DetailMutationGate()
     private val editMutex = Mutex()
 
     val uiState: StateFlow<OpportunityDetailUiState> =
@@ -66,7 +64,7 @@ class OpportunityDetailViewModel(
             repository.observeById(id),
             userContextRepository.observe(),
             secretStore.observe(),
-            _status,
+            mutationGate.state,
         ) { opp, profile, key, status ->
             when {
                 opp == null -> OpportunityDetailUiState.NotFound
@@ -102,8 +100,8 @@ class OpportunityDetailViewModel(
         )
 
     private fun saveEdit(transform: (Opportunity) -> Opportunity) = viewModelScope.launch {
+        if (!mutationGate.tryBeginSave()) return@launch
         var failed = false
-        _status.update { it.copy(pendingSaves = it.pendingSaves + 1, saveFailed = false) }
         try {
             editMutex.withLock {
                 repository.update(id, transform)
@@ -113,12 +111,7 @@ class OpportunityDetailViewModel(
         } catch (e: Exception) {
             failed = true
         } finally {
-            _status.update {
-                it.copy(
-                    pendingSaves = (it.pendingSaves - 1).coerceAtLeast(0),
-                    saveFailed = it.saveFailed || failed
-                )
-            }
+            mutationGate.endSave(failed)
         }
     }
 
@@ -159,13 +152,13 @@ class OpportunityDetailViewModel(
 
     fun onBrief() {
         viewModelScope.launch {
-            if (_status.value.briefInFlight) return@launch
-            val profile = userContextRepository.observe().first()
-            val key = secretStore.observe().first()
-            if (profile.about.isBlank() || !key.hasKey) return@launch
-            val opportunity = repository.observeById(id).first() ?: return@launch
-            _status.update { it.copy(briefInFlight = true, briefFailed = null) }
+            if (!mutationGate.tryClaimBrief()) return@launch
             try {
+                mutationGate.awaitNoPendingSaves()
+                val profile = userContextRepository.observe().first()
+                val key = secretStore.observe().first()
+                if (profile.about.isBlank() || !key.hasKey) return@launch
+                val opportunity = repository.observeById(id).first() ?: return@launch
                 val brief = briefJobUseCase(
                     userContext = profile,
                     job = opportunity.toJobInput(),
@@ -176,11 +169,11 @@ class OpportunityDetailViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: BriefException) {
-                _status.update { it.copy(briefFailed = e.kind.toFailureKind()) }
+                mutationGate.markBriefFailed(e.kind.toFailureKind())
             } catch (_: Exception) {
-                _status.update { it.copy(briefFailed = BriefFailureKind.Network) }
+                mutationGate.markBriefFailed(BriefFailureKind.Network)
             } finally {
-                _status.update { it.copy(briefInFlight = false) }
+                mutationGate.releaseBrief()
             }
         }
     }
@@ -195,16 +188,6 @@ class OpportunityDetailViewModel(
             }
         }
     }
-}
-
-private data class EditStatus(
-    val pendingSaves: Int = 0,
-    val saveFailed: Boolean = false,
-    val briefInFlight: Boolean = false,
-    val briefFailed: BriefFailureKind? = null,
-) {
-    val isSaving: Boolean
-        get() = pendingSaves > 0
 }
 
 enum class DetailEvent { Deleted, DeleteFailed }

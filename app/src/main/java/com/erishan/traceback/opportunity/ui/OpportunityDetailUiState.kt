@@ -25,7 +25,12 @@ sealed interface OpportunityDetailUiState {
         val briefGateReason: BriefGateReason? = null,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
-    ) : OpportunityDetailUiState
+    ) : OpportunityDetailUiState {
+        val isBusy: Boolean
+            get() = isSaving || briefInFlight
+        val briefActionEnabled: Boolean
+            get() = canBrief && !isBusy
+    }
 }
 
 enum class BriefFailureKind {
