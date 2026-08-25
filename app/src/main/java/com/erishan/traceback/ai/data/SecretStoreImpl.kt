@@ -56,6 +56,10 @@ class SecretStoreImpl(
         presence.value = KeyPresence(hasKey = true, lastFour = lastFourOf(trimmed))
     }
 
+    override suspend fun openAiKey(): String? = withContext(Dispatchers.IO) {
+        prefs.getString(PREF_OPENAI_KEY, null)?.takeIf { it.isNotEmpty() }
+    }
+
     override suspend fun clearOpenAiKey() {
         val cleared = withContext(Dispatchers.IO) {
             prefs.edit().remove(PREF_OPENAI_KEY).commit()

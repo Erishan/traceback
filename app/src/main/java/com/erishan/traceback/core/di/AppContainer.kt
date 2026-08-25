@@ -2,7 +2,10 @@ package com.erishan.traceback.core.di
 
 import android.content.Context
 import androidx.room3.Room
+import com.erishan.traceback.ai.data.KtorOpenAiClient
 import com.erishan.traceback.ai.data.SecretStoreImpl
+import com.erishan.traceback.ai.domain.BriefJobUseCase
+import com.erishan.traceback.ai.domain.OpenAiClient
 import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.core.db.AppDatabase
 import com.erishan.traceback.me.data.UserContextRepositoryImpl
@@ -31,5 +34,16 @@ class AppContainer(context: Context) {
 
     val secretStore: SecretStore by lazy {
         SecretStoreImpl(appContext)
+    }
+
+    private val openAiClient: OpenAiClient by lazy {
+        KtorOpenAiClient()
+    }
+
+    val briefJobUseCase: BriefJobUseCase by lazy {
+        BriefJobUseCase(
+            secretStore = secretStore,
+            openAiClient = openAiClient,
+        )
     }
 }
