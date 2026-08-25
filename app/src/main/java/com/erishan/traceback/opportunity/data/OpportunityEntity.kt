@@ -17,4 +17,5 @@ data class OpportunityEntity(
     val notes: String?,
     @ColumnInfo(defaultValue = UNKNOWN_CREATED_AT_SQL_DEFAULT) val createdAt: Long,
     val appliedMessage: String?,
+    val aiBrief: String? = null,
 )

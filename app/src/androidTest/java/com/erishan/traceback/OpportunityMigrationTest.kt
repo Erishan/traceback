@@ -24,6 +24,7 @@ class OpportunityMigrationTest {
         val context = instrumentation.targetContext
         context.deleteDatabase(MIGRATE_1_TO_2_DB)
         context.deleteDatabase(MIGRATE_2_TO_3_DB)
+        context.deleteDatabase(MIGRATE_3_TO_4_DB)
         context.deleteDatabase(LEGACY_SHARED_DB)
     }
 
@@ -88,6 +89,34 @@ class OpportunityMigrationTest {
         v3.close()
     }
 
+    @Test
+    fun migrate3To4_addsAiBrief_andKeepsExistingRows() = runBlocking {
+        val helper = migrationHelper(MIGRATE_3_TO_4_DB)
+        helper.createDatabase(3).use { v3 ->
+            v3.execSQL(
+                """
+                INSERT INTO opportunities
+                    (id, title, description, source, sourceLabel, pipelineStage, notes, createdAt, appliedMessage)
+                VALUES
+                    ('op-1', 'Legacy opportunity', NULL, 'UPWORK', NULL, 'DRAFT', 'a note from v1', 0, NULL)
+                """.trimIndent()
+            )
+        }
+
+        val v4: SQLiteConnection = helper.runMigrationsAndValidate(4, emptyList())
+
+        v4.prepare(
+            "SELECT title, notes, createdAt, aiBrief FROM opportunities WHERE id = 'op-1'"
+        ).use { stmt ->
+            assertTrue("expected the legacy row to survive the migration", stmt.step())
+            assertEquals("Legacy opportunity", stmt.getText(0))
+            assertEquals("a note from v1", stmt.getText(1))
+            assertEquals(0L, stmt.getLong(2))
+            assertTrue("legacy rows should have a null aiBrief", stmt.isNull(3))
+        }
+        v4.close()
+    }
+
     private fun migrationHelper(fileName: String) = MigrationTestHelper(
         instrumentation = instrumentation,
         databaseClass = AppDatabase::class,
@@ -98,6 +127,7 @@ class OpportunityMigrationTest {
     private companion object {
         const val MIGRATE_1_TO_2_DB = "migration-1-2.db"
         const val MIGRATE_2_TO_3_DB = "migration-2-3.db"
+        const val MIGRATE_3_TO_4_DB = "migration-3-4.db"
         const val LEGACY_SHARED_DB = "migration-test.db"
     }
 }

@@ -14,4 +14,5 @@ data class Opportunity(
     val createdAt: Instant?,
     val notes: List<Note>,
     val appliedMessage: String?,
+    val aiBrief: JobBrief? = null,
 )

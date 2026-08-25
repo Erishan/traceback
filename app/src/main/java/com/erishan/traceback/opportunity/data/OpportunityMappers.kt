@@ -13,6 +13,7 @@ fun OpportunityEntity.toDomain(): Opportunity {
         createdAt = this.createdAt.toKnownInstantOrNull(),
         notes = this.notes.toNotes(this.createdAt),
         appliedMessage = this.appliedMessage,
+        aiBrief = this.aiBrief.toJobBrief(),
     )
 }
 
@@ -31,5 +32,6 @@ fun Opportunity.toEntity(): OpportunityEntity {
         notes = this.notes.toNotesColumn(),
         createdAt = this.createdAt.toStoredEpochMillis(),
         appliedMessage = this.appliedMessage,
+        aiBrief = this.aiBrief.toJobBriefColumn(),
     )
 }
