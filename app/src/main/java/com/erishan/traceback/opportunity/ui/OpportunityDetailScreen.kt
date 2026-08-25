@@ -9,12 +9,14 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.PlayForWork
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -51,6 +54,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import com.erishan.traceback.opportunity.domain.JobBrief
 import com.erishan.traceback.opportunity.domain.Note
 import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.EmptyState
@@ -84,6 +90,7 @@ fun OpportunityDetailScreen(
     onAddNote: (String) -> Unit,
     onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
+    onBrief: () -> Unit,
     deleteFailed: Boolean,
     onDeleteErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -118,6 +125,16 @@ fun OpportunityDetailScreen(
         },
         actions = {
             if (content != null) {
+                val briefCd = stringResource(R.string.cd_brief)
+                TextButton(
+                    onClick = onBrief,
+                    enabled = content.canBrief && !content.briefInFlight,
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .semantics { contentDescription = briefCd },
+                ) {
+                    Text(stringResource(R.string.action_brief))
+                }
                 IconButton(
                     onClick = { showConfirm = true },
                     enabled = !content.isSaving,
@@ -159,6 +176,7 @@ fun OpportunityDetailScreen(
                     onAddNote = onAddNote,
                     onDeleteNote = onDeleteNote,
                     onAppliedMessageChange = onAppliedMessageChange,
+                    onBrief = onBrief,
                 )
         }
     }
@@ -186,6 +204,7 @@ private fun DetailContent(
     onAddNote: (String) -> Unit,
     onDeleteNote: (String) -> Unit,
     onAppliedMessageChange: (String) -> Unit,
+    onBrief: () -> Unit,
 ) {
     var sourceOpen by remember { mutableStateOf(false) }
     var stageOpen by remember { mutableStateOf(false) }
@@ -248,6 +267,14 @@ private fun DetailContent(
             placeholder = stringResource(R.string.detail_description_hint),
             emptyText = stringResource(R.string.detail_description_empty),
             onCommit = onDescriptionChange,
+            enabled = editEnabled,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        BriefSection(
+            content = content,
+            onBrief = onBrief,
+            onUseProposalAsAppliedMessage = onAppliedMessageChange,
             enabled = editEnabled,
         )
         Spacer(Modifier.height(12.dp))
@@ -326,6 +353,207 @@ private fun DetailContent(
         }
     }
 }
+
+@Composable
+private fun BriefSection(
+    content: OpportunityDetailUiState.Content,
+    onBrief: () -> Unit,
+    onUseProposalAsAppliedMessage: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val briefEnabled = content.canBrief && !content.briefInFlight
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            TextButton(
+                onClick = onBrief,
+                enabled = briefEnabled,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.action_brief))
+            }
+            if (content.briefInFlight) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+        if (content.briefFailed != null) {
+            ErrorBanner(text = stringResource(briefFailureRes(content.briefFailed)))
+        }
+        if (!content.canBrief && content.briefGateReason != null) {
+            Text(
+                text = stringResource(briefGateReasonRes(content.briefGateReason)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = TracebackTheme.colors.textFaint,
+            )
+        }
+        val brief = content.aiBrief
+        if (brief == null) {
+            Text(
+                text = stringResource(R.string.brief_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = TracebackTheme.colors.textFaint,
+            )
+        } else {
+            FitCard(brief)
+            ProposalCard(
+                proposal = brief.proposal,
+                onUseAsAppliedMessage = onUseProposalAsAppliedMessage,
+                enabled = enabled && !content.briefInFlight,
+            )
+            PriceCard(brief)
+            DurationCard(brief)
+            ApproachCard(brief)
+        }
+    }
+}
+
+@Composable
+private fun FitCard(brief: JobBrief) {
+    ReadOnlyCard(label = stringResource(R.string.field_fit)) {
+        Text(
+            text = stringResource(fitVerdictRes(brief.fit.verdict)),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = brief.fit.summary,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun ProposalCard(
+    proposal: String,
+    onUseAsAppliedMessage: (String) -> Unit,
+    enabled: Boolean,
+) {
+    ReadOnlyCard(label = stringResource(R.string.field_proposal)) {
+        Text(
+            text = proposal,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        TextButton(
+            onClick = { onUseAsAppliedMessage(proposal) },
+            enabled = enabled,
+            modifier = Modifier.heightIn(min = 48.dp),
+        ) {
+            Text(stringResource(R.string.brief_use_as_applied))
+        }
+    }
+}
+
+@Composable
+private fun PriceCard(brief: JobBrief) {
+    ReadOnlyCard(label = stringResource(R.string.field_price)) {
+        Text(
+            text = stringResource(R.string.brief_price_range, brief.price.low, brief.price.high),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = brief.price.rationale,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun DurationCard(brief: JobBrief) {
+    ReadOnlyCard(label = stringResource(R.string.field_duration)) {
+        Text(
+            text = brief.duration.range,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.brief_duration_hours, brief.duration.hours),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = stringResource(durationBasisRes(brief.duration.basis)),
+            style = MaterialTheme.typography.bodySmall,
+            color = TracebackTheme.colors.textFaint,
+        )
+    }
+}
+
+@Composable
+private fun ApproachCard(brief: JobBrief) {
+    ReadOnlyCard(label = stringResource(R.string.field_approach)) {
+        Text(
+            text = brief.approach.summary,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        if (brief.approach.technologies.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = brief.approach.technologies.joinToString(", "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyCard(
+    label: String,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        CardLabel(label)
+        Spacer(Modifier.height(9.dp))
+        content()
+    }
+}
+
+private fun briefFailureRes(kind: BriefFailureKind): Int = when (kind) {
+    BriefFailureKind.BadKey -> R.string.brief_failed_bad_key
+    BriefFailureKind.RateLimited -> R.string.brief_failed_rate_limit
+    BriefFailureKind.InvalidResponse -> R.string.brief_failed_invalid
+    BriefFailureKind.Network -> R.string.brief_failed_network
+}
+
+private fun briefGateReasonRes(reason: BriefGateReason): Int = when (reason) {
+    BriefGateReason.MissingAbout -> R.string.brief_disabled_no_about
+    BriefGateReason.MissingKey -> R.string.brief_disabled_no_key
+    BriefGateReason.MissingAboutAndKey -> R.string.brief_disabled_no_about_or_key
+}
+
+private fun fitVerdictRes(verdict: String): Int = when (verdict) {
+    "yes" -> R.string.brief_verdict_yes
+    "no" -> R.string.brief_verdict_no
+    else -> R.string.brief_verdict_stretch
+}
+
+private fun durationBasisRes(basis: String): Int =
+    if (basis == "profile") R.string.brief_basis_profile else R.string.brief_basis_typical
 
 @Composable
 private fun InlineTitle(
@@ -764,6 +992,7 @@ private fun OpportunityDetailScreenPreview() {
             onAddNote = {},
             onDeleteNote = {},
             onAppliedMessageChange = {},
+            onBrief = {},
             deleteFailed = false,
             onDeleteErrorDismiss = {},
         )

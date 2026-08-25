@@ -43,6 +43,7 @@ fun OpportunityDetailRoute(
         onAddNote = viewModel::onAddNote,
         onDeleteNote = viewModel::onDeleteNote,
         onAppliedMessageChange = viewModel::onAppliedMessageChange,
+        onBrief = viewModel::onBrief,
         deleteFailed = deleteFailed,
         onDeleteErrorDismiss = { deleteFailed = false },
         modifier = modifier,

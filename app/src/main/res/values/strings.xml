@@ -75,6 +75,31 @@
     <string name="delete_confirm_message">This can\'t be undone.</string>
     <string name="action_delete">Delete</string>
 
+    <!-- Brief -->
+    <string name="action_brief">Brief</string>
+    <string name="cd_brief">Brief this job</string>
+    <string name="brief_empty">Brief this job to get fit, a proposal, price, time, and approach.</string>
+    <string name="brief_disabled_no_about">Add who you are on Me before briefing.</string>
+    <string name="brief_disabled_no_key">Paste an OpenAI key on Me before briefing.</string>
+    <string name="brief_disabled_no_about_or_key">Add who you are and an OpenAI key on Me before briefing.</string>
+    <string name="brief_failed_bad_key">That key was rejected. Check it on Me.</string>
+    <string name="brief_failed_rate_limit">OpenAI rate-limited the request. Try again in a moment.</string>
+    <string name="brief_failed_invalid">The brief came back unreadable. Try again.</string>
+    <string name="brief_failed_network">Couldn\'t reach OpenAI. Try again.</string>
+    <string name="brief_use_as_applied">Use as applied message</string>
+    <string name="field_fit">Fit</string>
+    <string name="field_proposal">Proposal</string>
+    <string name="field_price">Price</string>
+    <string name="field_duration">Duration</string>
+    <string name="field_approach">Approach</string>
+    <string name="brief_verdict_yes">Yes</string>
+    <string name="brief_verdict_stretch">Stretch</string>
+    <string name="brief_verdict_no">No</string>
+    <string name="brief_price_range">%1$s – %2$s</string>
+    <string name="brief_duration_hours">%1$s hours</string>
+    <string name="brief_basis_profile">From your pace</string>
+    <string name="brief_basis_typical">Typical for this kind of job</string>
+
     <!-- Me -->
     <string name="me_title">Me</string>
     <string name="cd_open_me">Me</string>
