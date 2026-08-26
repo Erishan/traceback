@@ -1,5 +1,6 @@
 package com.erishan.traceback.me.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,12 +37,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import com.erishan.traceback.R
+import com.erishan.traceback.settings.domain.ThemeMode
+import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.ErrorBanner
 import com.erishan.traceback.ui.components.FieldLabel
 import com.erishan.traceback.ui.components.LoadingState
 import com.erishan.traceback.ui.components.PrimaryButton
 import com.erishan.traceback.ui.components.TbBarIconButton
 import com.erishan.traceback.ui.components.TbGlassSurface
+import com.erishan.traceback.ui.components.TbPickerTrigger
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.components.TextAction
@@ -57,6 +61,7 @@ fun MeScreen(
     onSaveProfile: (about: String, rateBand: String, pace: String) -> Unit,
     onSaveKey: (String) -> Unit,
     onClearKey: () -> Unit,
+    onThemeModeChange: (ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     TbScaffold(
@@ -83,6 +88,7 @@ fun MeScreen(
                 onSaveProfile = onSaveProfile,
                 onSaveKey = onSaveKey,
                 onClearKey = onClearKey,
+                onThemeModeChange = onThemeModeChange,
             )
         }
     }
@@ -95,6 +101,7 @@ private fun MeForm(
     onSaveProfile: (about: String, rateBand: String, pace: String) -> Unit,
     onSaveKey: (String) -> Unit,
     onClearKey: () -> Unit,
+    onThemeModeChange: (ThemeMode) -> Unit,
 ) {
     val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
@@ -173,8 +180,53 @@ private fun MeForm(
             onClearKey = onClearKey,
         )
 
+        Spacer(Modifier.height(dimens.spaceL))
+
+        FieldLabel(stringResource(R.string.field_appearance))
+        AppearanceCard(selected = uiState.themeMode, onSelect = onThemeModeChange)
+
         Spacer(Modifier.height(dimens.spaceXl))
     }
+}
+
+@Composable
+private fun AppearanceCard(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    val dimens = TracebackTheme.dimens
+    var open by remember { mutableStateOf(false) }
+
+    TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceXs)) {
+            TbPickerTrigger(
+                label = stringResource(themeModeLabelRes(selected)),
+                open = open,
+                onClick = { open = !open },
+                onClickLabel = stringResource(R.string.cd_change_theme),
+            )
+            AnimatedVisibility(visible = open) {
+                Row(
+                    modifier = Modifier.padding(bottom = dimens.spaceXs),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
+                ) {
+                    ThemeMode.entries.forEach { mode ->
+                        ChoiceChip(
+                            label = stringResource(themeModeLabelRes(mode)),
+                            selected = mode == selected,
+                            onClick = {
+                                onSelect(mode)
+                                open = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun themeModeLabelRes(mode: ThemeMode): Int = when (mode) {
+    ThemeMode.SYSTEM -> R.string.theme_system
+    ThemeMode.LIGHT -> R.string.theme_light
+    ThemeMode.DARK -> R.string.theme_dark
 }
 
 @Composable
@@ -336,6 +388,7 @@ private fun MeScreenPreview(darkTheme: Boolean, uiState: MeUiState) {
             onSaveProfile = { _, _, _ -> },
             onSaveKey = {},
             onClearKey = {},
+            onThemeModeChange = {},
         )
     }
 }

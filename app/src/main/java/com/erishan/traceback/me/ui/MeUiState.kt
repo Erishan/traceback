@@ -1,5 +1,7 @@
 package com.erishan.traceback.me.ui
 
+import com.erishan.traceback.settings.domain.ThemeMode
+
 data class MeUiState(
     val about: String = "",
     val rateBand: String? = null,
@@ -12,4 +14,5 @@ data class MeUiState(
     val profileSaveFailed: Boolean = false,
     val keySaveFailed: Boolean = false,
     val keyRejectedBlank: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )

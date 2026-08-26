@@ -19,6 +19,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.erishan.traceback.settings.domain.AppearanceStore
+import com.erishan.traceback.settings.domain.ThemeMode
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 private val NavigationBarLightScrim = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
@@ -33,8 +36,10 @@ private val AnimationScaleKeys = listOf(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val appearance = (application as TracebackApp).container.appearanceStore
+
         setContent {
-            val darkTheme = isSystemInDarkTheme()
+            val darkTheme = appearance.rememberDarkTheme()
 
             DisposableEffect(darkTheme) {
                 enableEdgeToEdge(
@@ -57,6 +62,17 @@ class MainActivity : ComponentActivity() {
                 App()
             }
         }
+    }
+}
+
+@Composable
+private fun AppearanceStore.rememberDarkTheme(): Boolean {
+    val modes = remember(this) { observe() }
+    val mode by modes.collectAsStateWithLifecycle(initialValue = current())
+    return when (mode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
     }
 }
 

@@ -12,6 +12,8 @@ import com.erishan.traceback.me.data.UserContextRepositoryImpl
 import com.erishan.traceback.me.domain.UserContextRepository
 import com.erishan.traceback.opportunity.data.OpportunityRepositoryImpl
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
+import com.erishan.traceback.settings.data.AppearanceStoreImpl
+import com.erishan.traceback.settings.domain.AppearanceStore
 
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
@@ -34,6 +36,10 @@ class AppContainer(context: Context) {
 
     val secretStore: SecretStore by lazy {
         SecretStoreImpl(appContext)
+    }
+
+    val appearanceStore: AppearanceStore by lazy {
+        AppearanceStoreImpl(appContext)
     }
 
     private val openAiClient: OpenAiClient by lazy {

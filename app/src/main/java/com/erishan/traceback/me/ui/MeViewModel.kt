@@ -11,6 +11,8 @@ import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.ai.domain.trimmedOpenAiKey
 import com.erishan.traceback.me.domain.UserContext
 import com.erishan.traceback.me.domain.UserContextRepository
+import com.erishan.traceback.settings.domain.AppearanceStore
+import com.erishan.traceback.settings.domain.ThemeMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 class MeViewModel(
     private val userContextRepository: UserContextRepository,
     private val secretStore: SecretStore,
+    private val appearanceStore: AppearanceStore,
 ) : ViewModel() {
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -31,6 +34,7 @@ class MeViewModel(
                 MeViewModel(
                     userContextRepository = app.container.userContextRepository,
                     secretStore = app.container.secretStore,
+                    appearanceStore = app.container.appearanceStore,
                 )
             }
         }
@@ -42,8 +46,9 @@ class MeViewModel(
         combine(
             userContextRepository.observe(),
             secretStore.observe(),
+            appearanceStore.observe(),
             _status,
-        ) { profile, key, status ->
+        ) { profile, key, themeMode, status ->
             MeUiState(
                 about = profile.about,
                 rateBand = profile.rateBand,
@@ -56,6 +61,7 @@ class MeViewModel(
                 profileSaveFailed = status.profileSaveFailed,
                 keySaveFailed = status.keySaveFailed,
                 keyRejectedBlank = status.keyRejectedBlank,
+                themeMode = themeMode,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -112,6 +118,10 @@ class MeViewModel(
                 }
             }
         }
+    }
+
+    fun onThemeModeChange(mode: ThemeMode) {
+        viewModelScope.launch { appearanceStore.setThemeMode(mode) }
     }
 
     fun onClearKey() {

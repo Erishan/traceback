@@ -59,6 +59,7 @@
     <string name="cd_edit">Edit</string>
     <string name="cd_change_stage">Change stage</string>
     <string name="cd_change_source">Change source</string>
+    <string name="cd_change_theme">Change theme</string>
     <string name="cd_confirm">Save</string>
     <string name="cd_cancel">Cancel</string>
     <string name="field_applied_message">Applied message</string>
@@ -129,4 +130,8 @@
     <string name="me_profile_could_not_save">Profile couldn\'t save</string>
     <string name="me_key_could_not_save">Key couldn\'t save</string>
     <string name="me_key_blank">Key can\'t be blank.</string>
+    <string name="field_appearance">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

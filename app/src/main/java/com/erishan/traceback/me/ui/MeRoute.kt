@@ -19,6 +19,7 @@ fun MeRoute(
         onSaveProfile = viewModel::onSaveProfile,
         onSaveKey = viewModel::onSaveKey,
         onClearKey = viewModel::onClearKey,
+        onThemeModeChange = viewModel::onThemeModeChange,
         modifier = modifier,
     )
 }
