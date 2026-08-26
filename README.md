@@ -21,6 +21,23 @@ Delivered. And it moves along as things happen. When one dies, it goes to
 Closed or Lost instead of quietly disappearing, which can help you find out what
 your real win rate is.
 
+## What it looks like
+
+<p align="center">
+  <img src="docs/images/list-dark.png" width="240" alt="The pipeline: every lead on a stage, with a strip showing where they sit">
+  <img src="docs/images/detail-dark.png" width="240" alt="One opportunity, its stage lit along the conduit, with notes and a job brief">
+  <img src="docs/images/create-dark.png" width="240" alt="Adding a lead: title, where it came from, what stage it is at">
+</p>
+
+<details>
+<summary>Light theme</summary>
+<p align="center">
+  <img src="docs/images/list-light.png" width="240" alt="The pipeline in the light theme">
+  <img src="docs/images/detail-light.png" width="240" alt="One opportunity in the light theme">
+  <img src="docs/images/create-light.png" width="240" alt="Adding a lead in the light theme">
+</p>
+</details>
+
 ## What you get
 
 - Add a lead in a few seconds: title, where it came from, what stage it is at.
