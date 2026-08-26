@@ -765,7 +765,7 @@ private fun SourcePicker(
         ) {
             OpportunitySource.entries.forEach { entry ->
                 ChoiceChip(
-                    label = stringResource(sourceLabelRes(entry)),
+                    label = stringResource(sourceLabelRes(entry)).uppercase(),
                     selected = source == entry,
                     onClick = { onSourceChange(entry) },
                     selectionColor = colors.textHigh,

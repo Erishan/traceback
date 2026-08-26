@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -319,7 +320,7 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
     ) {
         OpportunityFilter.entries.forEach { filter ->
             ChoiceChip(
-                label = stringResource(filter.labelRes),
+                label = stringResource(filter.labelRes).uppercase(),
                 selected = filter == selected,
                 onClick = { onSelect(filter) },
             )
@@ -401,7 +402,7 @@ private fun StagePill(stage: PipelineStage) {
         Text(
             text = stringResource(stageLabelRes(stage)).uppercase(),
             style = MaterialTheme.typography.labelMedium,
-            color = TracebackTheme.colors.textHigh,
+            color = color,
             maxLines = 1,
         )
     }
@@ -429,7 +430,7 @@ private fun CardMeta(opportunity: Opportunity) {
             )
             Text(
                 text = sourceText(opportunity).uppercase(),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                 color = colors.textFaint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -438,7 +439,7 @@ private fun CardMeta(opportunity: Opportunity) {
         Spacer(Modifier.width(dimens.spaceXs))
         Text(
             text = createdText(opportunity.createdAt),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
             color = colors.textFaint,
             maxLines = 1,
         )

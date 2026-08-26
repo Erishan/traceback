@@ -23,22 +23,18 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Where each field sits, as a fraction of the drawing area. */
-private val IndigoCenter = Offset(0.14f, 0.04f)
-private val TealCenter = Offset(0.94f, 0.32f)
-private val WarmCenter = Offset(0.28f, 0.96f)
+private val IndigoCenter = Offset(0.00f, -0.12f)
+private val TealCenter = Offset(1.28f, 0.04f)
+private val WarmCenter = Offset(-0.14f, 1.24f)
 
-/** Field radius, as a fraction of the longest side. */
-private const val IndigoRadius = 1.05f
-private const val TealRadius = 0.82f
-private const val WarmRadius = 0.72f
+private const val IndigoRadius = 0.44f
+private const val TealRadius = 0.26f
+private const val WarmRadius = 0.52f
 
-/** The stop that makes a field read as haze rather than a disc. */
-private const val FieldMidStop = 0.6f
-private const val FieldMidAlphaScale = 0.5f
+private const val FieldMidStop = 0.30f
+private const val FieldMidAlphaScale = 0.28f
 
-/** How far a field wanders, as a fraction of the drawing area. Small enough to be felt, not seen. */
-private const val DriftAmplitude = 0.04f
+private const val DriftAmplitude = 0.004f
 private const val DriftSkew = 1.7f
 private val IndigoPhase = 0f
 private val TealPhase = (PI * 2.0 / 3.0).toFloat()

@@ -25,7 +25,7 @@ fun StageChip(
 ) {
     val color = stageColor(stage)
     ChoiceChip(
-        label = stringResource(stageLabelRes(stage)),
+        label = stringResource(stageLabelRes(stage)).uppercase(),
         selected = selected,
         selectionColor = color,
         onClick = onClick,
