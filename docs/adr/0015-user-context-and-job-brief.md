@@ -32,9 +32,9 @@ opportunity row (ADR-0011).
 
 - Regenerating a brief overwrites `aiBrief`. There is no brief history.
 - Price and duration are suggestions, not payment tracking (ADR-0001).
-- Compose Multiplatform later shares `UserContext`, `JobBrief`, and the
-  OpenAI client. Me chrome and `EncryptedSharedPreferences` stay platform
-  code.
+- The next shared surface is Compose Multiplatform iOS: `UserContext`,
+  `JobBrief`, and the OpenAI client move as-is. Me chrome and
+  `EncryptedSharedPreferences` stay platform code (Keychain on iOS).
 
 ## Reverse cost
 

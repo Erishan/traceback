@@ -52,8 +52,9 @@ your real win rate is.
 ## Under the hood
 
 Kotlin and Jetpack Compose, Room for storage, Navigation 3. Domain and data
-layers are kept free of Android so they can move to Kotlin Multiplatform later.
-The reasoning behind each choice lives in [docs/adr](docs/adr).
+layers are kept free of Android so the next step can wrap them for Compose
+Multiplatform iOS. The reasoning behind each choice lives in
+[docs/adr](docs/adr).
 
 ## Run it
 
@@ -69,5 +70,6 @@ The OpenAI brief is in: a **Me** screen (profile + key) and five boxes on an
 opportunity (fit, proposal, price, duration, approach). The decision record
 is [docs/adr/0015](docs/adr/0015-user-context-and-job-brief.md).
 
-Claude, Gemini, payment tracking, and a Compose Multiplatform iOS build come
-after that loop works on Android.
+Next is a Compose Multiplatform iOS build that reuses the Android-free
+`domain`/`data` layers. Claude, Gemini, and payment tracking come after that
+([ADR-0001](docs/adr/0001-scope-and-domain.md)).

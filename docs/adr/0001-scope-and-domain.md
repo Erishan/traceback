@@ -26,7 +26,7 @@ of scope. Enums persist as strings, not ordinals.
 
 - Pipeline and payment are separate axes: a deposit can precede, follow, or
   never accompany delivery, which one chain cannot represent. Payment is a
-  later increment, not the next one (amendment 2026-08-25).
+  later increment (amendment 2026-08-26).
 - LOST keeps the app a real pipeline rather than a log of won work, and makes
   win rate computable.
 - A closed source enum prevents the "Upwork / upwork / UpWork" fragmentation a
@@ -41,5 +41,11 @@ enum storage format — both require a data migration.
 ## Amendment 2026-08-25
 
 v1.1 is a local OpenAI job brief driven by an on-device profile (ADR-0014,
-ADR-0015). Payment tracking, statistics, other model providers, and Compose
-Multiplatform are deferred. The v1 opportunity pipeline is unchanged.
+ADR-0015). The v1 opportunity pipeline is unchanged.
+
+## Amendment 2026-08-26
+
+The Android brief loop and aurora identity are in. The next product step is a
+Compose Multiplatform iOS build that shares `domain`/`data` (and the OpenAI
+client) already kept free of Android. Payment tracking, statistics, and other
+model providers (Claude, Gemini) stay deferred until after that.
