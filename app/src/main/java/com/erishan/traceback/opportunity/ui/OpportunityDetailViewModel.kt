@@ -100,7 +100,7 @@ class OpportunityDetailViewModel(
         )
 
     private fun saveEdit(transform: (Opportunity) -> Opportunity) = viewModelScope.launch {
-        if (!mutationGate.tryBeginSave()) return@launch
+        mutationGate.awaitBeginSave()
         var failed = false
         try {
             editMutex.withLock {

@@ -41,6 +41,12 @@ internal class DetailMutationGate(
         }
     }
 
+    suspend fun awaitBeginSave() {
+        while (!tryBeginSave()) {
+            _state.first { !it.briefInFlight }
+        }
+    }
+
     fun endSave(failed: Boolean) {
         _state.update {
             it.copy(

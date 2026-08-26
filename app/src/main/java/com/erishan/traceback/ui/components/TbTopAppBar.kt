@@ -1,6 +1,5 @@
 package com.erishan.traceback.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
@@ -16,14 +15,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
-import com.erishan.traceback.ui.theme.minTouchTarget
+import com.erishan.traceback.ui.theme.minTouchClickable
 
 private val PreviewFrameHeight = 120.dp
 
@@ -71,12 +68,12 @@ fun TbBarIconButton(
     enabled: Boolean = true,
 ) {
     val colors = TracebackTheme.colors
-    Box(modifier = modifier.minTouchTarget(), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier.minTouchClickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
         TbGlassSurface(
-            modifier = Modifier
-                .size(BarButtonSize)
-                .clip(MaterialTheme.shapes.extraSmall)
-                .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+            modifier = Modifier.size(BarButtonSize),
             shape = MaterialTheme.shapes.extraSmall,
             strong = true,
         ) {

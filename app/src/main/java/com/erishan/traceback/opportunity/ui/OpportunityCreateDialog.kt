@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
@@ -80,7 +82,11 @@ fun OpportunityCreateDialog(
         contentColor = TracebackTheme.colors.textHigh,
         scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = ScrimAlpha),
         dragHandle = { SheetHandle() },
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        contentWindowInsets = {
+            WindowInsets.ime.union(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+            )
+        },
     ) {
         CreateSheetContent(
             uiState = uiState,
@@ -136,8 +142,8 @@ private fun CreateSheetContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(horizontal = dimens.screenPadding)
             .padding(bottom = dimens.spaceXl),
     ) {

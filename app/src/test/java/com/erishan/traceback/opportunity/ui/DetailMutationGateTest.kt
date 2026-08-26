@@ -51,6 +51,23 @@ class DetailMutationGateTest {
     }
 
     @Test
+    fun awaitBeginSaveWaitsUntilBriefReleasesThenClaims() = runBlocking {
+        val gate = DetailMutationGate()
+        assertTrue(gate.tryClaimBrief())
+
+        val waiter = launch { gate.awaitBeginSave() }
+        yield()
+        assertTrue(waiter.isActive)
+        assertEquals(0, gate.state.value.pendingSaves)
+
+        gate.releaseBrief()
+        waiter.join()
+
+        assertEquals(1, gate.state.value.pendingSaves)
+        assertFalse(gate.state.value.briefInFlight)
+    }
+
+    @Test
     fun briefCanClaimWhileSavePending_thenAwaitUnblocksAfterSaveEnds() = runBlocking {
         val gate = DetailMutationGate()
         assertTrue(gate.tryBeginSave())

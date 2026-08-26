@@ -257,7 +257,12 @@ private fun DetailContent(
             Spacer(Modifier.height(dimens.spaceS))
         }
 
-        InlineTitle(value = content.title, onCommit = onTitleChange, enabled = editEnabled)
+        InlineTitle(
+            value = content.title,
+            onCommit = onTitleChange,
+            enabled = editEnabled,
+            saveFailed = content.saveFailed,
+        )
         Spacer(Modifier.height(dimens.spaceL))
 
         StagePipeline(stage = content.pipelineStage)
@@ -301,6 +306,7 @@ private fun DetailContent(
             emptyText = stringResource(R.string.detail_description_empty),
             onCommit = onDescriptionChange,
             enabled = editEnabled,
+            saveFailed = content.saveFailed,
         )
         Spacer(Modifier.height(dimens.spaceS))
 
@@ -320,6 +326,7 @@ private fun DetailContent(
             emptyText = stringResource(R.string.applied_message_empty),
             onCommit = onAppliedMessageChange,
             enabled = editEnabled,
+            saveFailed = content.saveFailed,
         )
         Spacer(Modifier.height(dimens.spaceS))
 
@@ -359,9 +366,11 @@ private fun InlineTitle(
     value: String,
     onCommit: (String) -> Unit,
     enabled: Boolean,
+    saveFailed: Boolean,
 ) {
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
+    val shown = rememberSaveEcho(upstream = value, saveFailed = saveFailed)
 
     if (editing) {
         Column {
@@ -375,7 +384,10 @@ private fun InlineTitle(
             EditActions(
                 onCancel = { editing = false },
                 onConfirm = {
-                    if (buffer.isNotBlank()) onCommit(buffer)
+                    if (buffer.isNotBlank()) {
+                        shown.commit(buffer)
+                        onCommit(buffer)
+                    }
                     editing = false
                 },
                 enabled = enabled,
@@ -390,7 +402,7 @@ private fun InlineTitle(
                 .then(
                     if (enabled) {
                         Modifier.clickable(role = Role.Button, onClickLabel = editLabel) {
-                            buffer = value
+                            buffer = shown.value
                             editing = true
                         }
                     } else {
@@ -400,7 +412,7 @@ private fun InlineTitle(
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(
-                text = value,
+                text = shown.value,
                 style = MaterialTheme.typography.titleMedium,
                 color = TracebackTheme.colors.textHigh,
             )
@@ -416,6 +428,7 @@ private fun EditableCard(
     emptyText: String,
     onCommit: (String) -> Unit,
     enabled: Boolean,
+    saveFailed: Boolean,
 ) {
     val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
@@ -423,6 +436,8 @@ private fun EditableCard(
 
     var editing by remember { mutableStateOf(false) }
     var buffer by remember { mutableStateOf("") }
+    val shown = rememberSaveEcho(upstream = value.orEmpty(), saveFailed = saveFailed)
+    val displayed = shown.value.ifEmpty { null }
     val tappable = enabled && !editing
     val editLabel = stringResource(R.string.cd_edit)
 
@@ -433,7 +448,7 @@ private fun EditableCard(
             .then(
                 if (tappable) {
                     Modifier.clickable(role = Role.Button, onClickLabel = editLabel) {
-                        buffer = value.orEmpty()
+                        buffer = shown.value
                         editing = true
                     }
                 } else {
@@ -457,6 +472,7 @@ private fun EditableCard(
                 EditActions(
                     onCancel = { editing = false },
                     onConfirm = {
+                        shown.commit(buffer)
                         onCommit(buffer)
                         editing = false
                     },
@@ -464,14 +480,34 @@ private fun EditableCard(
                 )
             } else {
                 Text(
-                    text = value ?: emptyText,
+                    text = displayed ?: emptyText,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (value == null) colors.textFaint else colors.textHigh,
+                    color = if (displayed == null) colors.textFaint else colors.textHigh,
                 )
             }
         }
     }
 }
+
+@Composable
+private fun rememberSaveEcho(upstream: String, saveFailed: Boolean): SaveEcho {
+    var pending by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(upstream, pending) {
+        if (pending != null && upstream == pending) pending = null
+    }
+    LaunchedEffect(saveFailed) {
+        if (saveFailed) pending = null
+    }
+    return SaveEcho(
+        value = pending ?: upstream,
+        commit = { pending = it },
+    )
+}
+
+private data class SaveEcho(
+    val value: String,
+    val commit: (String) -> Unit,
+)
 
 @Composable
 private fun NotesSection(
@@ -718,16 +754,19 @@ private fun SourcePill(
         ?: stringResource(sourceLabelRes(source))
     val changeSource = stringResource(R.string.cd_change_source)
 
-    Box(modifier = Modifier.minTouchTarget(), contentAlignment = Alignment.CenterStart) {
+    Box(
+        modifier = Modifier
+            .minTouchTarget()
+            .clip(PillShape)
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = changeSource,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.CenterStart,
+    ) {
         TbGlassSurface(
-            modifier = Modifier
-                .clip(PillShape)
-                .clickable(
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClickLabel = changeSource,
-                    onClick = onClick,
-                ),
             shape = PillShape,
             strong = true,
         ) {

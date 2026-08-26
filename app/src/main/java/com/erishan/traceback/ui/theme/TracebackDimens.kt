@@ -1,9 +1,11 @@
 package com.erishan.traceback.ui.theme
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -12,6 +14,18 @@ val MinTouchTarget: Dp = 48.dp
 
 fun Modifier.minTouchTarget(): Modifier =
     sizeIn(minWidth = MinTouchTarget, minHeight = MinTouchTarget)
+
+fun Modifier.minTouchClickable(
+    enabled: Boolean = true,
+    role: Role = Role.Button,
+    onClickLabel: String? = null,
+    onClick: () -> Unit,
+): Modifier = minTouchTarget().clickable(
+    enabled = enabled,
+    role = role,
+    onClickLabel = onClickLabel,
+    onClick = onClick,
+)
 
 @Immutable
 data class TracebackDimens(
