@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
@@ -35,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.components.ComponentPreview
+import com.erishan.traceback.ui.components.TbPickerChevron
+import com.erishan.traceback.ui.components.TbPickerTrigger
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
@@ -48,7 +48,6 @@ private const val DisabledTriggerAlpha = 0.55f
 private const val HalfTurn = 180f
 
 private val TerminalGlyph = 15.dp
-private val ChevronSize = 18.dp
 
 @Composable
 fun StageTrigger(
@@ -59,51 +58,55 @@ fun StageTrigger(
     enabled: Boolean = true,
 ) {
     val motion = TracebackTheme.motion
-    val shape = MaterialTheme.shapes.small
+    val label = stringResource(stageLabelRes(stage))
+    val onClickLabel = stringResource(R.string.cd_change_stage)
 
     val color by animateColorAsState(
         targetValue = stageColor(stage),
         animationSpec = tween(motion.slow, easing = motion.standardEasing),
         label = "triggerColor",
     )
-    val chevron by animateFloatAsState(
-        targetValue = if (open) HalfTurn else 0f,
-        animationSpec = tween(motion.fast, easing = motion.standardEasing),
-        label = "triggerChevron",
-    )
 
-    Box(
-        modifier = modifier
-            .sizeIn(minWidth = MinStagePickerSize, minHeight = MinStagePickerSize)
-            .clip(shape)
-            .clickable(
-                enabled = enabled,
-                role = Role.Button,
-                onClickLabel = stringResource(R.string.cd_change_stage),
-                onClick = onClick,
+    if (!stage.isTerminal) {
+        // A stage still on the track is the plain picker, burning in that stage's colour.
+        TbPickerTrigger(
+            label = label,
+            open = open,
+            onClick = onClick,
+            modifier = modifier,
+            color = color,
+            onClickLabel = onClickLabel,
+            enabled = enabled,
+        )
+    } else {
+        // A terminal stage is a closed badge: it brings its own container, so it cannot
+        // share the plain trigger - only the chevron.
+        val chevron by animateFloatAsState(
+            targetValue = if (open) HalfTurn else 0f,
+            animationSpec = tween(motion.fast, easing = motion.standardEasing),
+            label = "triggerChevron",
+        )
+
+        Box(
+            modifier = modifier
+                .sizeIn(minWidth = MinStagePickerSize, minHeight = MinStagePickerSize)
+                .clip(MaterialTheme.shapes.small)
+                .clickable(
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = onClickLabel,
+                    onClick = onClick,
+                )
+                .alpha(if (enabled) 1f else DisabledTriggerAlpha),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            TerminalBadge(
+                label = label,
+                color = color,
+                chevron = chevron,
+                shape = MaterialTheme.shapes.small,
             )
-            .alpha(if (enabled) 1f else DisabledTriggerAlpha),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        val label = stringResource(stageLabelRes(stage))
-        if (stage.isTerminal) {
-            TerminalBadge(label = label, color = color, chevron = chevron, shape = shape)
-        } else {
-            TrackLabel(label = label, color = color, chevron = chevron)
         }
-    }
-}
-
-@Composable
-private fun TrackLabel(label: String, color: Color, chevron: Float) {
-    val dimens = TracebackTheme.dimens
-    Row(
-        modifier = Modifier.padding(horizontal = dimens.spaceXxs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimens.spaceXxs),
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleSmall, color = color)
-        Chevron(color = color, rotation = chevron)
     }
 }
 
@@ -136,20 +139,8 @@ private fun TerminalBadge(
             modifier = Modifier.size(TerminalGlyph),
         )
         Text(text = label, style = MaterialTheme.typography.titleSmall, color = color)
-        Chevron(color = color, rotation = chevron)
+        TbPickerChevron(color = color, rotation = chevron)
     }
-}
-
-@Composable
-private fun Chevron(color: Color, rotation: Float) {
-    Icon(
-        imageVector = Icons.Default.KeyboardArrowDown,
-        contentDescription = null,
-        tint = color,
-        modifier = Modifier
-            .size(ChevronSize)
-            .rotate(rotation),
-    )
 }
 
 @Composable
