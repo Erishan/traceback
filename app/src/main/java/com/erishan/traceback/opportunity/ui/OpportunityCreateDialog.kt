@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -290,29 +291,34 @@ private val SavingDraft = OtherSourceDraft.copy(
 )
 
 @Composable
+private fun BoxScope.SheetFrame(uiState: OpportunityCreateUiState) {
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .clip(SheetShape)
+            .background(sheetSurface()),
+    ) {
+        SheetHandle()
+        CreateSheetContent(
+            uiState = uiState,
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onSourceChange = {},
+            onSourceLabelChange = {},
+            onStageChange = {},
+            onSave = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Composable
 private fun CreateSheetPreview(darkTheme: Boolean, uiState: OpportunityCreateUiState) {
     TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
         Box(Modifier.fillMaxSize()) {
             AuroraBackground()
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .clip(SheetShape)
-                    .background(sheetSurface()),
-            ) {
-                SheetHandle()
-                CreateSheetContent(
-                    uiState = uiState,
-                    onTitleChange = {},
-                    onDescriptionChange = {},
-                    onSourceChange = {},
-                    onSourceLabelChange = {},
-                    onStageChange = {},
-                    onSave = {},
-                    onDismiss = {},
-                )
-            }
+            SheetFrame(uiState = uiState)
         }
     }
 }
@@ -326,8 +332,19 @@ private fun CreateSheetEmptyDarkPreview() = CreateSheetPreview(true, EmptyDraft)
 private fun CreateSheetEmptyLightPreview() = CreateSheetPreview(false, EmptyDraft)
 
 @Composable
-internal fun CreateSheetShowcase(darkTheme: Boolean) =
-    CreateSheetPreview(darkTheme = darkTheme, uiState = OtherSourceDraft)
+internal fun CreateSheetShowcase(darkTheme: Boolean) {
+    TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
+        Box(Modifier.fillMaxSize()) {
+            ListScreenShowcase(darkTheme = darkTheme)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = ScrimAlpha))
+            )
+            SheetFrame(uiState = OtherSourceDraft)
+        }
+    }
+}
 
 @Preview(name = "other source - dark", widthDp = 360, heightDp = 640)
 @Composable

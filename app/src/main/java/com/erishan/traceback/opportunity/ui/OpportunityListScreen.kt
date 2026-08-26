@@ -513,6 +513,20 @@ private val PreviewOpportunities = listOf(
         source = OpportunitySource.OTHER,
         stage = PipelineStage.HIRED,
     ),
+    previewOpportunity(
+        id = "5",
+        title = "Wear OS companion for a running app",
+        description = "Watch face plus a tile, sharing the phone's session store.",
+        source = OpportunitySource.UPWORK,
+        stage = PipelineStage.APPLIED,
+    ),
+    previewOpportunity(
+        id = "6",
+        title = "Kiosk build for a museum installation",
+        description = "Went quiet after the second call.",
+        source = OpportunitySource.LINKEDIN,
+        stage = PipelineStage.LOST,
+    ),
 )
 
 private val PreviewDistribution = StageDistribution(
