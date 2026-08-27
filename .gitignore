@@ -8,6 +8,7 @@ docs/sprints/
 
 # Gradle
 .gradle/
+.kotlin/
 /build
 /app/build
 /shared/build
