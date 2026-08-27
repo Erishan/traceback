@@ -10,6 +10,8 @@ docs/sprints/
 .gradle/
 /build
 /app/build
+/shared/build
+/iosCompose/build
 
 # Android Studio / IntelliJ
 .idea/
