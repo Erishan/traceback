@@ -368,10 +368,10 @@ private fun OpportunityCard(opportunity: Opportunity, onClick: () -> Unit) {
                     StagePill(opportunity.pipelineStage)
                 }
 
-                if (opportunity.description != null) {
+                opportunity.description?.let { description ->
                     Spacer(Modifier.height(dimens.spaceXxs))
                     Text(
-                        text = opportunity.description,
+                        text = description,
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.textDim,
                         maxLines = 2,
