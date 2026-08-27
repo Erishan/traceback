@@ -51,17 +51,29 @@ your real win rate is.
 
 ## Under the hood
 
-Kotlin and Jetpack Compose, Room for storage, Navigation 3. Domain and data
-layers are kept free of Android so the next step can wrap them for Compose
-Multiplatform iOS. The reasoning behind each choice lives in
+Kotlin and Jetpack Compose on Android; domain, Room, and the OpenAI client live
+in a shared KMP module (`:shared`) so iOS can reuse them. Navigation 3 and the
+aurora UI stay in `:app` for now. The reasoning behind each choice lives in
 [docs/adr](docs/adr).
 
 ## Run it
+
+### Android
 
 Open it in Android Studio and hit Run
 
 ```bash
 ./gradlew installDebug
+```
+
+### iOS (foundation shell)
+
+Requires a full **Xcode** install (Command Line Tools alone are not enough).
+Open [`iosApp/iosApp.xcodeproj`](iosApp/iosApp.xcodeproj), pick a simulator,
+and Run. The Xcode build embeds `:iosCompose` (which exports `:shared`).
+
+```bash
+./gradlew :shared:compileKotlinIosSimulatorArm64
 ```
 
 ## Next
@@ -70,6 +82,7 @@ The OpenAI brief is in: a **Me** screen (profile + key) and five boxes on an
 opportunity (fit, proposal, price, duration, approach). The decision record
 is [docs/adr/0015](docs/adr/0015-user-context-and-job-brief.md).
 
-Next is a Compose Multiplatform iOS build that reuses the Android-free
-`domain`/`data` layers. Claude, Gemini, and payment tracking come after that
-([ADR-0001](docs/adr/0001-scope-and-domain.md)).
+CMP foundation is in ([ADR-0018](docs/adr/0018-compose-multiplatform-foundation.md)):
+shared domain/data/AI, Android intact, iOS Compose smoke shell. Next is moving
+aurora UI into shared Compose Multiplatform. Claude, Gemini, and payment
+tracking come after that ([ADR-0001](docs/adr/0001-scope-and-domain.md)).

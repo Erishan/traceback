@@ -45,7 +45,9 @@ ADR-0015). The v1 opportunity pipeline is unchanged.
 
 ## Amendment 2026-08-26
 
-The Android brief loop and aurora identity are in. The next product step is a
-Compose Multiplatform iOS build that shares `domain`/`data` (and the OpenAI
-client) already kept free of Android. Payment tracking, statistics, and other
-model providers (Claude, Gemini) stay deferred until after that.
+The Android brief loop and aurora identity are in. The CMP foundation extract
+is in (ADR-0018): `:shared` holds domain/data/AI; `:app` keeps aurora UI;
+`:iosCompose` + `iosApp/` prove Room, Keychain, and Ktor Darwin on iOS. Next
+product step is sharing aurora UI via Compose Multiplatform. Payment tracking,
+statistics, and other model providers (Claude, Gemini) stay deferred until
+after that.

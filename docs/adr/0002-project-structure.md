@@ -1,6 +1,6 @@
 # ADR-0002 — Project Structure: Single Module, Package by Feature
 
-Status: Accepted · 2026-07-25
+Status: Accepted · 2026-07-25 · Amended 2026-08-26
 
 ## Context
 
@@ -39,3 +39,9 @@ when it appears, goes in `core/`.
 
 Cheap → moderate to go multi-module (layers already separated). Cheap to switch
 feature/layer packaging now; costlier once several features exist.
+
+## Amendment 2026-08-26
+
+The CMP foundation extract happened (ADR-0018). Domain, data, and AI live in
+`:shared`; `:app` keeps aurora UI; `:iosCompose` + `iosApp/` host the iOS smoke
+shell. Feature packaging inside `:shared` is unchanged.
