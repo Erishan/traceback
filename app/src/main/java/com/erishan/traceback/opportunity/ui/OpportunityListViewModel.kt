@@ -29,12 +29,7 @@ class OpportunityListViewModel(
     private val _filter = MutableStateFlow(OpportunityFilter.All)
     val uiState: StateFlow<OpportunityListUiState> =
         combine(repository.observeAll(), _filter) { list, filter ->
-            OpportunityListUiState(
-                opportunities = list.filter { filter.matches(it.pipelineStage) },
-                selectedFilter = filter,
-                distribution = StageDistribution(list.groupingBy { it.pipelineStage }.eachCount()),
-                isLoading = false,
-            )
+            listUiState(all = list, filter = filter)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

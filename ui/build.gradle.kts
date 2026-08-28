@@ -15,6 +15,7 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        withHostTest {}
     }
 
     listOf(
@@ -29,15 +30,18 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            api(project(":shared"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
+            implementation(compose.animation)
             implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.compose.ui)
         }
     }
 }

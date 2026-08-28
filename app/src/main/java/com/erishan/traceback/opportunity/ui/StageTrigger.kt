@@ -58,7 +58,7 @@ fun StageTrigger(
     enabled: Boolean = true,
 ) {
     val motion = TracebackTheme.motion
-    val label = stringResource(stageLabelRes(stage))
+    val label = stage.label()
     val onClickLabel = stringResource(R.string.cd_change_stage)
 
     val color by animateColorAsState(

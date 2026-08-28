@@ -32,3 +32,13 @@ data class OpportunityListUiState(
     val distribution: StageDistribution = StageDistribution.Empty,
     val isLoading: Boolean = true,
 )
+
+fun listUiState(
+    all: List<Opportunity>,
+    filter: OpportunityFilter,
+): OpportunityListUiState = OpportunityListUiState(
+    opportunities = all.filter { filter.matches(it.pipelineStage) },
+    selectedFilter = filter,
+    distribution = StageDistribution(all.groupingBy { it.pipelineStage }.eachCount()),
+    isLoading = false,
+)

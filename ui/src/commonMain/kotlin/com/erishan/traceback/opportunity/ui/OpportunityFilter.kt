@@ -1,14 +1,21 @@
 package com.erishan.traceback.opportunity.ui
 
-import androidx.annotation.StringRes
-import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.PipelineStage
 
-enum class OpportunityFilter(@StringRes val labelRes: Int) {
-    All(R.string.filter_all),
-    Active(R.string.filter_active),
-    Won(R.string.filter_won),
-    Lost(R.string.filter_lost),
+enum class OpportunityFilter {
+    All,
+    Active,
+    Won,
+    Lost,
+    ;
+
+    val label: String
+        get() = when (this) {
+            All -> "All"
+            Active -> "Active"
+            Won -> "Won"
+            Lost -> "Lost"
+        }
 }
 
 fun OpportunityFilter.matches(stage: PipelineStage): Boolean = when (this) {

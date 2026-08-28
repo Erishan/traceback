@@ -5,8 +5,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -20,25 +18,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.core.enums.PipelineStage
-import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 240.dp
-
-/** How far the lit segment's bloom reaches above and below the conduit. */
 private val ConduitBloomReach = 9.dp
 
-/** Bloom alpha the current segment sits at, and the peak of the single breath a stage change buys. */
 private const val ConduitBloomRest = 0.34f
 private const val ConduitBloomPeak = 0.90f
 
-/** Stages already passed keep their colour, at the rank of something finished. */
 internal const val CompletedSegmentAlpha = 0.45f
 
-/** An opportunity that left the track: the channel empties and falls back to this. */
 internal const val ExitedRailAlpha = 0.30f
 
 internal fun pipeRailAlpha(isTerminal: Boolean): Float =
@@ -172,26 +162,4 @@ private fun DrawScope.drawSegmentBloom(
         topLeft = Offset(left, centerY - reach),
         size = Size(width, reach * 2f),
     )
-}
-
-@Composable
-private fun StagePipelinePreviewContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceL)) {
-        StagePipeline(PipelineStage.DRAFT)
-        StagePipeline(PipelineStage.INTERVIEW)
-        StagePipeline(PipelineStage.DELIVERED)
-        StagePipeline(PipelineStage.LOST)
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun StagePipelineDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StagePipelinePreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun StagePipelineLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StagePipelinePreviewContent() }
 }

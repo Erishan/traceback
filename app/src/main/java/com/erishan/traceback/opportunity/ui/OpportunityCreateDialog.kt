@@ -193,7 +193,7 @@ private fun CreateSheetContent(
         ) {
             OpportunitySource.entries.forEach { source ->
                 ChoiceChip(
-                    label = stringResource(sourceLabelRes(source)).uppercase(),
+                    label = source.label().uppercase(),
                     selected = uiState.source == source,
                     selectionColor = colors.textHigh,
                     selectedFill = colors.glassStrong,

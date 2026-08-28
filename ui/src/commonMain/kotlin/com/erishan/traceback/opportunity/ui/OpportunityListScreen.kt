@@ -37,15 +37,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Opportunity
@@ -57,11 +54,9 @@ import com.erishan.traceback.ui.components.StageRod
 import com.erishan.traceback.ui.components.TbBarIconButton
 import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
+import com.erishan.traceback.ui.platform.formatListDate
 import com.erishan.traceback.ui.theme.PillShape
 import com.erishan.traceback.ui.theme.TracebackTheme
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.time.Instant
 
 private val StripHeight = 5.dp
@@ -77,6 +72,16 @@ private const val StagePillFill = 0.14f
 private const val StagePillEdge = 0.30f
 
 private val ListBottomInset = 104.dp
+
+private const val PipelineOverline = "Pipeline"
+private const val OpportunitiesTitle = "Opportunities"
+private const val NewOpportunity = "New opportunity"
+private const val OpenMe = "Me"
+private const val EmptyListTitle = "No opportunities yet"
+private const val EmptyListMessage = "Tap + to track your first one, from draft to hired."
+private const val EmptyFilterTitle = "Nothing in this filter"
+private const val EmptyFilterMessage = "Your pipeline has work in it — just not in this view."
+private const val DateUnknown = "Date unknown"
 
 @Composable
 fun OpportunityListScreen(
@@ -94,7 +99,7 @@ fun OpportunityListScreen(
         floatingActionButton = {
             GlowFab(
                 onClick = onAddClick,
-                contentDescription = stringResource(R.string.new_opportunity),
+                contentDescription = NewOpportunity,
                 icon = Icons.Default.Add,
             )
         },
@@ -121,14 +126,8 @@ fun OpportunityListScreen(
                 uiState.isLoading -> LoadingState()
 
                 uiState.opportunities.isEmpty() -> EmptyState(
-                    title = stringResource(
-                        if (uiState.distribution.isEmpty) R.string.empty_opportunities_list_title
-                        else R.string.empty_filter_title
-                    ),
-                    message = stringResource(
-                        if (uiState.distribution.isEmpty) R.string.empty_opportunities_list_message
-                        else R.string.empty_filter_message
-                    ),
+                    title = if (uiState.distribution.isEmpty) EmptyListTitle else EmptyFilterTitle,
+                    message = if (uiState.distribution.isEmpty) EmptyListMessage else EmptyFilterMessage,
                 )
 
                 else -> LazyColumn(
@@ -159,13 +158,13 @@ private fun ListHeader(distribution: StageDistribution, onOpenMe: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.pipeline_overline).uppercase(),
+                text = PipelineOverline.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.accentText,
             )
             Spacer(Modifier.height(dimens.spaceXxs))
             Text(
-                text = stringResource(R.string.opportunities_title),
+                text = OpportunitiesTitle,
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.textHigh,
             )
@@ -179,21 +178,17 @@ private fun ListHeader(distribution: StageDistribution, onOpenMe: () -> Unit) {
         Spacer(Modifier.width(dimens.spaceS))
         TbBarIconButton(
             icon = Icons.Outlined.Person,
-            contentDescription = stringResource(R.string.cd_open_me),
+            contentDescription = OpenMe,
             onClick = onOpenMe,
         )
     }
 }
 
-private val NumeralRun = Regex("\\p{Nd}+")
+private val NumeralRun = Regex("[0-9]+")
 
 @Composable
 private fun countLine(distribution: StageDistribution): AnnotatedString {
-    val text = stringResource(
-        R.string.opportunities_count,
-        distribution.total,
-        distribution.active,
-    )
+    val text = "${distribution.total} total · ${distribution.active} active"
     val bright = SpanStyle(color = TracebackTheme.colors.textHigh)
     return buildAnnotatedString {
         append(text)
@@ -253,7 +248,7 @@ private fun SignalStrip(distribution: StageDistribution, modifier: Modifier = Mo
                             .background(stageColor(entry.stage))
                     )
                     Text(
-                        text = stringResource(stageLabelRes(entry.stage)).uppercase(),
+                        text = entry.stage.label().uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = colors.textFaint,
                         maxLines = 1,
@@ -320,7 +315,7 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
     ) {
         OpportunityFilter.entries.forEach { filter ->
             ChoiceChip(
-                label = stringResource(filter.labelRes).uppercase(),
+                label = filter.label.uppercase(),
                 selected = filter == selected,
                 onClick = { onSelect(filter) },
             )
@@ -400,7 +395,7 @@ private fun StagePill(stage: PipelineStage) {
             )
     ) {
         Text(
-            text = stringResource(stageLabelRes(stage)).uppercase(),
+            text = stage.label().uppercase(),
             style = MaterialTheme.typography.labelMedium,
             color = color,
             maxLines = 1,
@@ -446,22 +441,12 @@ private fun CardMeta(opportunity: Opportunity) {
     }
 }
 
-@Composable
 private fun sourceText(opportunity: Opportunity): String =
     opportunity.sourceLabel?.takeIf { opportunity.source == OpportunitySource.OTHER }
-        ?: stringResource(sourceLabelRes(opportunity.source))
+        ?: opportunity.source.label()
 
-private val ListDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
-
-@Composable
 private fun createdText(instant: Instant?): String =
-    instant?.let {
-        val platform = java.time.Instant.ofEpochMilli(it.toEpochMilliseconds())
-        ListDateFormatter.format(java.time.LocalDateTime.ofInstant(platform, ZoneId.systemDefault()))
-    } ?: stringResource(R.string.date_unknown)
-
-// previews
+    instant?.let { formatListDate(it.toEpochMilliseconds()) } ?: DateUnknown
 
 private val PreviewCreatedAt = Instant.fromEpochMilliseconds(1_723_600_000_000L)
 
@@ -541,20 +526,7 @@ private val PreviewDistribution = StageDistribution(
 )
 
 @Composable
-private fun ListScreenPreview(darkTheme: Boolean, uiState: OpportunityListUiState) {
-    TracebackTheme(darkTheme = darkTheme) {
-        OpportunityListScreen(
-            uiState = uiState,
-            onAddClick = {},
-            onFilterSelected = {},
-            onOpenOpportunity = {},
-            onOpenMe = {},
-        )
-    }
-}
-
-@Composable
-internal fun ListScreenShowcase(darkTheme: Boolean) {
+fun ListScreenShowcase(darkTheme: Boolean) {
     TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
         OpportunityListScreen(
             uiState = OpportunityListUiState(
@@ -568,44 +540,4 @@ internal fun ListScreenShowcase(darkTheme: Boolean) {
             onOpenMe = {},
         )
     }
-}
-
-@Preview(name = "dark", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListDarkPreview() = ListScreenShowcase(darkTheme = true)
-
-@Preview(name = "light", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListLightPreview() = ListScreenShowcase(darkTheme = false)
-
-@Preview(name = "empty dark", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListEmptyDarkPreview() {
-    ListScreenPreview(darkTheme = true, uiState = OpportunityListUiState(isLoading = false))
-}
-
-@Preview(name = "empty light", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListEmptyLightPreview() {
-    ListScreenPreview(darkTheme = false, uiState = OpportunityListUiState(isLoading = false))
-}
-
-/** Filter matched nothing, but the pipeline is not empty - the strip still has something to say. */
-@Preview(name = "filtered empty", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListFilteredEmptyPreview() {
-    ListScreenPreview(
-        darkTheme = true,
-        uiState = OpportunityListUiState(
-            selectedFilter = OpportunityFilter.Won,
-            distribution = PreviewDistribution,
-            isLoading = false,
-        ),
-    )
-}
-
-@Preview(name = "loading", widthDp = 400, heightDp = 880)
-@Composable
-private fun OpportunityListLoadingPreview() {
-    ListScreenPreview(darkTheme = true, uiState = OpportunityListUiState())
 }

@@ -751,7 +751,7 @@ private fun SourcePill(
     val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
     val label = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
-        ?: stringResource(sourceLabelRes(source))
+        ?: source.label()
     val changeSource = stringResource(R.string.cd_change_source)
 
     Box(
@@ -804,7 +804,7 @@ private fun SourcePicker(
         ) {
             OpportunitySource.entries.forEach { entry ->
                 ChoiceChip(
-                    label = stringResource(sourceLabelRes(entry)).uppercase(),
+                    label = entry.label().uppercase(),
                     selected = source == entry,
                     onClick = { onSourceChange(entry) },
                     selectionColor = colors.textHigh,
