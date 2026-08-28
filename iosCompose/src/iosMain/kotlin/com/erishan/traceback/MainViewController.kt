@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +18,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.erishan.traceback.core.di.SharedContainer
 import com.erishan.traceback.core.di.createIosSharedContainer
 import com.erishan.traceback.shell.IosShellApp
+import com.erishan.traceback.ui.theme.TracebackTheme
 import platform.UIKit.UIViewController
 
 fun MainViewController(): UIViewController {
@@ -42,7 +42,7 @@ private fun Bootstrap() {
             }
     }
 
-    MaterialTheme {
+    TracebackTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             when {
                 failure != null -> {
@@ -52,8 +52,8 @@ private fun Bootstrap() {
                             .padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Text("Traceback failed to start", style = MaterialTheme.typography.headlineSmall)
-                        Text(failure.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                        Text("Traceback failed to start")
+                        Text(failure.orEmpty())
                     }
                 }
                 container != null -> IosShellApp(checkNotNull(container))
@@ -61,7 +61,6 @@ private fun Bootstrap() {
                     Text(
                         "Starting…",
                         modifier = Modifier.padding(24.dp),
-                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
             }

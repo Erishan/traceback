@@ -24,6 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "traceback"
 include(":shared")
+include(":ui")
 include(":iosCompose")
 include(":app")
 

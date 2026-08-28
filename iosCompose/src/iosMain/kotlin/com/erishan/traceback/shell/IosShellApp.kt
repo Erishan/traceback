@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ai.domain.KeyPresence
 import com.erishan.traceback.core.di.SharedContainer
 import com.erishan.traceback.opportunity.domain.Opportunity
+import com.erishan.traceback.ui.theme.TracebackTheme
 import kotlinx.coroutines.launch
 
 
@@ -39,25 +40,26 @@ fun IosShellApp(container: SharedContainer) {
     var status by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    MaterialTheme {
+    TracebackTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(TracebackTheme.dimens.screenPadding),
+                verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS),
             ) {
                 Text("Traceback", style = MaterialTheme.typography.headlineMedium)
                 Text(
                     "iOS foundation shell — Room + key smoke",
                     style = MaterialTheme.typography.bodyMedium,
+                    color = TracebackTheme.colors.textDim,
                 )
                 Text(
                     "${opportunities.size} opportunities",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 OpportunityList(opportunities)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(TracebackTheme.dimens.spaceXs))
                 Text(
                     if (keyPresence.hasKey) {
                         "Key on device · last four ${keyPresence.lastFour}"
@@ -65,6 +67,7 @@ fun IosShellApp(container: SharedContainer) {
                         "No OpenAI key stored"
                     },
                     style = MaterialTheme.typography.bodyMedium,
+                    color = TracebackTheme.colors.textDim,
                 )
                 OutlinedTextField(
                     value = keyDraft,
@@ -101,7 +104,9 @@ fun IosShellApp(container: SharedContainer) {
                         Text("Clear key")
                     }
                 }
-                status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                status?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = TracebackTheme.colors.textDim)
+                }
             }
         }
     }
@@ -110,14 +115,17 @@ fun IosShellApp(container: SharedContainer) {
 @Composable
 private fun OpportunityList(opportunities: List<Opportunity>) {
     if (opportunities.isEmpty()) {
-        Text("No leads yet — add some on Android or seed later.")
+        Text(
+            "No leads yet — add some on Android or seed later.",
+            color = TracebackTheme.colors.textDim,
+        )
         return
     }
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXxs),
     ) {
         items(opportunities, key = { it.id }) { opportunity ->
             Text("• ${opportunity.title}")

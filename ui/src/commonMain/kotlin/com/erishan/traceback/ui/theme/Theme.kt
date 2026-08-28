@@ -87,6 +87,7 @@ fun TracebackTheme(
     reducedMotion: Boolean = LocalInspectionMode.current,
     content: @Composable () -> Unit,
 ) {
+    val typography = rememberTracebackTypography()
     CompositionLocalProvider(
         LocalTracebackColors provides if (darkTheme) DarkExtras else LightExtras,
         LocalTracebackDimens provides DefaultDimens,
@@ -94,7 +95,7 @@ fun TracebackTheme(
     ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-            typography = TracebackTypography,
+            typography = typography,
             shapes = TracebackShapes,
             content = content,
         )

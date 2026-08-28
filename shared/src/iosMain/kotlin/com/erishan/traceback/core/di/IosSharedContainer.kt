@@ -5,10 +5,12 @@ import com.erishan.traceback.core.db.getDatabaseBuilder
 import com.erishan.traceback.core.db.getRoomDatabase
 import com.erishan.traceback.settings.data.AppearanceStoreImpl
 
-fun createIosSharedContainer(): SharedContainer {
+suspend fun createIosSharedContainer(): SharedContainer {
+    val secretStore = SecretStoreImpl()
+    secretStore.warmUp()
     return SharedContainer(
         database = getRoomDatabase(getDatabaseBuilder()),
-        secretStore = SecretStoreImpl(),
+        secretStore = secretStore,
         appearanceStore = AppearanceStoreImpl(),
     )
 }

@@ -1,8 +1,8 @@
 package com.erishan.traceback.ui.theme
 
 import androidx.compose.ui.unit.dp
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class MinTouchTargetTest {
 

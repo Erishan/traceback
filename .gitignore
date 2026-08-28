@@ -13,6 +13,7 @@ docs/sprints/
 /app/build
 /shared/build
 /iosCompose/build
+/ui/build
 
 # Android Studio / IntelliJ
 .idea/
