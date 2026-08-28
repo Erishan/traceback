@@ -2,7 +2,6 @@ package com.erishan.traceback.core.di
 
 import com.erishan.traceback.ai.data.KtorOpenAiClient
 import com.erishan.traceback.ai.domain.BriefJobUseCase
-import com.erishan.traceback.ai.domain.OpenAiClient
 import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.core.db.AppDatabase
 import com.erishan.traceback.me.data.UserContextRepositoryImpl
@@ -15,7 +14,6 @@ class SharedContainer(
     database: AppDatabase,
     val secretStore: SecretStore,
     val appearanceStore: AppearanceStore,
-    openAiClient: OpenAiClient = KtorOpenAiClient(),
 ) {
     val opportunityRepository: OpportunityRepository =
         OpportunityRepositoryImpl(database)
@@ -23,8 +21,10 @@ class SharedContainer(
     val userContextRepository: UserContextRepository =
         UserContextRepositoryImpl(database)
 
-    val briefJobUseCase: BriefJobUseCase = BriefJobUseCase(
-        secretStore = secretStore,
-        openAiClient = openAiClient,
-    )
+    val briefJobUseCase: BriefJobUseCase by lazy {
+        BriefJobUseCase(
+            secretStore = secretStore,
+            openAiClient = KtorOpenAiClient(),
+        )
+    }
 }

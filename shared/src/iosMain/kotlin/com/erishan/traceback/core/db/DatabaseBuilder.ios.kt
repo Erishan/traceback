@@ -20,10 +20,12 @@ private fun documentDirectory(): String {
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,
         appropriateForURL = null,
-        create = false,
+        create = true,
         error = null,
     )
-    return requireNotNull(documentDirectory?.path)
+    return requireNotNull(documentDirectory?.path) {
+        "Could not resolve NSDocumentDirectory for Room"
+    }
 }
 
 private const val DB_NAME = "traceback.db"

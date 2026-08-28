@@ -122,7 +122,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :iosCompose:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :iosCompose:embedAndSignAppleFrameworkForXcode < /dev/null\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -154,6 +154,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -170,6 +171,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -183,6 +185,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../iosCompose/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -196,9 +199,15 @@
 					"$(inherited)",
 					"-framework",
 					IosCompose,
+					"-framework",
+					Metal,
+					"-framework",
+					CoreText,
+					"-framework",
+					CoreGraphics,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.erishan.traceback.ios;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Traceback;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -210,6 +219,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../iosCompose/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
@@ -223,9 +233,15 @@
 					"$(inherited)",
 					"-framework",
 					IosCompose,
+					"-framework",
+					Metal,
+					"-framework",
+					CoreText,
+					"-framework",
+					CoreGraphics,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.erishan.traceback.ios;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Traceback;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

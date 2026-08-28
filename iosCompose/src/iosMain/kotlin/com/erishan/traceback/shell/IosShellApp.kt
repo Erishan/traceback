@@ -28,10 +28,7 @@ import com.erishan.traceback.core.di.SharedContainer
 import com.erishan.traceback.opportunity.domain.Opportunity
 import kotlinx.coroutines.launch
 
-/**
- * Minimal iOS smoke UI: opportunity titles from Room + OpenAI key into Keychain.
- * Aurora screens stay on Android until the UI-share sprint.
- */
+
 @Composable
 fun IosShellApp(container: SharedContainer) {
     val opportunities by container.opportunityRepository.observeAll()
@@ -52,7 +49,7 @@ fun IosShellApp(container: SharedContainer) {
             ) {
                 Text("Traceback", style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    "iOS foundation shell — Room + Keychain smoke",
+                    "iOS foundation shell — Room + key smoke",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
@@ -83,7 +80,7 @@ fun IosShellApp(container: SharedContainer) {
                                 container.secretStore.setOpenAiKey(keyDraft)
                             }.onSuccess {
                                 keyDraft = ""
-                                status = "Key saved to Keychain"
+                                status = "Key saved"
                             }.onFailure {
                                 status = it.message ?: "Could not save key"
                             }

@@ -13,16 +13,22 @@ kotlin {
             baseName = "IosCompose"
             isStatic = true
             export(project(":shared"))
+            // apple frameworks for Skiko/Compose UIKit
+            linkerOpts(
+                "-framework", "Metal",
+                "-framework", "CoreText",
+                "-framework", "CoreGraphics",
+            )
         }
     }
 
     sourceSets {
         commonMain.dependencies {
             api(project(":shared"))
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
         }
     }
 }

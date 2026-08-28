@@ -18,3 +18,7 @@ docs/sprints/
 .idea/
 *.iml
 local.properties
+
+# Xcode (user-specific; keep locally, never commit)
+**/xcuserdata/
+*.xcuserstate
