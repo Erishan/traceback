@@ -24,12 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 180.dp
 private val ChevronSize = 18.dp
 
 private const val DisabledAlpha = 0.55f
@@ -103,36 +101,4 @@ fun TbPickerChevron(color: Color, rotation: Float) {
             .size(ChevronSize)
             .rotate(rotation),
     )
-}
-
-@Composable
-private fun TbPickerTriggerPreviewContent() {
-    val colors = TracebackTheme.colors
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs)) {
-        TbPickerTrigger(label = "System", open = false, onClick = {})
-        TbPickerTrigger(label = "Dark", open = true, onClick = {})
-        TbPickerTrigger(
-            label = "Interview",
-            open = false,
-            onClick = {},
-            color = colors.stageInterview,
-        )
-        TbPickerTrigger(label = "Light", open = false, onClick = {}, enabled = false)
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun TbPickerTriggerDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) {
-        TbPickerTriggerPreviewContent()
-    }
-}
-
-@Preview(name = "light")
-@Composable
-private fun TbPickerTriggerLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) {
-        TbPickerTriggerPreviewContent()
-    }
 }

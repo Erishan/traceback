@@ -17,14 +17,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 private const val HighlightFadeIn = 0.12f
 private const val HighlightFadeOut = 0.88f
 
-private val PreviewCardWidth = 260.dp
 
 @Composable
 fun TbGlassSurface(
@@ -63,54 +61,4 @@ fun TbGlassSurface(
             .border(hairline, edge ?: colors.edge, shape),
         content = content,
     )
-}
-
-@Composable
-private fun GlassSurfacePreviewContent() {
-    val dimens = TracebackTheme.dimens
-    Column {
-        TbGlassSurface(modifier = Modifier.width(PreviewCardWidth)) {
-            Column(Modifier.padding(dimens.spaceM)) {
-                Text(
-                    text = "Glass",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = TracebackTheme.colors.textHigh,
-                )
-                Text(
-                    text = "The default rank: a card on the ground",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TracebackTheme.colors.textDim,
-                )
-            }
-        }
-        TbGlassSurface(
-            modifier = Modifier.padding(top = dimens.spaceS).width(PreviewCardWidth),
-            strong = true,
-        ) {
-            Column(Modifier.padding(dimens.spaceM)) {
-                Text(
-                    text = "Glass, raised",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = TracebackTheme.colors.textHigh,
-                )
-                Text(
-                    text = "A sheet or an input, sitting on another surface",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TracebackTheme.colors.textDim,
-                )
-            }
-        }
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun TbGlassSurfaceDarkPreview() {
-    ComponentPreview(darkTheme = true) { GlassSurfacePreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun TbGlassSurfaceLightPreview() {
-    ComponentPreview(darkTheme = false) { GlassSurfacePreviewContent() }
 }

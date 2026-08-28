@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,9 +23,15 @@ import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ai.domain.KeyPresence
 import com.erishan.traceback.core.di.SharedContainer
 import com.erishan.traceback.opportunity.domain.Opportunity
+import com.erishan.traceback.ui.components.EmptyState
+import com.erishan.traceback.ui.components.FieldLabel
+import com.erishan.traceback.ui.components.PrimaryButton
+import com.erishan.traceback.ui.components.TbGlassSurface
+import com.erishan.traceback.ui.components.TbScaffold
+import com.erishan.traceback.ui.components.TbTextField
+import com.erishan.traceback.ui.components.TextAction
 import com.erishan.traceback.ui.theme.TracebackTheme
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun IosShellApp(container: SharedContainer) {
@@ -41,16 +44,16 @@ fun IosShellApp(container: SharedContainer) {
     val scope = rememberCoroutineScope()
 
     TracebackTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        TbScaffold(title = "Traceback") { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(padding)
                     .padding(TracebackTheme.dimens.screenPadding),
                 verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS),
             ) {
-                Text("Traceback", style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    "iOS foundation shell — Room + key smoke",
+                    "iOS foundation shell — shared aurora UI",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TracebackTheme.colors.textDim,
                 )
@@ -60,52 +63,62 @@ fun IosShellApp(container: SharedContainer) {
                 )
                 OpportunityList(opportunities)
                 Spacer(Modifier.height(TracebackTheme.dimens.spaceXs))
-                Text(
-                    if (keyPresence.hasKey) {
-                        "Key on device · last four ${keyPresence.lastFour}"
-                    } else {
-                        "No OpenAI key stored"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TracebackTheme.colors.textDim,
-                )
-                OutlinedTextField(
-                    value = keyDraft,
-                    onValueChange = { keyDraft = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("OpenAI API key") },
-                    singleLine = true,
-                )
-                Button(
-                    onClick = {
-                        scope.launch {
-                            runCatching {
-                                container.secretStore.setOpenAiKey(keyDraft)
-                            }.onSuccess {
-                                keyDraft = ""
-                                status = "Key saved"
-                            }.onFailure {
-                                status = it.message ?: "Could not save key"
-                            }
-                        }
-                    },
-                ) {
-                    Text("Save key")
-                }
-                if (keyPresence.hasKey) {
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                container.secretStore.clearOpenAiKey()
-                                status = "Key cleared"
-                            }
-                        },
+                TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(TracebackTheme.dimens.spaceM),
+                        verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS),
                     ) {
-                        Text("Clear key")
+                        Text(
+                            if (keyPresence.hasKey) {
+                                "Key on device · last four ${keyPresence.lastFour}"
+                            } else {
+                                "No OpenAI key stored"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TracebackTheme.colors.textDim,
+                        )
+                        FieldLabel("OpenAI API key", spacer = false)
+                        TbTextField(
+                            value = keyDraft,
+                            onValueChange = { keyDraft = it },
+                            placeholder = "sk-…",
+                        )
+                        PrimaryButton(
+                            text = "Save key",
+                            onClick = {
+                                scope.launch {
+                                    runCatching {
+                                        container.secretStore.setOpenAiKey(keyDraft)
+                                    }.onSuccess {
+                                        keyDraft = ""
+                                        status = "Key saved"
+                                    }.onFailure {
+                                        status = it.message ?: "Could not save key"
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        if (keyPresence.hasKey) {
+                            TextAction(
+                                text = "Clear key",
+                                color = TracebackTheme.colors.textDim,
+                                onClick = {
+                                    scope.launch {
+                                        container.secretStore.clearOpenAiKey()
+                                        status = "Key cleared"
+                                    }
+                                },
+                            )
+                        }
+                        status?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TracebackTheme.colors.textDim,
+                            )
+                        }
                     }
-                }
-                status?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = TracebackTheme.colors.textDim)
                 }
             }
         }
@@ -115,9 +128,12 @@ fun IosShellApp(container: SharedContainer) {
 @Composable
 private fun OpportunityList(opportunities: List<Opportunity>) {
     if (opportunities.isEmpty()) {
-        Text(
-            "No leads yet — add some on Android or seed later.",
-            color = TracebackTheme.colors.textDim,
+        EmptyState(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            title = "No leads yet",
+            message = "Add some on Android or seed later.",
         )
         return
     }
@@ -128,7 +144,14 @@ private fun OpportunityList(opportunities: List<Opportunity>) {
         verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXxs),
     ) {
         items(opportunities, key = { it.id }) { opportunity ->
-            Text("• ${opportunity.title}")
+            TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = opportunity.title,
+                    modifier = Modifier.padding(TracebackTheme.dimens.spaceS),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = TracebackTheme.colors.textHigh,
+                )
+            }
         }
     }
 }

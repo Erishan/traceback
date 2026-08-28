@@ -18,15 +18,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 320.dp
 
 private const val BloomAlpha = 0.7f
 
-private val PreviewCardHeight = 76.dp
 
 @Composable
 fun StageRod(color: Color, modifier: Modifier = Modifier) {
@@ -57,41 +54,4 @@ fun StageRod(color: Color, modifier: Modifier = Modifier) {
             cap = StrokeCap.Round,
         )
     }
-}
-
-@Composable
-private fun StageRodPreviewContent() {
-    val colors = TracebackTheme.colors
-    val dimens = TracebackTheme.dimens
-    Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceS)) {
-        listOf(
-            "In conversation" to colors.stageInConversation,
-            "Interview" to colors.stageInterview,
-            "Hired" to colors.stageHired,
-        ).forEach { (label, color) ->
-            TbGlassSurface(modifier = Modifier.height(PreviewCardHeight)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    StageRod(color = color)
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.textHigh,
-                        modifier = Modifier.padding(horizontal = dimens.spaceM),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun StageRodDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StageRodPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun StageRodLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StageRodPreviewContent() }
 }

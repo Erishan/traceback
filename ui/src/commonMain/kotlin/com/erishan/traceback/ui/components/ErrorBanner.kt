@@ -20,13 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 220.dp
 
 private val ErrorGlyph = 16.dp
 
@@ -98,29 +96,4 @@ fun TextAction(
             modifier = Modifier.padding(horizontal = dimens.spaceXs),
         )
     }
-}
-
-@Composable
-private fun ErrorBannerPreviewContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs)) {
-        ErrorBanner(text = "Opportunity couldn't save")
-        ErrorBanner(
-            text = "The model didn't answer",
-            actionText = "Try again",
-            onAction = {},
-        )
-        TextAction(text = "Use as applied message", color = TracebackTheme.colors.textDim, onClick = {})
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun ErrorBannerDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { ErrorBannerPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun ErrorBannerLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { ErrorBannerPreviewContent() }
 }

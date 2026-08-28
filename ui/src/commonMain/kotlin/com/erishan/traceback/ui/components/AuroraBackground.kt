@@ -7,17 +7,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.tooling.preview.Preview
 import com.erishan.traceback.ui.theme.TracebackTheme
 import kotlin.math.PI
 import kotlin.math.cos
@@ -100,26 +96,4 @@ private fun DrawScope.drawField(
         radius = radius,
         center = origin,
     )
-}
-
-@Preview(name = "dark")
-@Composable
-private fun AuroraBackgroundDarkPreview() {
-    ComponentPreview(darkTheme = true) {}
-}
-
-@Preview(name = "light")
-@Composable
-private fun AuroraBackgroundLightPreview() {
-    ComponentPreview(darkTheme = false) {}
-}
-
-@Preview(name = "tinted")
-@Composable
-private fun AuroraBackgroundTintedPreview() {
-    TracebackTheme(darkTheme = true) {
-        Box(Modifier.fillMaxWidth().height(PreviewHeight)) {
-            AuroraBackground(tint = TracebackTheme.colors.stageInterview)
-        }
-    }
 }

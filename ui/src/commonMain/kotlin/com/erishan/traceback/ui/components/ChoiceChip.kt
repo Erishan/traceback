@@ -26,12 +26,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 import com.erishan.traceback.ui.theme.minTouchTarget
 
-private val PreviewFrameHeight = 120.dp
 
 private const val SelectedFillAlpha = 0.16f
 private const val SelectedEdgeAlpha = 0.42f
@@ -130,30 +128,4 @@ fun ChoiceChip(
             }
         }
     }
-}
-
-@Composable
-private fun ChoiceChipPreviewContent() {
-    Row(horizontalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs)) {
-        ChoiceChip(label = "UPWORK", selected = true, onClick = {})
-        ChoiceChip(label = "LINKEDIN", selected = false, onClick = {})
-        ChoiceChip(
-            label = "HIRED",
-            selected = false,
-            onClick = {},
-            leadingDot = TracebackTheme.colors.stageHired,
-        )
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun ChoiceChipDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { ChoiceChipPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun ChoiceChipLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { ChoiceChipPreviewContent() }
 }

@@ -9,11 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 140.dp
 
 @Composable
 fun FieldLabel(
@@ -37,25 +35,4 @@ fun FieldLabel(
         }
     }
     if (spacer) Spacer(Modifier.height(TracebackTheme.dimens.spaceXs))
-}
-
-@Composable
-private fun FieldLabelPreviewContent() {
-    Column {
-        FieldLabel("Title")
-        FieldLabel("Description", trailing = "optional")
-        FieldLabel("Source", spacer = false)
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun FieldLabelDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { FieldLabelPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun FieldLabelLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { FieldLabelPreviewContent() }
 }

@@ -17,12 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 import com.erishan.traceback.ui.theme.minTouchClickable
 
-private val PreviewFrameHeight = 120.dp
 
 private val BarButtonSize = 38.dp
 private val BarButtonGlyph = 18.dp
@@ -85,37 +83,4 @@ fun TbBarIconButton(
             )
         }
     }
-}
-
-@Composable
-private fun TopAppBarPreviewContent() {
-    TbTopAppBar(
-        title = "Opportunity",
-        navigationIcon = {
-            TbBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                onClick = {},
-            )
-        },
-        actions = {
-            TbBarIconButton(
-                icon = Icons.Outlined.DeleteOutline,
-                contentDescription = "Delete",
-                onClick = {},
-            )
-        },
-    )
-}
-
-@Preview(name = "dark")
-@Composable
-private fun TbTopAppBarDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { TopAppBarPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun TbTopAppBarLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { TopAppBarPreviewContent() }
 }

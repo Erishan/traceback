@@ -16,13 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 220.dp
 
 private const val BusyFillAlpha = 0.55f
 
@@ -88,36 +86,4 @@ fun PrimaryButton(
             )
         }
     }
-}
-
-@Composable
-private fun PrimaryButtonPreviewContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS)) {
-        PrimaryButton(text = "Save profile", onClick = {}, modifier = Modifier.fillMaxWidth())
-        PrimaryButton(
-            text = "Save profile",
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false,
-            busy = true,
-        )
-        PrimaryButton(
-            text = "Save profile",
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false,
-        )
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun PrimaryButtonDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { PrimaryButtonPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun PrimaryButtonLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { PrimaryButtonPreviewContent() }
 }

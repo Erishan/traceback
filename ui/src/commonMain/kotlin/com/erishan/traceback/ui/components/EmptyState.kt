@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
@@ -49,21 +48,5 @@ fun EmptyState(modifier: Modifier = Modifier, title: String, message: String? = 
                 }
             }
         }
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun EmptyStateDarkPreview() {
-    ComponentPreview(darkTheme = true) {
-        EmptyState(title = "No opportunities yet", message = "Add the first one to start a trace.")
-    }
-}
-
-@Preview(name = "light")
-@Composable
-private fun EmptyStateLightPreview() {
-    ComponentPreview(darkTheme = false) {
-        EmptyState(title = "No opportunities yet", message = "Add the first one to start a trace.")
     }
 }

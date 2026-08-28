@@ -22,11 +22,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.TracebackTheme
 
-private val PreviewFrameHeight = 240.dp
 
 private val RingWidth = 3.dp
 private const val RingAlpha = 0.14f
@@ -107,30 +105,4 @@ fun TbTextField(
             }
         }
     }
-}
-
-@Composable
-private fun TbTextFieldPreviewContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS)) {
-        FieldLabel("Title")
-        TbTextField(
-            value = "SaaS onboarding flow redesign",
-            onValueChange = {},
-            placeholder = "Title",
-        )
-        FieldLabel("Description", trailing = "optional")
-        TbTextField(value = "", onValueChange = {}, placeholder = "What is the work?")
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun TbTextFieldDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { TbTextFieldPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun TbTextFieldLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { TbTextFieldPreviewContent() }
 }
