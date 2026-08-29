@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,26 +42,24 @@ private fun Bootstrap() {
     }
 
     TracebackTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            when {
-                failure != null -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Text("Traceback failed to start")
-                        Text(failure.orEmpty())
-                    }
+        when {
+            failure != null -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("Traceback failed to start")
+                    Text(failure.orEmpty())
                 }
-                container != null -> IosShellApp(checkNotNull(container))
-                else -> {
-                    Text(
-                        "Starting…",
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
+            }
+            container != null -> IosShellApp(checkNotNull(container))
+            else -> {
+                Text(
+                    "Starting…",
+                    modifier = Modifier.padding(24.dp),
+                )
             }
         }
     }

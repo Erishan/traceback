@@ -26,13 +26,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.erishan.traceback.R
+import com.erishan.traceback.ui.theme.Res
+import com.erishan.traceback.ui.theme.*
+import com.erishan.traceback.ui.label
 import com.erishan.traceback.core.enums.PipelineStage
-import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.components.TbPickerChevron
 import com.erishan.traceback.ui.components.TbPickerTrigger
 import com.erishan.traceback.ui.theme.MinTouchTarget
@@ -59,7 +59,7 @@ fun StageTrigger(
 ) {
     val motion = TracebackTheme.motion
     val label = stage.label()
-    val onClickLabel = stringResource(R.string.cd_change_stage)
+    val onClickLabel = stringResource(Res.string.cd_change_stage)
 
     val color by animateColorAsState(
         targetValue = stageColor(stage),
@@ -68,7 +68,6 @@ fun StageTrigger(
     )
 
     if (!stage.isTerminal) {
-        // A stage still on the track is the plain picker, burning in that stage's colour.
         TbPickerTrigger(
             label = label,
             open = open,
@@ -79,8 +78,6 @@ fun StageTrigger(
             enabled = enabled,
         )
     } else {
-        // A terminal stage is a closed badge: it brings its own container, so it cannot
-        // share the plain trigger - only the chevron.
         val chevron by animateFloatAsState(
             targetValue = if (open) HalfTurn else 0f,
             animationSpec = tween(motion.fast, easing = motion.standardEasing),
@@ -143,24 +140,3 @@ private fun TerminalBadge(
     }
 }
 
-@Composable
-private fun StageTriggerPreviewContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceXs)) {
-        StageTrigger(stage = PipelineStage.APPLIED, open = false, onClick = {})
-        StageTrigger(stage = PipelineStage.INTERVIEW, open = true, onClick = {})
-        StageTrigger(stage = PipelineStage.LOST, open = false, onClick = {})
-        StageTrigger(stage = PipelineStage.CLOSED, open = false, onClick = {}, enabled = false)
-    }
-}
-
-@Preview(name = "dark")
-@Composable
-private fun StageTriggerDarkPreview() {
-    ComponentPreview(darkTheme = true, height = PreviewFrameHeight) { StageTriggerPreviewContent() }
-}
-
-@Preview(name = "light")
-@Composable
-private fun StageTriggerLightPreview() {
-    ComponentPreview(darkTheme = false, height = PreviewFrameHeight) { StageTriggerPreviewContent() }
-}

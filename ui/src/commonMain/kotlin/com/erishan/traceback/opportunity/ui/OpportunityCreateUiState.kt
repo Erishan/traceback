@@ -11,5 +11,5 @@ data class OpportunityCreateUiState(
     val pipelineStage: PipelineStage = PipelineStage.DRAFT,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
-    val hasError: Boolean = false
+    val hasError: Boolean = false,
 )

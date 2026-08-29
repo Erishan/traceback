@@ -3,6 +3,7 @@ package com.erishan.traceback.opportunity.ui
 import androidx.compose.runtime.Composable
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.components.ChoiceChip
+import com.erishan.traceback.ui.label
 
 @Composable
 fun StageChip(

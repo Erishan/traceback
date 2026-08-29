@@ -1,5 +1,6 @@
 package com.erishan.traceback.ui.platform
 
+import kotlin.time.Instant
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSLocale
@@ -11,6 +12,16 @@ internal actual fun formatListDate(epochMilliseconds: Long): String {
     val date = NSDate.dateWithTimeIntervalSince1970(epochMilliseconds / 1_000.0)
     val formatter = NSDateFormatter().apply {
         dateFormat = "d MMM yyyy"
+        locale = NSLocale(localeIdentifier = "en_US_POSIX")
+        timeZone = NSTimeZone.localTimeZone
+    }
+    return formatter.stringFromDate(date)
+}
+
+internal actual fun formatDetailTimestamp(instant: Instant): String {
+    val date = NSDate.dateWithTimeIntervalSince1970(instant.toEpochMilliseconds() / 1_000.0)
+    val formatter = NSDateFormatter().apply {
+        dateFormat = "d MMM yyyy · HH:mm"
         locale = NSLocale(localeIdentifier = "en_US_POSIX")
         timeZone = NSTimeZone.localTimeZone
     }

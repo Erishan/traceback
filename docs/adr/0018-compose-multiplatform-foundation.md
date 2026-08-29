@@ -16,9 +16,13 @@ iOS can open the same graph.
 - Gradle modules:
   - `:shared` — KMP library (`commonMain` + `androidMain` + `iosMain`) holding
     domain, Room data, AI use case / Ktor client, and `SharedContainer`.
-  - `:app` — Android application; aurora UI stays here; depends on `:shared`.
-  - `:iosCompose` — iOS-only Compose Multiplatform shell (list smoke + key
-    save); exports `:shared` as the `IosCompose` framework.
+  - `:app` — Android application; Navigation 3 routes and thin ViewModels;
+    depends on `:shared` and `:ui`.
+  - `:ui` — KMP Compose library (`commonMain` + `androidMain` + `iosMain`) for
+    aurora theme, components, opportunity/Me screens, controllers, and compose
+    resources. See ADR-0019.
+  - `:iosCompose` — iOS Compose Multiplatform shell (list, detail, create, Me);
+    exports `:shared` and `:ui` as the `IosCompose` framework.
   - `iosApp/` — thin Xcode host that embeds the framework via
     `embedAndSignAppleFrameworkForXcode`.
 - Android KMP library plugin is `com.android.kotlin.multiplatform.library`
@@ -30,12 +34,14 @@ iOS can open the same graph.
   - Appearance: SharedPreferences / NSUserDefaults.
   - HTTP: Ktor CIO on Android, Darwin on iOS.
 - Manual DI stays (`SharedContainer`); Koin remains deferred (ADR-0005).
-- Aurora UI, Nav3 parity, and compose resources stay out of this foundation.
+- Aurora UI migration to `:ui` is tracked in ADR-0019 (not part of this
+  foundation slice).
 
 ## Consequences
 
 - Android and iOS share one Room schema (v1–4 history under `shared/schemas`).
-- UI share is a later move of packages, not another untangling of domain/data.
+- UI share is a separate move into `:ui` (ADR-0019), not another untangling of
+  domain/data.
 - Full iOS simulator launch needs a full Xcode install (not Command Line Tools
   alone); `:shared:compileKotlinIosSimulatorArm64` validates the shared graph
   without linking Compose.

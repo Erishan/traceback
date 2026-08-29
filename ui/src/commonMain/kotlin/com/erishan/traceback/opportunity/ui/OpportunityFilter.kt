@@ -8,14 +8,6 @@ enum class OpportunityFilter {
     Won,
     Lost,
     ;
-
-    val label: String
-        get() = when (this) {
-            All -> "All"
-            Active -> "Active"
-            Won -> "Won"
-            Lost -> "Lost"
-        }
 }
 
 fun OpportunityFilter.matches(stage: PipelineStage): Boolean = when (this) {

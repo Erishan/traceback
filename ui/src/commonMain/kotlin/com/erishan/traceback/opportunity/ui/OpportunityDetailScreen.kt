@@ -57,14 +57,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.erishan.traceback.R
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Approach
@@ -73,8 +70,12 @@ import com.erishan.traceback.opportunity.domain.Fit
 import com.erishan.traceback.opportunity.domain.JobBrief
 import com.erishan.traceback.opportunity.domain.Note
 import com.erishan.traceback.opportunity.domain.Price
+import com.erishan.traceback.ui.BriefBasisProfile
+import com.erishan.traceback.ui.BriefVerdictNo
+import com.erishan.traceback.ui.BriefVerdictYes
+import com.erishan.traceback.ui.briefFailureText
+import com.erishan.traceback.ui.briefGateReasonText
 import com.erishan.traceback.ui.components.ChoiceChip
-import com.erishan.traceback.ui.components.ComponentPreview
 import com.erishan.traceback.ui.components.EmptyState
 import com.erishan.traceback.ui.components.ErrorBanner
 import com.erishan.traceback.ui.components.FieldLabel
@@ -84,16 +85,18 @@ import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.components.TextAction
+import com.erishan.traceback.ui.durationBasisText
+import com.erishan.traceback.ui.fitVerdictText
+import com.erishan.traceback.ui.label
+import com.erishan.traceback.ui.platform.formatDetailTimestamp
 import com.erishan.traceback.ui.theme.ButtonShape
 import com.erishan.traceback.ui.theme.MinTouchTarget
 import com.erishan.traceback.ui.theme.PillShape
+import com.erishan.traceback.ui.theme.Res
+import com.erishan.traceback.ui.theme.*
 import com.erishan.traceback.ui.theme.TracebackTheme
-import com.erishan.traceback.ui.theme.TracebackTheme.colors
-import com.erishan.traceback.ui.theme.minTouchTarget
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.time.Instant
+import org.jetbrains.compose.resources.stringResource
 
 private val AddNoteToggleSize = 30.dp
 private val AddNoteGlyph = 16.dp
@@ -145,7 +148,7 @@ fun OpportunityDetailScreen(
     var showConfirm by remember { mutableStateOf(false) }
     val content = uiState as? OpportunityDetailUiState.Content
 
-    val deleteFailedText = stringResource(R.string.opportunity_could_not_delete)
+    val deleteFailedText = stringResource(Res.string.opportunity_could_not_delete)
     LaunchedEffect(deleteFailed) {
         if (deleteFailed) {
             snackbarHostState.showSnackbar(deleteFailedText)
@@ -162,12 +165,12 @@ fun OpportunityDetailScreen(
 
     TbScaffold(
         modifier = modifier,
-        title = stringResource(R.string.detail_opportunity),
+        title = stringResource(Res.string.detail_opportunity),
         auroraTint = auroraTint,
         navigationIcon = {
             TbBarIconButton(
                 icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
+                contentDescription = stringResource(Res.string.cd_back),
                 onClick = onBack,
             )
         },
@@ -175,7 +178,7 @@ fun OpportunityDetailScreen(
             if (content != null) {
                 TbBarIconButton(
                     icon = Icons.Outlined.DeleteOutline,
-                    contentDescription = stringResource(R.string.cd_delete),
+                    contentDescription = stringResource(Res.string.cd_delete),
                     onClick = { showConfirm = true },
                     enabled = !content.isBusy,
                 )
@@ -190,8 +193,8 @@ fun OpportunityDetailScreen(
             OpportunityDetailUiState.NotFound ->
                 Box(Modifier.fillMaxSize().padding(innerPadding)) {
                     EmptyState(
-                        title = stringResource(R.string.detail_not_found_title),
-                        message = stringResource(R.string.detail_not_found_message),
+                        title = stringResource(Res.string.detail_not_found_title),
+                        message = stringResource(Res.string.detail_not_found_message),
                     )
                 }
 
@@ -253,7 +256,7 @@ private fun DetailContent(
             .padding(horizontal = dimens.screenPadding),
     ) {
         if (content.saveFailed) {
-            ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
+            ErrorBanner(text = stringResource(Res.string.opportunity_could_not_save))
             Spacer(Modifier.height(dimens.spaceS))
         }
 
@@ -300,10 +303,10 @@ private fun DetailContent(
         Spacer(Modifier.height(dimens.spaceM))
 
         EditableCard(
-            label = stringResource(R.string.field_description),
+            label = stringResource(Res.string.field_description),
             value = content.description,
-            placeholder = stringResource(R.string.detail_description_hint),
-            emptyText = stringResource(R.string.detail_description_empty),
+            placeholder = stringResource(Res.string.detail_description_hint),
+            emptyText = stringResource(Res.string.detail_description_empty),
             onCommit = onDescriptionChange,
             enabled = editEnabled,
             saveFailed = content.saveFailed,
@@ -320,10 +323,10 @@ private fun DetailContent(
         Spacer(Modifier.height(dimens.spaceS))
 
         EditableCard(
-            label = stringResource(R.string.field_applied_message),
+            label = stringResource(Res.string.field_applied_message),
             value = content.appliedMessage,
-            placeholder = stringResource(R.string.applied_message_hint),
-            emptyText = stringResource(R.string.applied_message_empty),
+            placeholder = stringResource(Res.string.applied_message_hint),
+            emptyText = stringResource(Res.string.applied_message_empty),
             onCommit = onAppliedMessageChange,
             enabled = editEnabled,
             saveFailed = content.saveFailed,
@@ -377,7 +380,7 @@ private fun InlineTitle(
             TbTextField(
                 value = buffer,
                 onValueChange = { buffer = it },
-                placeholder = stringResource(R.string.detail_title_hint),
+                placeholder = stringResource(Res.string.detail_title_hint),
                 imeAction = ImeAction.Done,
                 enabled = enabled,
             )
@@ -394,7 +397,7 @@ private fun InlineTitle(
             )
         }
     } else {
-        val editLabel = stringResource(R.string.cd_edit)
+        val editLabel = stringResource(Res.string.cd_edit)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -439,7 +442,7 @@ private fun EditableCard(
     val shown = rememberSaveEcho(upstream = value.orEmpty(), saveFailed = saveFailed)
     val displayed = shown.value.ifEmpty { null }
     val tappable = enabled && !editing
-    val editLabel = stringResource(R.string.cd_edit)
+    val editLabel = stringResource(Res.string.cd_edit)
 
     TbGlassSurface(
         modifier = Modifier
@@ -527,7 +530,7 @@ private fun NotesSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                FieldLabel(stringResource(R.string.field_notes), spacer = false)
+                FieldLabel(stringResource(Res.string.field_notes), spacer = false)
                 AddNoteToggle(
                     expanded = composing,
                     onClick = { composing = !composing },
@@ -552,7 +555,7 @@ private fun NotesSection(
                 if (!composing) {
                     Spacer(Modifier.height(dimens.spaceXs))
                     Text(
-                        text = stringResource(R.string.notes_empty),
+                        text = stringResource(Res.string.notes_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textFaint,
                     )
@@ -604,7 +607,7 @@ private fun AddNoteToggle(expanded: Boolean, onClick: () -> Unit, enabled: Boole
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = stringResource(
-                    if (expanded) R.string.cd_cancel else R.string.notes_add
+                    if (expanded) Res.string.cd_cancel else Res.string.notes_add
                 ),
                 tint = colors.textDim,
                 modifier = Modifier
@@ -645,7 +648,7 @@ private fun NoteRow(note: Note, onDelete: () -> Unit, enabled: Boolean) {
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.cd_delete),
+                contentDescription = stringResource(Res.string.cd_delete),
                 tint = colors.textDim,
                 modifier = Modifier.size(InlineGlyph),
             )
@@ -671,7 +674,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
             TbTextField(
                 value = buffer,
                 onValueChange = { buffer = it },
-                placeholder = stringResource(R.string.notes_hint),
+                placeholder = stringResource(Res.string.notes_hint),
                 modifier = Modifier.focusRequester(focusRequester),
                 singleLine = false,
                 minLines = 1,
@@ -689,7 +692,7 @@ private fun NoteComposer(onSubmit: (String) -> Unit, enabled: Boolean) {
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = stringResource(R.string.cd_confirm),
+                contentDescription = stringResource(Res.string.cd_confirm),
                 tint = colors.accent,
                 modifier = Modifier.size(InlineGlyph),
             )
@@ -752,7 +755,7 @@ private fun SourcePill(
     val dimens = TracebackTheme.dimens
     val label = sourceLabel?.takeIf { source == OpportunitySource.OTHER && it.isNotBlank() }
         ?: source.label()
-    val changeSource = stringResource(R.string.cd_change_source)
+    val changeSource = stringResource(Res.string.cd_change_source)
 
     Box(
         modifier = Modifier
@@ -793,6 +796,7 @@ private fun SourcePicker(
     onSourceLabelChange: (String) -> Unit,
     enabled: Boolean,
 ) {
+    val colors = TracebackTheme.colors
     val dimens = TracebackTheme.dimens
     Column {
         Spacer(Modifier.height(dimens.spaceS))
@@ -816,11 +820,11 @@ private fun SourcePicker(
         AnimatedVisibility(visible = source == OpportunitySource.OTHER) {
             Column {
                 Spacer(Modifier.height(dimens.spaceS))
-                FieldLabel(stringResource(R.string.field_source_label))
+                FieldLabel(stringResource(Res.string.field_source_label))
                 TbTextField(
                     value = sourceLabel.orEmpty(),
                     onValueChange = onSourceLabelChange,
-                    placeholder = stringResource(R.string.create_source_label_hint),
+                    placeholder = stringResource(Res.string.create_source_label_hint),
                     enabled = enabled,
                 )
             }
@@ -843,7 +847,7 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.cd_cancel),
+                contentDescription = stringResource(Res.string.cd_cancel),
                 tint = colors.textDim,
                 modifier = Modifier.size(InlineGlyph),
             )
@@ -855,7 +859,7 @@ private fun EditActions(onCancel: () -> Unit, onConfirm: () -> Unit, enabled: Bo
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
-                contentDescription = stringResource(R.string.cd_confirm),
+                contentDescription = stringResource(Res.string.cd_confirm),
                 tint = colors.accent,
                 modifier = Modifier.size(InlineGlyph),
             )
@@ -877,13 +881,13 @@ private fun DeleteConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         ) {
             Column(Modifier.padding(dimens.spaceL)) {
                 Text(
-                    text = stringResource(R.string.delete_confirm_title),
+                    text = stringResource(Res.string.delete_confirm_title),
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.textHigh,
                 )
                 Spacer(Modifier.height(dimens.spaceXs))
                 Text(
-                    text = stringResource(R.string.delete_confirm_message),
+                    text = stringResource(Res.string.delete_confirm_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.textDim,
                 )
@@ -895,14 +899,14 @@ private fun DeleteConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text(
-                            text = stringResource(R.string.action_cancel),
+                            text = stringResource(Res.string.action_cancel),
                             style = MaterialTheme.typography.labelLarge,
                             color = colors.textDim,
                         )
                     }
                     TextButton(onClick = onConfirm) {
                         Text(
-                            text = stringResource(R.string.action_delete),
+                            text = stringResource(Res.string.action_delete),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -939,8 +943,8 @@ private fun BriefSection(
 
         if (content.briefFailed != null) {
             ErrorBanner(
-                text = stringResource(briefFailureRes(content.briefFailed)),
-                actionText = stringResource(R.string.action_try_again),
+                text = briefFailureText(content.briefFailed!!),
+                actionText = stringResource(Res.string.action_try_again),
                 onAction = onBrief.takeIf { content.briefActionEnabled },
             )
         }
@@ -983,7 +987,7 @@ private fun BriefHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        FieldLabel(text = stringResource(R.string.field_brief), spacer = false)
+        FieldLabel(text = stringResource(Res.string.field_brief), spacer = false)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
@@ -998,7 +1002,7 @@ private fun BriefHeader(
             }
             BriefActionButton(
                 text = stringResource(
-                    if (hasBrief) R.string.action_brief_rerun else R.string.action_brief
+                    if (hasBrief) Res.string.action_brief_rerun else Res.string.action_brief
                 ),
                 enabled = actionEnabled,
                 onClick = onBrief,
@@ -1039,7 +1043,7 @@ private fun BriefEmptyCard() {
 
     TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.brief_empty),
+            text = stringResource(Res.string.brief_empty),
             style = MaterialTheme.typography.bodyMedium,
             color = colors.textFaint,
             modifier = Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS),
@@ -1061,13 +1065,13 @@ private fun BriefGateCard(
             modifier = Modifier.padding(horizontal = dimens.spaceXs, vertical = dimens.spaceXs),
         ) {
             Text(
-                text = stringResource(briefGateReasonRes(reason)),
+                text = briefGateReasonText(reason),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.textFaint,
                 modifier = Modifier.padding(horizontal = dimens.spaceXs),
             )
             TextAction(
-                text = stringResource(R.string.brief_open_me),
+                text = stringResource(Res.string.brief_open_me),
                 color = colors.accentText,
                 onClick = onOpenMe,
                 enabled = enabled,
@@ -1090,16 +1094,16 @@ private fun BriefBoxes(
     Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceXs)) {
         BriefRow {
             BriefBox(
-                label = stringResource(R.string.field_fit),
-                value = stringResource(fitVerdictRes(brief.fit.verdict)),
+                label = stringResource(Res.string.field_fit),
+                value = fitVerdictText(brief.fit.verdict),
                 valueColor = fitVerdictColor(brief.fit.verdict),
                 support = brief.fit.summary,
                 modifier = Modifier.weight(1f),
             )
             BriefBox(
-                label = stringResource(R.string.field_price),
+                label = stringResource(Res.string.field_price),
                 value = stringResource(
-                    R.string.brief_price_range,
+                    Res.string.brief_price_range,
                     brief.price.low,
                     brief.price.high,
                 ),
@@ -1110,13 +1114,13 @@ private fun BriefBoxes(
         }
         BriefRow {
             BriefBox(
-                label = stringResource(R.string.field_duration),
-                value = stringResource(R.string.brief_duration_hours, brief.duration.hours),
+                label = stringResource(Res.string.field_duration),
+                value = stringResource(Res.string.brief_duration_hours, brief.duration.hours),
                 valueColor = colors.textHigh,
                 support = stringResource(
-                    R.string.brief_duration_support,
+                    Res.string.brief_duration_support,
                     brief.duration.range,
-                    stringResource(durationBasisRes(brief.duration.basis)),
+                    durationBasisText(brief.duration.basis),
                 ),
                 modifier = Modifier.weight(1f),
             )
@@ -1189,7 +1193,7 @@ private fun ApproachBox(approach: Approach, modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(horizontal = dimens.spaceS, vertical = dimens.spaceS),
         ) {
-            FieldLabel(stringResource(R.string.field_approach))
+            FieldLabel(stringResource(Res.string.field_approach))
             Text(
                 text = approach.summary,
                 style = MaterialTheme.typography.bodyMedium,
@@ -1230,7 +1234,7 @@ private fun ProposalCard(
                 .padding(horizontal = dimens.spaceXs, vertical = dimens.spaceXs),
         ) {
             Column(modifier = Modifier.padding(horizontal = dimens.spaceXs)) {
-                FieldLabel(stringResource(R.string.field_proposal))
+                FieldLabel(stringResource(Res.string.field_proposal))
                 Text(
                     text = proposal,
                     style = MaterialTheme.typography.bodyMedium,
@@ -1247,7 +1251,7 @@ private fun ProposalCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 TextAction(
-                    text = stringResource(R.string.brief_use_as_applied),
+                    text = stringResource(Res.string.brief_use_as_applied),
                     color = colors.textDim,
                     onClick = { onUseAsAppliedMessage(proposal) },
                     enabled = enabled,
@@ -1255,7 +1259,7 @@ private fun ProposalCard(
                 if (clipped) {
                     TextAction(
                         text = stringResource(
-                            if (expanded) R.string.action_show_less else R.string.action_show_more
+                            if (expanded) Res.string.action_show_less else Res.string.action_show_more
                         ),
                         color = colors.textDim,
                         onClick = { expanded = !expanded },
@@ -1317,53 +1321,27 @@ private fun SkeletonBar(widthFraction: Float, height: Dp) {
     )
 }
 
-// brief · mapping
-
-private fun briefFailureRes(kind: BriefFailureKind): Int = when (kind) {
-    BriefFailureKind.BadKey -> R.string.brief_failed_bad_key
-    BriefFailureKind.RateLimited -> R.string.brief_failed_rate_limit
-    BriefFailureKind.InvalidResponse -> R.string.brief_failed_invalid
-    BriefFailureKind.Network -> R.string.brief_failed_network
-}
-
-private fun briefGateReasonRes(reason: BriefGateReason): Int = when (reason) {
-    BriefGateReason.MissingAbout -> R.string.brief_disabled_no_about
-    BriefGateReason.MissingKey -> R.string.brief_disabled_no_key
-    BriefGateReason.MissingAboutAndKey -> R.string.brief_disabled_no_about_or_key
-}
-
-private fun fitVerdictRes(verdict: String): Int = when (verdict) {
-    VerdictYes -> R.string.brief_verdict_yes
-    VerdictNo -> R.string.brief_verdict_no
-    else -> R.string.brief_verdict_stretch
-}
-
 @Composable
 private fun fitVerdictColor(verdict: String): Color = with(TracebackTheme.colors) {
     when (verdict) {
-        VerdictYes -> stageHired
-        VerdictNo -> stageLost
+        BriefVerdictYes -> stageHired
+        BriefVerdictNo -> stageLost
         else -> stageInConversation
     }
 }
 
-private fun durationBasisRes(basis: String): Int =
-    if (basis == BasisProfile) R.string.brief_basis_profile else R.string.brief_basis_typical
 
-private const val VerdictYes = "yes"
-private const val VerdictNo = "no"
-private const val BasisProfile = "profile"
+@Composable
+private fun formatTimestampOrUnknown(instant: Instant?): String =
+    instant?.let { formatDetailTimestamp(it) } ?: stringResource(Res.string.date_unknown)
 
 // brief · previews
-
-private val BriefPreviewShortHeight = 200.dp
-private val BriefPreviewTallHeight = 520.dp
 
 private val PreviewBrief = JobBrief(
     generatedAtEpochMillis = 1_723_600_000_000L,
     model = "gpt-4o",
     fit = Fit(
-        verdict = VerdictYes,
+        verdict = BriefVerdictYes,
         summary = "Compose work with a clear funnel goal - squarely your stack.",
     ),
     proposal = "I rebuilt a five-step signup into two screens for a B2B trial last quarter and " +
@@ -1379,149 +1357,13 @@ private val PreviewBrief = JobBrief(
     duration = DurationEstimate(
         range = "40-56 hours",
         hours = "48",
-        basis = BasisProfile,
+        basis = BriefBasisProfile,
     ),
     approach = Approach(
         summary = "Instrument the funnel, then rebuild signup as two screens behind a flag.",
         technologies = listOf("Compose", "Firebase", "Figma"),
     ),
 )
-
-private fun previewBriefState(
-    aiBrief: JobBrief? = null,
-    canBrief: Boolean = true,
-    briefInFlight: Boolean = false,
-    briefFailed: BriefFailureKind? = null,
-    briefGateReason: BriefGateReason? = null,
-) = previewContent(PipelineStage.APPLIED).copy(
-    aiBrief = aiBrief,
-    canBrief = canBrief,
-    briefInFlight = briefInFlight,
-    briefFailed = briefFailed,
-    briefGateReason = briefGateReason,
-)
-
-@Composable
-private fun BriefSectionPreview(
-    darkTheme: Boolean,
-    content: OpportunityDetailUiState.Content,
-    height: Dp,
-) {
-    ComponentPreview(darkTheme = darkTheme, height = height) {
-        BriefSection(
-            content = content,
-            onBrief = {},
-            onUseProposalAsAppliedMessage = {},
-            onOpenMe = {},
-            enabled = true,
-        )
-    }
-}
-
-@Preview(name = "brief · empty · dark", widthDp = 360)
-@Composable
-private fun BriefEmptyDarkPreview() {
-    BriefSectionPreview(true, previewBriefState(), BriefPreviewShortHeight)
-}
-
-@Preview(name = "brief · empty · light", widthDp = 360)
-@Composable
-private fun BriefEmptyLightPreview() {
-    BriefSectionPreview(false, previewBriefState(), BriefPreviewShortHeight)
-}
-
-@Preview(name = "brief · gated · dark", widthDp = 360)
-@Composable
-private fun BriefGatedDarkPreview() {
-    BriefSectionPreview(
-        darkTheme = true,
-        content = previewBriefState(
-            canBrief = false,
-            briefGateReason = BriefGateReason.MissingAboutAndKey,
-        ),
-        height = BriefPreviewShortHeight,
-    )
-}
-
-@Preview(name = "brief · gated · light", widthDp = 360)
-@Composable
-private fun BriefGatedLightPreview() {
-    BriefSectionPreview(
-        darkTheme = false,
-        content = previewBriefState(
-            canBrief = false,
-            briefGateReason = BriefGateReason.MissingAboutAndKey,
-        ),
-        height = BriefPreviewShortHeight,
-    )
-}
-
-@Preview(name = "brief · loading · dark", widthDp = 360)
-@Composable
-private fun BriefLoadingDarkPreview() {
-    BriefSectionPreview(
-        darkTheme = true,
-        content = previewBriefState(briefInFlight = true),
-        height = BriefPreviewTallHeight,
-    )
-}
-
-@Preview(name = "brief · loading · light", widthDp = 360)
-@Composable
-private fun BriefLoadingLightPreview() {
-    BriefSectionPreview(
-        darkTheme = false,
-        content = previewBriefState(briefInFlight = true),
-        height = BriefPreviewTallHeight,
-    )
-}
-
-@Preview(name = "brief · failed · dark", widthDp = 360)
-@Composable
-private fun BriefFailedDarkPreview() {
-    BriefSectionPreview(
-        darkTheme = true,
-        content = previewBriefState(briefFailed = BriefFailureKind.BadKey),
-        height = BriefPreviewShortHeight,
-    )
-}
-
-@Preview(name = "brief · failed · light", widthDp = 360)
-@Composable
-private fun BriefFailedLightPreview() {
-    BriefSectionPreview(
-        darkTheme = false,
-        content = previewBriefState(briefFailed = BriefFailureKind.BadKey),
-        height = BriefPreviewShortHeight,
-    )
-}
-
-@Preview(name = "brief · full · dark", widthDp = 360)
-@Composable
-private fun BriefFullDarkPreview() {
-    BriefSectionPreview(true, previewBriefState(aiBrief = PreviewBrief), BriefPreviewTallHeight)
-}
-
-@Preview(name = "brief · full · light", widthDp = 360)
-@Composable
-private fun BriefFullLightPreview() {
-    BriefSectionPreview(false, previewBriefState(aiBrief = PreviewBrief), BriefPreviewTallHeight)
-}
-
-// timestamps
-
-private val DetailDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.ENGLISH)
-
-@Composable
-private fun formatTimestampOrUnknown(instant: Instant?): String =
-    instant?.let(::formatDetailTimestamp) ?: stringResource(R.string.date_unknown)
-
-private fun formatDetailTimestamp(instant: Instant): String {
-    val platformInstant = java.time.Instant.ofEpochMilli(instant.toEpochMilliseconds())
-    val local = java.time.LocalDateTime.ofInstant(platformInstant, ZoneId.systemDefault())
-    return DetailDateFormatter.format(local)
-}
 
 // previews
 
@@ -1554,30 +1396,6 @@ private fun previewContent(
 )
 
 @Composable
-private fun DetailPreview(darkTheme: Boolean, uiState: OpportunityDetailUiState) {
-    TracebackTheme(darkTheme = darkTheme) {
-        OpportunityDetailScreen(
-            uiState = uiState,
-            onBack = {},
-            onDelete = {},
-            onStageChange = {},
-            onTitleChange = {},
-            onDescriptionChange = {},
-            onSourceChange = {},
-            onSourceLabelChange = {},
-            onAddNote = {},
-            onDeleteNote = {},
-            onAppliedMessageChange = {},
-            onBrief = {},
-            onOpenMe = {},
-            deleteFailed = false,
-            onDeleteErrorDismiss = {},
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
 internal fun DetailScreenShowcase(darkTheme: Boolean) {
     TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
         OpportunityDetailScreen(
@@ -1604,40 +1422,6 @@ internal fun DetailScreenShowcase(darkTheme: Boolean) {
     }
 }
 
-@Preview(name = "active · dark", widthDp = 360, heightDp = 860)
-@Composable
-private fun DetailActiveDarkPreview() = DetailScreenShowcase(darkTheme = true)
 
-@Preview(name = "active · light", widthDp = 360, heightDp = 860)
-@Composable
-private fun DetailActiveLightPreview() = DetailScreenShowcase(darkTheme = false)
 
-@Preview(name = "lost · dark", widthDp = 360, heightDp = 860)
-@Composable
-private fun DetailLostDarkPreview() {
-    DetailPreview(
-        darkTheme = true,
-        uiState = previewContent(PipelineStage.LOST, description = null),
-    )
-}
 
-@Preview(name = "lost · light", widthDp = 360, heightDp = 860)
-@Composable
-private fun DetailLostLightPreview() {
-    DetailPreview(
-        darkTheme = false,
-        uiState = previewContent(PipelineStage.LOST, description = null),
-    )
-}
-
-@Preview(name = "not found · dark", widthDp = 360, heightDp = 420)
-@Composable
-private fun DetailNotFoundDarkPreview() {
-    DetailPreview(darkTheme = true, uiState = OpportunityDetailUiState.NotFound)
-}
-
-@Preview(name = "not found · light", widthDp = 360, heightDp = 420)
-@Composable
-private fun DetailNotFoundLightPreview() {
-    DetailPreview(darkTheme = false, uiState = OpportunityDetailUiState.NotFound)
-}

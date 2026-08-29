@@ -31,6 +31,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":shared"))
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -48,4 +49,5 @@ kotlin {
 
 compose.resources {
     packageOfResClass = "com.erishan.traceback.ui.theme"
+    publicResClass = true
 }

@@ -8,14 +8,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.erishan.traceback.TracebackApp
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 
 class OpportunityListViewModel(
-    repository: OpportunityRepository
+    repository: OpportunityRepository,
 ) : ViewModel() {
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -26,15 +22,12 @@ class OpportunityListViewModel(
         }
     }
 
-    private val _filter = MutableStateFlow(OpportunityFilter.All)
-    val uiState: StateFlow<OpportunityListUiState> =
-        combine(repository.observeAll(), _filter) { list, filter ->
-            listUiState(all = list, filter = filter)
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = OpportunityListUiState()
-        )
+    private val controller = OpportunityListController(
+        scope = viewModelScope,
+        repository = repository,
+    )
 
-    fun onFilterSelected(filter: OpportunityFilter) { _filter.value = filter }
+    val uiState: StateFlow<OpportunityListUiState> = controller.uiState
+
+    fun onFilterSelected(filter: OpportunityFilter) = controller.onFilterSelected(filter)
 }

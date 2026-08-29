@@ -51,9 +51,11 @@ your real win rate is.
 
 ## Under the hood
 
-Kotlin and Jetpack Compose on Android; domain, Room, and the OpenAI client live
-in a shared KMP module (`:shared`) so iOS can reuse them. Navigation 3 and the
-aurora UI stay in `:app` for now. The reasoning behind each choice lives in
+Kotlin and Compose Multiplatform. Domain, Room, and the OpenAI client live in
+`:shared`. Aurora theme, components, and all opportunity/Me screens live in
+`:ui` and compile for Android and iOS. `:app` is the Android shell (Navigation
+3, thin ViewModels). `:iosCompose` + `iosApp/` host the iOS shell with the same
+screens and controllers. The reasoning behind each choice lives in
 [docs/adr](docs/adr).
 
 ## Run it
@@ -66,23 +68,22 @@ Open it in Android Studio and hit Run
 ./gradlew installDebug
 ```
 
-### iOS (foundation shell)
+### iOS
 
 Requires a full **Xcode** install (Command Line Tools alone are not enough).
 Open [`iosApp/iosApp.xcodeproj`](iosApp/iosApp.xcodeproj), pick a simulator,
-and Run. The Xcode build embeds `:iosCompose` (which exports `:shared`).
+and Run. The Xcode build embeds `:iosCompose` (which exports `:shared` and
+`:ui`).
 
 ```bash
-./gradlew :shared:compileKotlinIosSimulatorArm64
+./gradlew :ui:compileKotlinIosSimulatorArm64 :iosCompose:compileKotlinIosSimulatorArm64
 ```
 
 ## Next
 
-The OpenAI brief is in: a **Me** screen (profile + key) and five boxes on an
-opportunity (fit, proposal, price, duration, approach). The decision record
-is [docs/adr/0015](docs/adr/0015-user-context-and-job-brief.md).
-
-CMP foundation is in ([ADR-0018](docs/adr/0018-compose-multiplatform-foundation.md)):
-shared domain/data/AI, Android intact, iOS Compose smoke shell. Next is moving
-aurora UI into shared Compose Multiplatform. Claude, Gemini, and payment
-tracking come after that ([ADR-0001](docs/adr/0001-scope-and-domain.md)).
+The OpenAI brief, Me profile, and full aurora UI are on both platforms
+([ADR-0015](docs/adr/0015-user-context-and-job-brief.md),
+[ADR-0019](docs/adr/0019-shared-aurora-ui.md)). Remaining CMP gaps: iOS
+Navigation 3 parity (or a shared nav contract), `@Preview` wrappers on Android,
+and merging `cmp-shared`. Claude, Gemini, and payment tracking come after that
+([ADR-0001](docs/adr/0001-scope-and-domain.md)).

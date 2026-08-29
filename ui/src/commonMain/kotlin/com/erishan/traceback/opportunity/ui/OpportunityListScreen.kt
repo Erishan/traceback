@@ -55,9 +55,13 @@ import com.erishan.traceback.ui.components.TbBarIconButton
 import com.erishan.traceback.ui.components.TbGlassSurface
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.platform.formatListDate
+import com.erishan.traceback.ui.theme.Res
+import com.erishan.traceback.ui.theme.*
+import com.erishan.traceback.ui.label
 import com.erishan.traceback.ui.theme.PillShape
 import com.erishan.traceback.ui.theme.TracebackTheme
 import kotlin.time.Instant
+import org.jetbrains.compose.resources.stringResource
 
 private val StripHeight = 5.dp
 private val StripGap = 3.dp
@@ -72,16 +76,6 @@ private const val StagePillFill = 0.14f
 private const val StagePillEdge = 0.30f
 
 private val ListBottomInset = 104.dp
-
-private const val PipelineOverline = "Pipeline"
-private const val OpportunitiesTitle = "Opportunities"
-private const val NewOpportunity = "New opportunity"
-private const val OpenMe = "Me"
-private const val EmptyListTitle = "No opportunities yet"
-private const val EmptyListMessage = "Tap + to track your first one, from draft to hired."
-private const val EmptyFilterTitle = "Nothing in this filter"
-private const val EmptyFilterMessage = "Your pipeline has work in it — just not in this view."
-private const val DateUnknown = "Date unknown"
 
 @Composable
 fun OpportunityListScreen(
@@ -99,7 +93,7 @@ fun OpportunityListScreen(
         floatingActionButton = {
             GlowFab(
                 onClick = onAddClick,
-                contentDescription = NewOpportunity,
+                contentDescription = stringResource(Res.string.new_opportunity),
                 icon = Icons.Default.Add,
             )
         },
@@ -126,8 +120,20 @@ fun OpportunityListScreen(
                 uiState.isLoading -> LoadingState()
 
                 uiState.opportunities.isEmpty() -> EmptyState(
-                    title = if (uiState.distribution.isEmpty) EmptyListTitle else EmptyFilterTitle,
-                    message = if (uiState.distribution.isEmpty) EmptyListMessage else EmptyFilterMessage,
+                    title = stringResource(
+                        if (uiState.distribution.isEmpty) {
+                            Res.string.empty_opportunities_list_title
+                        } else {
+                            Res.string.empty_filter_title
+                        }
+                    ),
+                    message = stringResource(
+                        if (uiState.distribution.isEmpty) {
+                            Res.string.empty_opportunities_list_message
+                        } else {
+                            Res.string.empty_filter_message
+                        }
+                    ),
                 )
 
                 else -> LazyColumn(
@@ -158,13 +164,13 @@ private fun ListHeader(distribution: StageDistribution, onOpenMe: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                text = PipelineOverline.uppercase(),
+                text = stringResource(Res.string.pipeline_overline).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.accentText,
             )
             Spacer(Modifier.height(dimens.spaceXxs))
             Text(
-                text = OpportunitiesTitle,
+                text = stringResource(Res.string.opportunities_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.textHigh,
             )
@@ -178,7 +184,7 @@ private fun ListHeader(distribution: StageDistribution, onOpenMe: () -> Unit) {
         Spacer(Modifier.width(dimens.spaceS))
         TbBarIconButton(
             icon = Icons.Outlined.Person,
-            contentDescription = OpenMe,
+            contentDescription = stringResource(Res.string.cd_open_me),
             onClick = onOpenMe,
         )
     }
@@ -188,7 +194,11 @@ private val NumeralRun = Regex("[0-9]+")
 
 @Composable
 private fun countLine(distribution: StageDistribution): AnnotatedString {
-    val text = "${distribution.total} total · ${distribution.active} active"
+    val text = stringResource(
+        Res.string.opportunities_count,
+        distribution.total,
+        distribution.active,
+    )
     val bright = SpanStyle(color = TracebackTheme.colors.textHigh)
     return buildAnnotatedString {
         append(text)
@@ -315,7 +325,7 @@ private fun FilterRow(selected: OpportunityFilter, onSelect: (OpportunityFilter)
     ) {
         OpportunityFilter.entries.forEach { filter ->
             ChoiceChip(
-                label = filter.label.uppercase(),
+                label = filter.label().uppercase(),
                 selected = filter == selected,
                 onClick = { onSelect(filter) },
             )
@@ -441,12 +451,15 @@ private fun CardMeta(opportunity: Opportunity) {
     }
 }
 
+@Composable
 private fun sourceText(opportunity: Opportunity): String =
     opportunity.sourceLabel?.takeIf { opportunity.source == OpportunitySource.OTHER }
         ?: opportunity.source.label()
 
+@Composable
 private fun createdText(instant: Instant?): String =
-    instant?.let { formatListDate(it.toEpochMilliseconds()) } ?: DateUnknown
+    instant?.let { formatListDate(it.toEpochMilliseconds()) }
+        ?: stringResource(Res.string.date_unknown)
 
 private val PreviewCreatedAt = Instant.fromEpochMilliseconds(1_723_600_000_000L)
 

@@ -7,36 +7,20 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.erishan.traceback.TracebackApp
-import com.erishan.traceback.ai.domain.BriefException
 import com.erishan.traceback.ai.domain.BriefJobUseCase
-import com.erishan.traceback.ai.domain.JobInput
 import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.me.domain.UserContextRepository
-import com.erishan.traceback.opportunity.domain.Note
-import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.util.UUID
-import kotlin.time.Clock
 
 class OpportunityDetailViewModel(
-    private val id: String,
-    private val repository: OpportunityRepository,
-    private val userContextRepository: UserContextRepository,
-    private val secretStore: SecretStore,
-    private val briefJobUseCase: BriefJobUseCase,
+    id: String,
+    repository: OpportunityRepository,
+    userContextRepository: UserContextRepository,
+    secretStore: SecretStore,
+    briefJobUseCase: BriefJobUseCase,
 ) : ViewModel() {
     companion object {
         fun provideFactory(id: String): ViewModelProvider.Factory = viewModelFactory {
@@ -53,163 +37,36 @@ class OpportunityDetailViewModel(
         }
     }
 
-    private val _events = Channel<DetailEvent>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
+    private val controller = OpportunityDetailController(
+        scope = viewModelScope,
+        id = id,
+        repository = repository,
+        userContextRepository = userContextRepository,
+        secretStore = secretStore,
+        briefJobUseCase = briefJobUseCase,
+    )
 
-    private val mutationGate = DetailMutationGate()
-    private val editMutex = Mutex()
+    val events = controller.events
 
-    val uiState: StateFlow<OpportunityDetailUiState> =
-        combine(
-            repository.observeById(id),
-            userContextRepository.observe(),
-            secretStore.observe(),
-            mutationGate.state,
-        ) { opp, profile, key, status ->
-            when {
-                opp == null -> OpportunityDetailUiState.NotFound
-                else -> {
-                    val aboutPresent = profile.about.isNotBlank()
-                    val canBrief = aboutPresent && key.hasKey
-                    OpportunityDetailUiState.Content(
-                        title = opp.title,
-                        description = opp.description,
-                        source = opp.source,
-                        sourceLabel = opp.sourceLabel,
-                        pipelineStage = opp.pipelineStage,
-                        createdAt = opp.createdAt,
-                        appliedMessage = opp.appliedMessage,
-                        notes = opp.notes,
-                        aiBrief = opp.aiBrief,
-                        canBrief = canBrief,
-                        briefInFlight = status.briefInFlight,
-                        briefFailed = status.briefFailed,
-                        briefGateReason = briefGateReason(
-                            aboutPresent = aboutPresent,
-                            hasKey = key.hasKey,
-                        ),
-                        isSaving = status.isSaving,
-                        saveFailed = status.saveFailed,
-                    )
-                }
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = OpportunityDetailUiState.Loading
-        )
+    val uiState: StateFlow<OpportunityDetailUiState> = controller.uiState
 
-    private fun saveEdit(transform: (Opportunity) -> Opportunity) = viewModelScope.launch {
-        mutationGate.awaitBeginSave()
-        var failed = false
-        try {
-            editMutex.withLock {
-                repository.update(id, transform)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            failed = true
-        } finally {
-            mutationGate.endSave(failed)
-        }
-    }
+    fun onStageChange(stage: PipelineStage) = controller.onStageChange(stage)
 
-    fun onStageChange(stage: PipelineStage) = saveEdit { it.copy(pipelineStage = stage) }
+    fun onTitleChange(title: String) = controller.onTitleChange(title)
 
-    fun onTitleChange(title: String) = saveEdit { it.copy(title = title) }
+    fun onDescriptionChange(description: String) = controller.onDescriptionChange(description)
 
-    fun onDescriptionChange(description: String) = saveEdit { it.copy(description = description) }
+    fun onSourceChange(source: OpportunitySource) = controller.onSourceChange(source)
 
-    fun onSourceChange(source: OpportunitySource) = saveEdit {
-        it.copy(
-            source = source,
-            sourceLabel = if (source == OpportunitySource.OTHER) it.sourceLabel else null
-        )
-    }
+    fun onSourceLabelChange(label: String) = controller.onSourceLabelChange(label)
 
-    fun onSourceLabelChange(label: String) = saveEdit {
-        it.copy(
-            sourceLabel = if (it.source == OpportunitySource.OTHER) label else null
-        )
-    }
+    fun onAddNote(text: String) = controller.onAddNote(text)
 
-    fun onAddNote(text: String) = saveEdit { opp ->
-        opp.copy(
-            notes = opp.notes + Note(
-                id = UUID.randomUUID().toString(),
-                createdAt = Clock.System.now(),
-                text = text,
-            )
-        )
-    }
+    fun onDeleteNote(noteId: String) = controller.onDeleteNote(noteId)
 
-    fun onDeleteNote(noteId: String) = saveEdit { opp ->
-        opp.copy(notes = opp.notes.filterNot { it.id == noteId })
-    }
+    fun onAppliedMessageChange(message: String) = controller.onAppliedMessageChange(message)
 
-    fun onAppliedMessageChange(message: String) = saveEdit { it.copy(appliedMessage = message) }
+    fun onBrief() = controller.onBrief()
 
-    fun onBrief() {
-        viewModelScope.launch {
-            if (!mutationGate.tryClaimBrief()) return@launch
-            try {
-                mutationGate.awaitNoPendingSaves()
-                val profile = userContextRepository.observe().first()
-                val key = secretStore.observe().first()
-                if (profile.about.isBlank() || !key.hasKey) return@launch
-                val opportunity = repository.observeById(id).first() ?: return@launch
-                val brief = briefJobUseCase(
-                    userContext = profile,
-                    job = opportunity.toJobInput(),
-                )
-                editMutex.withLock {
-                    repository.update(id) { it.copy(aiBrief = brief) }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: BriefException) {
-                mutationGate.markBriefFailed(e.kind.toFailureKind())
-            } catch (_: Exception) {
-                mutationGate.markBriefFailed(BriefFailureKind.Network)
-            } finally {
-                mutationGate.releaseBrief()
-            }
-        }
-    }
-
-    fun delete() {
-        viewModelScope.launch {
-            try {
-                repository.delete(id)
-                _events.send(DetailEvent.Deleted)
-            } catch (e: Exception) {
-                _events.send(DetailEvent.DeleteFailed)
-            }
-        }
-    }
-}
-
-enum class DetailEvent { Deleted, DeleteFailed }
-
-private fun briefGateReason(aboutPresent: Boolean, hasKey: Boolean): BriefGateReason? = when {
-    aboutPresent && hasKey -> null
-    !aboutPresent && !hasKey -> BriefGateReason.MissingAboutAndKey
-    !aboutPresent -> BriefGateReason.MissingAbout
-    else -> BriefGateReason.MissingKey
-}
-
-private fun Opportunity.toJobInput() = JobInput(
-    title = title,
-    description = description,
-    source = source.name,
-    sourceLabel = sourceLabel,
-    appliedMessage = appliedMessage,
-)
-
-private fun BriefException.Kind.toFailureKind(): BriefFailureKind = when (this) {
-    BriefException.Kind.Unauthorized, BriefException.Kind.MissingKey -> BriefFailureKind.BadKey
-    BriefException.Kind.RateLimited -> BriefFailureKind.RateLimited
-    BriefException.Kind.InvalidResponse -> BriefFailureKind.InvalidResponse
-    BriefException.Kind.Network -> BriefFailureKind.Network
+    fun delete() = controller.delete()
 }

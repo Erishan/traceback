@@ -1,43 +1,33 @@
 package com.erishan.traceback.shell
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import com.erishan.traceback.ai.domain.KeyPresence
 import com.erishan.traceback.core.di.SharedContainer
-import com.erishan.traceback.opportunity.domain.Opportunity
-import com.erishan.traceback.opportunity.ui.OpportunityFilter
+import com.erishan.traceback.me.ui.MeController
+import com.erishan.traceback.me.ui.MeScreen
+import com.erishan.traceback.opportunity.ui.DetailEvent
+import com.erishan.traceback.opportunity.ui.OpportunityCreateController
+import com.erishan.traceback.opportunity.ui.OpportunityCreateDialog
+import com.erishan.traceback.opportunity.ui.OpportunityDetailController
+import com.erishan.traceback.opportunity.ui.OpportunityDetailScreen
+import com.erishan.traceback.opportunity.ui.OpportunityListController
 import com.erishan.traceback.opportunity.ui.OpportunityListScreen
-import com.erishan.traceback.opportunity.ui.OpportunityListUiState
-import com.erishan.traceback.opportunity.ui.listUiState
 import com.erishan.traceback.settings.domain.ThemeMode
-import com.erishan.traceback.ui.components.FieldLabel
-import com.erishan.traceback.ui.components.PrimaryButton
-import com.erishan.traceback.ui.components.TbBarIconButton
-import com.erishan.traceback.ui.components.TbGlassSurface
-import com.erishan.traceback.ui.components.TbScaffold
-import com.erishan.traceback.ui.components.TbTextField
-import com.erishan.traceback.ui.components.TextAction
 import com.erishan.traceback.ui.theme.TracebackTheme
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
-private enum class IosDestination { List, Me }
+private sealed interface IosDestination {
+    data object List : IosDestination
+    data class Detail(val id: String) : IosDestination
+    data object Me : IosDestination
+}
 
 @Composable
 fun IosShellApp(container: SharedContainer) {
@@ -49,111 +39,119 @@ fun IosShellApp(container: SharedContainer) {
         ThemeMode.DARK -> true
     }
 
-    var destination by remember { mutableStateOf(IosDestination.List) }
-    var filter by remember { mutableStateOf(OpportunityFilter.All) }
-    val opportunities: List<Opportunity>? by container.opportunityRepository.observeAll()
-        .map<List<Opportunity>, List<Opportunity>?> { it }
-        .collectAsState(initial = null)
+    val scope = rememberCoroutineScope()
+    val backStack = remember { mutableStateListOf<IosDestination>(IosDestination.List) }
+    var showCreate by remember { mutableStateOf(false) }
 
-    TracebackTheme(darkTheme = darkTheme) {
-        when (destination) {
-            IosDestination.List -> OpportunityListScreen(
-                uiState = opportunities?.let { listUiState(it, filter) } ?: OpportunityListUiState(),
-                onAddClick = {},
-                onFilterSelected = { filter = it },
-                onOpenOpportunity = {},
-                onOpenMe = { destination = IosDestination.Me },
-            )
-            IosDestination.Me -> IosKeyPane(
-                container = container,
-                onBack = { destination = IosDestination.List },
-            )
+    val listController = remember(container) {
+        OpportunityListController(scope, container.opportunityRepository)
+    }
+    val createController = remember(container) {
+        OpportunityCreateController(scope, container.opportunityRepository)
+    }
+    val meController = remember(container) {
+        MeController(
+            scope = scope,
+            userContextRepository = container.userContextRepository,
+            secretStore = container.secretStore,
+            appearanceStore = container.appearanceStore,
+        )
+    }
+
+    val listState by listController.uiState.collectAsState()
+    val createState by createController.uiState.collectAsState()
+    val meState by meController.uiState.collectAsState()
+
+    LaunchedEffect(createState.isSaved) {
+        if (createState.isSaved) {
+            showCreate = false
+            createController.reset()
         }
     }
-}
 
-@Composable
-private fun IosKeyPane(container: SharedContainer, onBack: () -> Unit) {
-    val keyPresence by container.secretStore.observe()
-        .collectAsState(initial = KeyPresence(hasKey = false, lastFour = null))
-    var keyDraft by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    fun navigateBack() {
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        }
+    }
 
-    TbScaffold(
-        title = "Me",
-        navigationIcon = {
-            TbBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                onClick = onBack,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(TracebackTheme.dimens.screenPadding),
-            verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS),
-        ) {
-            TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(TracebackTheme.dimens.spaceM),
-                    verticalArrangement = Arrangement.spacedBy(TracebackTheme.dimens.spaceS),
-                ) {
-                    Text(
-                        if (keyPresence.hasKey) {
-                            "Key on device · last four ${keyPresence.lastFour}"
-                        } else {
-                            "No OpenAI key stored"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TracebackTheme.colors.textDim,
+    TracebackTheme(darkTheme = darkTheme) {
+        when (val destination = backStack.last()) {
+            IosDestination.List -> {
+                OpportunityListScreen(
+                    uiState = listState,
+                    onAddClick = { showCreate = true },
+                    onFilterSelected = listController::onFilterSelected,
+                    onOpenOpportunity = { id -> backStack.add(IosDestination.Detail(id)) },
+                    onOpenMe = { backStack.add(IosDestination.Me) },
+                )
+            }
+
+            is IosDestination.Detail -> {
+                val detailController = remember(destination.id, container) {
+                    OpportunityDetailController(
+                        scope = scope,
+                        id = destination.id,
+                        repository = container.opportunityRepository,
+                        userContextRepository = container.userContextRepository,
+                        secretStore = container.secretStore,
+                        briefJobUseCase = container.briefJobUseCase,
                     )
-                    FieldLabel("OpenAI API key", spacer = false)
-                    TbTextField(
-                        value = keyDraft,
-                        onValueChange = { keyDraft = it },
-                        placeholder = "sk-…",
-                    )
-                    PrimaryButton(
-                        text = "Save key",
-                        onClick = {
-                            scope.launch {
-                                runCatching {
-                                    container.secretStore.setOpenAiKey(keyDraft)
-                                }.onSuccess {
-                                    keyDraft = ""
-                                    status = "Key saved"
-                                }.onFailure {
-                                    status = it.message ?: "Could not save key"
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    if (keyPresence.hasKey) {
-                        TextAction(
-                            text = "Clear key",
-                            color = TracebackTheme.colors.textDim,
-                            onClick = {
-                                scope.launch {
-                                    container.secretStore.clearOpenAiKey()
-                                    status = "Key cleared"
-                                }
-                            },
-                        )
-                    }
-                    status?.let {
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TracebackTheme.colors.textDim,
-                        )
+                }
+                val detailState by detailController.uiState.collectAsState()
+                var deleteFailed by remember(destination.id) { mutableStateOf(false) }
+
+                LaunchedEffect(destination.id) {
+                    detailController.events.collect { event ->
+                        when (event) {
+                            DetailEvent.Deleted -> navigateBack()
+                            DetailEvent.DeleteFailed -> deleteFailed = true
+                        }
                     }
                 }
+
+                OpportunityDetailScreen(
+                    uiState = detailState,
+                    onBack = ::navigateBack,
+                    onDelete = detailController::delete,
+                    onStageChange = detailController::onStageChange,
+                    onTitleChange = detailController::onTitleChange,
+                    onDescriptionChange = detailController::onDescriptionChange,
+                    onSourceChange = detailController::onSourceChange,
+                    onSourceLabelChange = detailController::onSourceLabelChange,
+                    onAddNote = detailController::onAddNote,
+                    onDeleteNote = detailController::onDeleteNote,
+                    onAppliedMessageChange = detailController::onAppliedMessageChange,
+                    onBrief = detailController::onBrief,
+                    onOpenMe = { backStack.add(IosDestination.Me) },
+                    deleteFailed = deleteFailed,
+                    onDeleteErrorDismiss = { deleteFailed = false },
+                )
             }
+
+            IosDestination.Me -> {
+                MeScreen(
+                    uiState = meState,
+                    onBack = ::navigateBack,
+                    onSaveProfile = meController::onSaveProfile,
+                    onSaveKey = meController::onSaveKey,
+                    onClearKey = meController::onClearKey,
+                    onThemeModeChange = meController::onThemeModeChange,
+                )
+            }
+        }
+
+        if (showCreate) {
+            OpportunityCreateDialog(
+                uiState = createState,
+                onTitleChange = createController::onTitleChange,
+                onDescriptionChange = createController::onDescriptionChange,
+                onSourceChange = createController::onSourceChange,
+                onSourceLabelChange = createController::onSourceLabelChange,
+                onStageChange = createController::onPipelineStageChange,
+                onSave = createController::onSave,
+                onDismiss = { showCreate = false },
+            )
         }
     }
 }

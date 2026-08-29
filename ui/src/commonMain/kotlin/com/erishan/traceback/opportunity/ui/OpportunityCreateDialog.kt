@@ -38,11 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import com.erishan.traceback.R
+import com.erishan.traceback.ui.theme.Res
+import com.erishan.traceback.ui.theme.*
+import com.erishan.traceback.ui.label
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.ui.components.AuroraBackground
@@ -122,7 +123,6 @@ private fun SheetHandle() {
     }
 }
 
-/** Stateless sheet body - the windowed composable above cannot be previewed, this can. */
 @Composable
 private fun CreateSheetContent(
     uiState: OpportunityCreateUiState,
@@ -148,43 +148,43 @@ private fun CreateSheetContent(
             .padding(bottom = dimens.spaceXl),
     ) {
         Text(
-            text = stringResource(R.string.create_opportunity_title),
+            text = stringResource(Res.string.create_opportunity_title),
             style = MaterialTheme.typography.titleMedium,
             color = colors.textHigh,
         )
         Spacer(Modifier.height(dimens.spaceXxs))
         Text(
-            text = stringResource(R.string.create_opportunity_lead),
+            text = stringResource(Res.string.create_opportunity_lead),
             style = MaterialTheme.typography.bodySmall,
             color = colors.textDim,
         )
         Spacer(Modifier.height(dimens.spaceL))
 
-        FieldLabel(stringResource(R.string.field_title))
+        FieldLabel(stringResource(Res.string.field_title))
         TbTextField(
             value = uiState.title,
             onValueChange = onTitleChange,
-            placeholder = stringResource(R.string.create_title_hint),
+            placeholder = stringResource(Res.string.create_title_hint),
             imeAction = ImeAction.Next,
             enabled = editable,
         )
         Spacer(Modifier.height(dimens.spaceM))
 
         FieldLabel(
-            text = stringResource(R.string.field_description),
-            trailing = stringResource(R.string.field_optional),
+            text = stringResource(Res.string.field_description),
+            trailing = stringResource(Res.string.field_optional),
         )
         TbTextField(
             value = uiState.description.orEmpty(),
             onValueChange = onDescriptionChange,
-            placeholder = stringResource(R.string.create_description_hint),
+            placeholder = stringResource(Res.string.create_description_hint),
             singleLine = false,
             maxLines = DescriptionMaxLines,
             enabled = editable,
         )
         Spacer(Modifier.height(dimens.spaceM))
 
-        FieldLabel(stringResource(R.string.field_source))
+        FieldLabel(stringResource(Res.string.field_source))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -206,11 +206,11 @@ private fun CreateSheetContent(
         AnimatedVisibility(visible = uiState.source == OpportunitySource.OTHER) {
             Column {
                 Spacer(Modifier.height(dimens.spaceM))
-                FieldLabel(stringResource(R.string.field_source_label))
+                FieldLabel(stringResource(Res.string.field_source_label))
                 TbTextField(
                     value = uiState.sourceLabel.orEmpty(),
                     onValueChange = onSourceLabelChange,
-                    placeholder = stringResource(R.string.create_source_label_hint),
+                    placeholder = stringResource(Res.string.create_source_label_hint),
                     enabled = editable,
                 )
             }
@@ -223,7 +223,7 @@ private fun CreateSheetContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FieldLabel(text = stringResource(R.string.field_stage), spacer = false)
+            FieldLabel(text = stringResource(Res.string.field_stage), spacer = false)
             StageTrigger(
                 stage = uiState.pipelineStage,
                 open = stageOpen,
@@ -257,20 +257,20 @@ private fun CreateSheetContent(
 
         AnimatedVisibility(visible = uiState.hasError) {
             Column {
-                ErrorBanner(text = stringResource(R.string.opportunity_could_not_save))
+                ErrorBanner(text = stringResource(Res.string.opportunity_could_not_save))
                 Spacer(Modifier.height(dimens.spaceS))
             }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceS)) {
             TextAction(
-                text = stringResource(R.string.action_cancel),
+                text = stringResource(Res.string.action_cancel),
                 color = colors.textDim,
                 onClick = onDismiss,
                 modifier = Modifier.weight(1f),
             )
             PrimaryButton(
-                text = stringResource(R.string.action_save),
+                text = stringResource(Res.string.action_save),
                 onClick = onSave,
                 modifier = Modifier.weight(1f),
                 enabled = uiState.title.isNotBlank() && !uiState.isSaving,
@@ -329,41 +329,4 @@ private fun CreateSheetPreview(darkTheme: Boolean, uiState: OpportunityCreateUiS
     }
 }
 
-@Preview(name = "empty - dark", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetEmptyDarkPreview() = CreateSheetPreview(true, EmptyDraft)
 
-@Preview(name = "empty - light", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetEmptyLightPreview() = CreateSheetPreview(false, EmptyDraft)
-
-@Composable
-internal fun CreateSheetShowcase(darkTheme: Boolean) {
-    TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
-        Box(Modifier.fillMaxSize()) {
-            ListScreenShowcase(darkTheme = darkTheme)
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = ScrimAlpha))
-            )
-            SheetFrame(uiState = OtherSourceDraft)
-        }
-    }
-}
-
-@Preview(name = "other source - dark", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetOtherSourceDarkPreview() = CreateSheetShowcase(darkTheme = true)
-
-@Preview(name = "other source - light", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetOtherSourceLightPreview() = CreateSheetShowcase(darkTheme = false)
-
-@Preview(name = "saving - dark", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetSavingDarkPreview() = CreateSheetPreview(true, SavingDraft)
-
-@Preview(name = "saving - light", widthDp = 360, heightDp = 640)
-@Composable
-private fun CreateSheetSavingLightPreview() = CreateSheetPreview(false, SavingDraft)

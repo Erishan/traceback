@@ -45,3 +45,8 @@ enum class BriefGateReason {
     MissingKey,
     MissingAboutAndKey,
 }
+
+enum class DetailEvent {
+    Deleted,
+    DeleteFailed,
+}

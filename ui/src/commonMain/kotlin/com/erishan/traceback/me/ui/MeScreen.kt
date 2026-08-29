@@ -26,13 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
-import com.erishan.traceback.R
+import com.erishan.traceback.ui.theme.Res
+import com.erishan.traceback.ui.theme.*
 import com.erishan.traceback.settings.domain.ThemeMode
 import com.erishan.traceback.ui.components.ChoiceChip
 import com.erishan.traceback.ui.components.ErrorBanner
@@ -45,6 +45,7 @@ import com.erishan.traceback.ui.components.TbPickerTrigger
 import com.erishan.traceback.ui.components.TbScaffold
 import com.erishan.traceback.ui.components.TbTextField
 import com.erishan.traceback.ui.components.TextAction
+import com.erishan.traceback.ui.label
 import com.erishan.traceback.ui.theme.TracebackTheme
 
 private const val AboutMinLines = 3
@@ -62,11 +63,11 @@ fun MeScreen(
 ) {
     TbScaffold(
         modifier = modifier.fillMaxSize(),
-        title = stringResource(R.string.me_title),
+        title = stringResource(Res.string.me_title),
         navigationIcon = {
             TbBarIconButton(
                 icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
+                contentDescription = stringResource(Res.string.cd_back),
                 onClick = onBack,
             )
         },
@@ -134,14 +135,14 @@ private fun MeForm(
         Spacer(Modifier.height(dimens.spaceXs))
 
         Text(
-            text = stringResource(R.string.me_gate_hint),
+            text = stringResource(Res.string.me_gate_hint),
             style = MaterialTheme.typography.bodySmall,
             color = colors.textFaint,
         )
 
         Spacer(Modifier.height(dimens.spaceL))
 
-        FieldLabel(stringResource(R.string.field_profile))
+        FieldLabel(stringResource(Res.string.field_profile))
         ProfileCard(
             about = about,
             rateBand = rateBand,
@@ -166,7 +167,7 @@ private fun MeForm(
 
         Spacer(Modifier.height(dimens.spaceL))
 
-        FieldLabel(stringResource(R.string.field_openai_key))
+        FieldLabel(stringResource(Res.string.field_openai_key))
         KeyCard(
             uiState = uiState,
             keyDraft = keyDraft,
@@ -178,7 +179,7 @@ private fun MeForm(
 
         Spacer(Modifier.height(dimens.spaceL))
 
-        FieldLabel(stringResource(R.string.field_appearance))
+        FieldLabel(stringResource(Res.string.field_appearance))
         AppearanceCard(selected = uiState.themeMode, onSelect = onThemeModeChange)
 
         Spacer(Modifier.height(dimens.spaceXl))
@@ -193,10 +194,10 @@ private fun AppearanceCard(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
     TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceXs)) {
             TbPickerTrigger(
-                label = stringResource(themeModeLabelRes(selected)),
+                label = selected.label(),
                 open = open,
                 onClick = { open = !open },
-                onClickLabel = stringResource(R.string.cd_change_theme),
+                onClickLabel = stringResource(Res.string.cd_change_theme),
             )
             AnimatedVisibility(visible = open) {
                 Row(
@@ -205,7 +206,7 @@ private fun AppearanceCard(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
                 ) {
                     ThemeMode.entries.forEach { mode ->
                         ChoiceChip(
-                            label = stringResource(themeModeLabelRes(mode)),
+                            label = mode.label(),
                             selected = mode == selected,
                             onClick = {
                                 onSelect(mode)
@@ -219,11 +220,6 @@ private fun AppearanceCard(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
     }
 }
 
-private fun themeModeLabelRes(mode: ThemeMode): Int = when (mode) {
-    ThemeMode.SYSTEM -> R.string.theme_system
-    ThemeMode.LIGHT -> R.string.theme_light
-    ThemeMode.DARK -> R.string.theme_dark
-}
 
 @Composable
 private fun ProfileCard(
@@ -242,11 +238,11 @@ private fun ProfileCard(
 
     TbGlassSurface(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = dimens.spaceM, vertical = dimens.spaceS)) {
-            FieldLabel(stringResource(R.string.field_about))
+            FieldLabel(stringResource(Res.string.field_about))
             TbTextField(
                 value = about,
                 onValueChange = onAboutChange,
-                placeholder = stringResource(R.string.me_about_hint),
+                placeholder = stringResource(Res.string.me_about_hint),
                 singleLine = false,
                 minLines = AboutMinLines,
                 maxLines = AboutMaxLines,
@@ -256,38 +252,38 @@ private fun ProfileCard(
             Spacer(Modifier.height(dimens.spaceS))
 
             FieldLabel(
-                text = stringResource(R.string.field_rate_band),
-                trailing = stringResource(R.string.field_optional),
+                text = stringResource(Res.string.field_rate_band),
+                trailing = stringResource(Res.string.field_optional),
             )
             TbTextField(
                 value = rateBand,
                 onValueChange = onRateBandChange,
-                placeholder = stringResource(R.string.me_rate_band_hint),
+                placeholder = stringResource(Res.string.me_rate_band_hint),
                 imeAction = ImeAction.Next,
                 enabled = enabled,
             )
             Spacer(Modifier.height(dimens.spaceS))
 
             FieldLabel(
-                text = stringResource(R.string.field_pace),
-                trailing = stringResource(R.string.field_optional),
+                text = stringResource(Res.string.field_pace),
+                trailing = stringResource(Res.string.field_optional),
             )
             TbTextField(
                 value = pace,
                 onValueChange = onPaceChange,
-                placeholder = stringResource(R.string.me_pace_hint),
+                placeholder = stringResource(Res.string.me_pace_hint),
                 imeAction = ImeAction.Done,
                 enabled = enabled,
             )
             Spacer(Modifier.height(dimens.spaceM))
 
             if (saveFailed) {
-                ErrorBanner(text = stringResource(R.string.me_profile_could_not_save))
+                ErrorBanner(text = stringResource(Res.string.me_profile_could_not_save))
                 Spacer(Modifier.height(dimens.spaceS))
             }
 
             PrimaryButton(
-                text = stringResource(R.string.action_save_profile),
+                text = stringResource(Res.string.action_save_profile),
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
@@ -318,13 +314,13 @@ private fun KeyCard(
                     horizontalArrangement = Arrangement.spacedBy(dimens.spaceXs),
                 ) {
                     Text(
-                        text = stringResource(R.string.me_key_saved, uiState.lastFour.orEmpty()),
+                        text = stringResource(Res.string.me_key_saved, uiState.lastFour.orEmpty()),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.textHigh,
                         modifier = Modifier.weight(1f),
                     )
                     TextAction(
-                        text = stringResource(R.string.action_clear_key),
+                        text = stringResource(Res.string.action_clear_key),
                         color = colors.textDim,
                         onClick = onClearKey,
                         enabled = enabled,
@@ -334,7 +330,7 @@ private fun KeyCard(
                 TbTextField(
                     value = keyDraft,
                     onValueChange = onKeyDraftChange,
-                    placeholder = stringResource(R.string.me_key_hint),
+                    placeholder = stringResource(Res.string.me_key_hint),
                     enabled = enabled,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardType = KeyboardType.Password,
@@ -343,12 +339,12 @@ private fun KeyCard(
                 Spacer(Modifier.height(dimens.spaceS))
 
                 if (uiState.keyRejectedBlank) {
-                    ErrorBanner(text = stringResource(R.string.me_key_blank))
+                    ErrorBanner(text = stringResource(Res.string.me_key_blank))
                     Spacer(Modifier.height(dimens.spaceS))
                 }
 
                 PrimaryButton(
-                    text = stringResource(R.string.action_save_key),
+                    text = stringResource(Res.string.action_save_key),
                     onClick = onSaveKey,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = enabled && keyDraft.isNotBlank(),
@@ -358,7 +354,7 @@ private fun KeyCard(
 
             if (uiState.keySaveFailed) {
                 Spacer(Modifier.height(dimens.spaceS))
-                ErrorBanner(text = stringResource(R.string.me_key_could_not_save))
+                ErrorBanner(text = stringResource(Res.string.me_key_could_not_save))
             }
         }
     }
@@ -389,18 +385,3 @@ private fun MeScreenPreview(darkTheme: Boolean, uiState: MeUiState) {
     }
 }
 
-@Preview(name = "key saved - dark", widthDp = 400, heightDp = 880)
-@Composable
-private fun MeScreenSavedKeyDarkPreview() = MeScreenPreview(true, SavedKeyState)
-
-@Preview(name = "key saved - light", widthDp = 400, heightDp = 880)
-@Composable
-private fun MeScreenSavedKeyLightPreview() = MeScreenPreview(false, SavedKeyState)
-
-@Preview(name = "no key - dark", widthDp = 400, heightDp = 880)
-@Composable
-private fun MeScreenNoKeyDarkPreview() = MeScreenPreview(true, NoKeyState)
-
-@Preview(name = "no key - light", widthDp = 400, heightDp = 880)
-@Composable
-private fun MeScreenNoKeyLightPreview() = MeScreenPreview(false, NoKeyState)
