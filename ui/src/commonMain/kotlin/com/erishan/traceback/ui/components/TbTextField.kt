@@ -13,12 +13,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +57,16 @@ fun TbTextField(
     val focused by interactionSource.collectIsFocusedAsState()
     val textColor = if (enabled) colors.textHigh else colors.textDim
 
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(value)) }
+    SideEffect {
+        if (textFieldValue.text != value) {
+            textFieldValue = TextFieldValue(
+                text = value,
+                selection = TextRange(value.length),
+            )
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -64,8 +79,13 @@ fun TbTextField(
             .then(modifier)
     ) {
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = textFieldValue,
+            onValueChange = { updated ->
+                textFieldValue = updated
+                if (updated.text != value) {
+                    onValueChange(updated.text)
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
@@ -93,7 +113,7 @@ fun TbTextField(
                         vertical = dimens.spaceS,
                     )
                 ) {
-                    if (value.isEmpty()) {
+                    if (textFieldValue.text.isEmpty()) {
                         Text(
                             text = placeholder,
                             style = MaterialTheme.typography.bodyLarge,
