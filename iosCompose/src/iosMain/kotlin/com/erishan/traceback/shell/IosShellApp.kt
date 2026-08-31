@@ -1,7 +1,10 @@
 package com.erishan.traceback.shell
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -76,82 +79,91 @@ fun IosShellApp(container: SharedContainer) {
     }
 
     TracebackTheme(darkTheme = darkTheme) {
-        when (val destination = backStack.last()) {
-            IosDestination.List -> {
-                OpportunityListScreen(
-                    uiState = listState,
-                    onAddClick = { showCreate = true },
-                    onFilterSelected = listController::onFilterSelected,
-                    onOpenOpportunity = { id -> backStack.add(IosDestination.Detail(id)) },
-                    onOpenMe = { backStack.add(IosDestination.Me) },
-                )
-            }
-
-            is IosDestination.Detail -> {
-                val detailController = remember(destination.id, container) {
-                    OpportunityDetailController(
-                        scope = scope,
-                        id = destination.id,
-                        repository = container.opportunityRepository,
-                        userContextRepository = container.userContextRepository,
-                        secretStore = container.secretStore,
-                        briefJobUseCase = container.briefJobUseCase,
+        Box(
+            Modifier
+                .fillMaxSize()
+                .iosSwipeBack(
+                    enabled = backStack.size > 1 && !showCreate,
+                    onBack = ::navigateBack,
+                ),
+        ) {
+            when (val destination = backStack.last()) {
+                IosDestination.List -> {
+                    OpportunityListScreen(
+                        uiState = listState,
+                        onAddClick = { showCreate = true },
+                        onFilterSelected = listController::onFilterSelected,
+                        onOpenOpportunity = { id -> backStack.add(IosDestination.Detail(id)) },
+                        onOpenMe = { backStack.add(IosDestination.Me) },
                     )
                 }
-                val detailState by detailController.uiState.collectAsState()
-                var deleteFailed by remember(destination.id) { mutableStateOf(false) }
 
-                LaunchedEffect(destination.id) {
-                    detailController.events.collect { event ->
-                        when (event) {
-                            DetailEvent.Deleted -> navigateBack()
-                            DetailEvent.DeleteFailed -> deleteFailed = true
+                is IosDestination.Detail -> {
+                    val detailController = remember(destination.id, container) {
+                        OpportunityDetailController(
+                            scope = scope,
+                            id = destination.id,
+                            repository = container.opportunityRepository,
+                            userContextRepository = container.userContextRepository,
+                            secretStore = container.secretStore,
+                            briefJobUseCase = container.briefJobUseCase,
+                        )
+                    }
+                    val detailState by detailController.uiState.collectAsState()
+                    var deleteFailed by remember(destination.id) { mutableStateOf(false) }
+
+                    LaunchedEffect(destination.id) {
+                        detailController.events.collect { event ->
+                            when (event) {
+                                DetailEvent.Deleted -> navigateBack()
+                                DetailEvent.DeleteFailed -> deleteFailed = true
+                            }
                         }
                     }
+
+                    OpportunityDetailScreen(
+                        uiState = detailState,
+                        onBack = ::navigateBack,
+                        onDelete = detailController::delete,
+                        onStageChange = detailController::onStageChange,
+                        onTitleChange = detailController::onTitleChange,
+                        onDescriptionChange = detailController::onDescriptionChange,
+                        onSourceChange = detailController::onSourceChange,
+                        onSourceLabelChange = detailController::onSourceLabelChange,
+                        onAddNote = detailController::onAddNote,
+                        onDeleteNote = detailController::onDeleteNote,
+                        onAppliedMessageChange = detailController::onAppliedMessageChange,
+                        onBrief = detailController::onBrief,
+                        onOpenMe = { backStack.add(IosDestination.Me) },
+                        deleteFailed = deleteFailed,
+                        onDeleteErrorDismiss = { deleteFailed = false },
+                    )
                 }
 
-                OpportunityDetailScreen(
-                    uiState = detailState,
-                    onBack = ::navigateBack,
-                    onDelete = detailController::delete,
-                    onStageChange = detailController::onStageChange,
-                    onTitleChange = detailController::onTitleChange,
-                    onDescriptionChange = detailController::onDescriptionChange,
-                    onSourceChange = detailController::onSourceChange,
-                    onSourceLabelChange = detailController::onSourceLabelChange,
-                    onAddNote = detailController::onAddNote,
-                    onDeleteNote = detailController::onDeleteNote,
-                    onAppliedMessageChange = detailController::onAppliedMessageChange,
-                    onBrief = detailController::onBrief,
-                    onOpenMe = { backStack.add(IosDestination.Me) },
-                    deleteFailed = deleteFailed,
-                    onDeleteErrorDismiss = { deleteFailed = false },
-                )
+                IosDestination.Me -> {
+                    MeScreen(
+                        uiState = meState,
+                        onBack = ::navigateBack,
+                        onSaveProfile = meController::onSaveProfile,
+                        onSaveKey = meController::onSaveKey,
+                        onClearKey = meController::onClearKey,
+                        onThemeModeChange = meController::onThemeModeChange,
+                    )
+                }
             }
 
-            IosDestination.Me -> {
-                MeScreen(
-                    uiState = meState,
-                    onBack = ::navigateBack,
-                    onSaveProfile = meController::onSaveProfile,
-                    onSaveKey = meController::onSaveKey,
-                    onClearKey = meController::onClearKey,
-                    onThemeModeChange = meController::onThemeModeChange,
+            if (showCreate) {
+                OpportunityCreateDialog(
+                    uiState = createState,
+                    onTitleChange = createController::onTitleChange,
+                    onDescriptionChange = createController::onDescriptionChange,
+                    onSourceChange = createController::onSourceChange,
+                    onSourceLabelChange = createController::onSourceLabelChange,
+                    onStageChange = createController::onPipelineStageChange,
+                    onSave = createController::onSave,
+                    onDismiss = { showCreate = false },
                 )
             }
-        }
-
-        if (showCreate) {
-            OpportunityCreateDialog(
-                uiState = createState,
-                onTitleChange = createController::onTitleChange,
-                onDescriptionChange = createController::onDescriptionChange,
-                onSourceChange = createController::onSourceChange,
-                onSourceLabelChange = createController::onSourceLabelChange,
-                onStageChange = createController::onPipelineStageChange,
-                onSave = createController::onSave,
-                onDismiss = { showCreate = false },
-            )
         }
     }
 }
