@@ -45,13 +45,17 @@ class ScreenshotTest {
         compose.waitForIdle()
 
         val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
-        val directory = outputDirectory()
-        directory.mkdirs()
-        val file = File(directory, "$name.png")
-        file.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, PngQuality, out)
+        try {
+            val directory = outputDirectory()
+            directory.mkdirs()
+            val file = File(directory, "$name.png")
+            file.outputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, PngQuality, out)
+            }
+            check(file.length() > 0) { "wrote an empty file at " + file.absolutePath }
+        } finally {
+            bitmap.recycle()
         }
-        check(file.length() > 0) { "wrote an empty file at " + file.absolutePath }
     }
 
     private fun outputDirectory(): File {
