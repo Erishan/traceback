@@ -1,4 +1,4 @@
-package com.erishan.traceback.opportunity.ui
+package com.erishan.traceback.opportunity.android
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -9,6 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.erishan.traceback.opportunity.ui.DetailEvent
+import com.erishan.traceback.opportunity.ui.OpportunityDetailScreen
 
 @Composable
 fun OpportunityDetailRoute(

@@ -1,4 +1,4 @@
-package com.erishan.traceback.ui.theme
+package com.erishan.traceback.android.theme
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -28,6 +28,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.erishan.traceback.ui.theme.ButtonShape
+import com.erishan.traceback.ui.theme.FabShape
+import com.erishan.traceback.ui.theme.PillShape
+import com.erishan.traceback.ui.theme.TracebackTheme
 
 private val SwatchSize = 46.dp
 private val SwatchLabelWidth = 116.dp

@@ -1,4 +1,4 @@
-package com.erishan.traceback.me.ui
+package com.erishan.traceback.me.android
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,6 +9,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.erishan.traceback.TracebackApp
 import com.erishan.traceback.ai.domain.SecretStore
 import com.erishan.traceback.me.domain.UserContextRepository
+import com.erishan.traceback.me.ui.MeController
+import com.erishan.traceback.me.ui.MeUiState
 import com.erishan.traceback.settings.domain.AppearanceStore
 import com.erishan.traceback.settings.domain.ThemeMode
 import kotlinx.coroutines.flow.StateFlow

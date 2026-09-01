@@ -1,4 +1,4 @@
-package com.erishan.traceback.opportunity.ui
+package com.erishan.traceback.opportunity.android
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +13,9 @@ import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.me.domain.UserContextRepository
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
+import com.erishan.traceback.opportunity.ui.DetailEvent
+import com.erishan.traceback.opportunity.ui.OpportunityDetailController
+import com.erishan.traceback.opportunity.ui.OpportunityDetailUiState
 import kotlinx.coroutines.flow.StateFlow
 
 class OpportunityDetailViewModel(

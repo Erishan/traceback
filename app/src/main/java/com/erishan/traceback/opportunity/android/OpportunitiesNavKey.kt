@@ -1,4 +1,4 @@
-package com.erishan.traceback.opportunity.ui
+package com.erishan.traceback.opportunity.android
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
