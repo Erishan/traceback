@@ -1,13 +1,14 @@
+Yeah.
+![just-give-me-the-file.png](docs/images/just-give-me-the-file.png)
+
+However, you may just like it.
+
 # Traceback
 
+*This app is intentionally small. One pipeline, local storage, one optional OpenAI call.
+All additional details are in [Under the hood](#under-the-hood).*
+
 [![CI](https://github.com/Erishan/traceback/actions/workflows/ci.yml/badge.svg)](https://github.com/Erishan/traceback/actions/workflows/ci.yml)
-
-*A pipeline for freelance leads. Android, on your phone, no account.*
-
-This app is intentionally small. One pipeline, local storage, one optional OpenAI call.
-All additional details are in [Under the hood](#under-the-hood).
-
-![just-give-me-the-file.png](docs/images/just-give-me-the-file.png)
 
 Closing a deal on your freelance work is not an easy job.
 You gotta see what they really want if they want anything,
@@ -25,9 +26,8 @@ Delivered. And it moves along as things happen. When one dies, it goes to
 Closed or Lost instead of quietly disappearing, which can help you find out what
 your real win rate is.
 
-It is an Android app and everything stays on your phone. No account, no
-Traceback server, nothing to sign up for. There is an iOS build too, and a
-[section further down](#ios) telling you exactly how much to trust it.
+Everything stays on your phone. No account, no Traceback server, no sync.
+There is an iOS build too — [how much to trust it](#ios) is spelled out below.
 
 -> fyi the source is only here, there is no app on any store.
 
@@ -35,7 +35,7 @@ Traceback server, nothing to sign up for. There is an iOS build too, and a
 
 <p align="center">
   <img src="docs/images/list-dark.png" width="240" alt="The pipeline: every lead on a stage, with a strip showing where they sit">
-  <img src="docs/images/detail-dark.png" width="240" alt="One opportunity, its stage lit along the conduit, with notes and a job brief">
+  <img src="docs/images/detail-dark.png" width="240" alt="One opportunity: stage along the track, description, dated notes, applied message">
   <img src="docs/images/create-dark.png" width="240" alt="Adding a lead: title, where it came from, what stage it is at">
 </p>
 
@@ -54,41 +54,34 @@ Traceback server, nothing to sign up for. There is an iOS build too, and a
 - Open it later to see how far it got, edit anything inline, and drop dated
   notes as the conversation goes on.
 - Filter the list down to what is active, won, or lost.
-- Ask for a job brief and it goes to OpenAI with the API key you typed in.
-  That is the only network call the app ever makes, and the key never leaves
-  the device except as an Authorization header to `api.openai.com`.
+- Optional: run a structured job brief from the detail screen. One button, your
+  OpenAI key, one round trip to `api.openai.com` — fit, price, duration,
+  approach, a draft proposal you can paste into the applied-message field.
+  Nothing else in the app talks to the network.
 
 ## Under the hood
 
-As previously mentioned Traceback is relatively small.
-The module table is where most of the work went.
-Kotlin and Compose Multiplatform. Four modules:
+Kotlin Multiplatform. Shared Compose UI on Android and iOS. Room on device.
+Navigation 3 on Android and a hand-written back stack on iOS.
 
 | Module | What is in it | Builds for |
 |---|---|---|
-| `:shared` | Domain, Room data, the OpenAI client, the manual DI container | Android, iOS |
-| `:ui` | Aurora theme, components, the list, detail, create and Me screens, and the controllers that back them | Android, iOS |
-| `:app` | The Android app: Navigation 3 routes, thin ViewModels, Android previews | Android |
-| `:iosCompose` + `iosApp/` | The iOS shell: a hand written back stack and the Xcode host that embeds the framework | iOS |
+| `:shared` | Domain, Room, the OpenAI client, manual DI | Android, iOS |
+| `:ui` | Aurora theme, components, list, detail, create, Me | Android, iOS |
+| `:app` | Android shell: routes, thin ViewModels, previews | Android |
+| `:iosCompose` + `iosApp/` | iOS shell: UIKit host, swipe-back | iOS |
 
-The reasoning behind each choice is in [docs/adr](docs/adr).
-
-## Contrast is measured, not eyeballed
-tools/contrast_audit.py reads the colours out of the theme and fails on any text or surface pair below WCAG AA, in both themes.
+Contrast is measured, not eyeballed. 
+`tools/contrast_audit.py` fails CI on any text or surface pair below WCAG AA in either theme.
 
 ## iOS
 
-The shared core runs on iOS. `:shared` and `:ui` are Kotlin Multiplatform, so
-iOS gets the same Room schema, the same OpenAI client and the same opportunity
-and Me screens as Android, from the same source.
+The shared core runs on iOS. Same Room schema, same screens, same source.
 
-What it does not get is a native feel! 
-The screens are Compose drawn into a UIKit host, so text editing behaviour, selection handles 
-and scroll momentum come from Compose and not from UIKit. 
-As iOS also has no Navigation 3: the back stack and the back swipe are written by hand.
-One shared UI is the standing decision and this is the price it charges. 
-
--> Yes, it's better to read it here than to find it in the build.
+What it does not get is a native feel. And that is the trade off I have chosen.
+The screens are Compose drawn into a UIKit host, so text editing behaviour, selection handles and scroll momentum come from Compose and not from UIKit.
+iOS also has no Navigation 3: the back stack and the back swipe are written by hand.
+One shared UI is the standing decision.
 
 ## Run it
 
