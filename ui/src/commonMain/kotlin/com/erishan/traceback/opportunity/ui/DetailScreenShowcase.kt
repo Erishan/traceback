@@ -43,7 +43,7 @@ private fun previewContent(
 )
 
 @Composable
-internal fun DetailScreenShowcase(darkTheme: Boolean) {
+fun DetailScreenShowcase(darkTheme: Boolean) {
     TracebackTheme(darkTheme = darkTheme, reducedMotion = true) {
         OpportunityDetailScreen(
             uiState = previewContent(

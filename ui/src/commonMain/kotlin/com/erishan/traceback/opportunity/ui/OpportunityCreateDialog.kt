@@ -329,4 +329,9 @@ private fun CreateSheetPreview(darkTheme: Boolean, uiState: OpportunityCreateUiS
     }
 }
 
+@Composable
+fun CreateSheetShowcase(darkTheme: Boolean) {
+    CreateSheetPreview(darkTheme = darkTheme, uiState = OtherSourceDraft)
+}
+
 
