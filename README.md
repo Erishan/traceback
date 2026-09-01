@@ -4,6 +4,9 @@
 
 *A pipeline for freelance leads. Android, on your phone, no account.*
 
+This app is intentionally small. One pipeline, local storage, one optional OpenAI call.
+All additional details are in [Under the hood](#under-the-hood).
+
 ![just-give-me-the-file.png](docs/images/just-give-me-the-file.png)
 
 Closing a deal on your freelance work is not an easy job.
@@ -57,6 +60,8 @@ Traceback server, nothing to sign up for. There is an iOS build too, and a
 
 ## Under the hood
 
+As previously mentioned Traceback is relatively small.
+The module table is where most of the work went.
 Kotlin and Compose Multiplatform. Four modules:
 
 | Module | What is in it | Builds for |
@@ -66,7 +71,7 @@ Kotlin and Compose Multiplatform. Four modules:
 | `:app` | The Android app: Navigation 3 routes, thin ViewModels, Android previews | Android |
 | `:iosCompose` + `iosApp/` | The iOS shell: a hand written back stack and the Xcode host that embeds the framework | iOS |
 
-The reasoning behind each choice lives in [docs/adr](docs/adr).
+The reasoning behind each choice is in [docs/adr](docs/adr).
 
 ## Contrast is measured, not eyeballed
 tools/contrast_audit.py reads the colours out of the theme and fails on any text or surface pair below WCAG AA, in both themes.
