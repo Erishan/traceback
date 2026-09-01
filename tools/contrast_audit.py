@@ -21,8 +21,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-THEME = ROOT / "app/src/main/java/com/erishan/traceback/ui/theme/Color.kt"
-AURORA = ROOT / "app/src/main/java/com/erishan/traceback/ui/components/AuroraBackground.kt"
+THEME = ROOT / "ui/src/commonMain/kotlin/com/erishan/traceback/ui/theme/Color.kt"
+AURORA = ROOT / "ui/src/commonMain/kotlin/com/erishan/traceback/ui/components/AuroraBackground.kt"
 
 BODY, LARGE, NON_TEXT = 4.5, 3.0, 3.0
 
