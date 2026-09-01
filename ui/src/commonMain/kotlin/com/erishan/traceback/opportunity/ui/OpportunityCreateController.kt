@@ -4,6 +4,7 @@ import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
 import com.erishan.traceback.opportunity.domain.Opportunity
 import com.erishan.traceback.opportunity.domain.OpportunityRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,7 +53,9 @@ class OpportunityCreateController(
     fun onSave() {
         scope.launch {
             val draft = _uiState.value
-            _uiState.update { it.copy(isSaving = true, hasError = false) }
+            var saved = false
+            var failed = false
+            _uiState.update { it.copy(isSaving = true, isSaved = false, hasError = false) }
             try {
                 repository.save(
                     Opportunity(
@@ -67,9 +70,13 @@ class OpportunityCreateController(
                         appliedMessage = null,
                     )
                 )
-                _uiState.update { it.copy(isSaving = false, isSaved = true) }
+                saved = true
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
-                _uiState.update { it.copy(isSaving = false, hasError = true) }
+                failed = true
+            } finally {
+                _uiState.update { it.copy(isSaving = false, isSaved = saved, hasError = failed) }
             }
         }
     }

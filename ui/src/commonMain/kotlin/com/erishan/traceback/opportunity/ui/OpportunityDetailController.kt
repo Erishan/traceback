@@ -163,6 +163,8 @@ class OpportunityDetailController(
             try {
                 repository.delete(id)
                 eventsChannel.send(DetailEvent.Deleted)
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Exception) {
                 eventsChannel.send(DetailEvent.DeleteFailed)
             }
