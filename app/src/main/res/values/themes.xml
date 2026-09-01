@@ -2,4 +2,11 @@
 <resources>
 
     <style name="Theme.Traceback" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Traceback.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.Traceback</item>
+    </style>
+
 </resources>

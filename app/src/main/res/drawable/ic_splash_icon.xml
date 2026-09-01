@@ -12,27 +12,27 @@
                 android:centerX="54"
                 android:centerY="56"
                 android:gradientRadius="27">
-                <item android:offset="0" android:color="#4DFF6B3D" />
-                <item android:offset="1" android:color="#00FF6B3D" />
+                <item android:offset="0" android:color="@color/splash_bloom_start" />
+                <item android:offset="1" android:color="@color/splash_bloom_end" />
             </gradient>
         </aapt:attr>
     </path>
     <path
-        android:fillColor="#26FFFFFF"
+        android:fillColor="@color/splash_rod_track"
         android:pathData="M41.5,41 H41.5 A4.5,4.5 0 0 1 46,45.5 V74.5 A4.5,4.5 0 0 1 41.5,79 H41.5 A4.5,4.5 0 0 1 37,74.5 V45.5 A4.5,4.5 0 0 1 41.5,41 Z" />
     <path
-        android:fillColor="#FF2BD9D0"
+        android:fillColor="@color/splash_rod_cool"
         android:pathData="M41.5,61 H41.5 A4.5,4.5 0 0 1 46,65.5 V74.5 A4.5,4.5 0 0 1 41.5,79 H41.5 A4.5,4.5 0 0 1 37,74.5 V65.5 A4.5,4.5 0 0 1 41.5,61 Z" />
     <path
-        android:fillColor="#26FFFFFF"
+        android:fillColor="@color/splash_rod_track"
         android:pathData="M54,29 H54 A4.5,4.5 0 0 1 58.5,33.5 V74.5 A4.5,4.5 0 0 1 54,79 H54 A4.5,4.5 0 0 1 49.5,74.5 V33.5 A4.5,4.5 0 0 1 54,29 Z" />
     <path
-        android:fillColor="#FFFF6B3D"
+        android:fillColor="@color/splash_rod_warm"
         android:pathData="M54,41 H54 A4.5,4.5 0 0 1 58.5,45.5 V74.5 A4.5,4.5 0 0 1 54,79 H54 A4.5,4.5 0 0 1 49.5,74.5 V45.5 A4.5,4.5 0 0 1 54,41 Z" />
     <path
-        android:fillColor="#26FFFFFF"
+        android:fillColor="@color/splash_rod_track"
         android:pathData="M66.5,47 H66.5 A4.5,4.5 0 0 1 71,51.5 V74.5 A4.5,4.5 0 0 1 66.5,79 H66.5 A4.5,4.5 0 0 1 62,74.5 V51.5 A4.5,4.5 0 0 1 66.5,47 Z" />
     <path
-        android:fillColor="#FF2BD9D0"
+        android:fillColor="@color/splash_rod_cool"
         android:pathData="M66.5,67 H66.5 A4.5,4.5 0 0 1 71,71.5 V74.5 A4.5,4.5 0 0 1 66.5,79 H66.5 A4.5,4.5 0 0 1 62,74.5 V71.5 A4.5,4.5 0 0 1 66.5,67 Z" />
 </vector>

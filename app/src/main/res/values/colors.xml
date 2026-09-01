@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_background">#FFEEF1F7</color>
+    <color name="splash_rod_track">#290A0E19</color>
+    <color name="splash_rod_cool">#FF0B706B</color>
+    <color name="splash_rod_warm">#FFCB450B</color>
+    <color name="splash_bloom_start">#1FCB450B</color>
+    <color name="splash_bloom_end">#00CB450B</color>
+</resources>

@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.erishan.traceback.settings.domain.AppearanceStore
 import com.erishan.traceback.settings.domain.ThemeMode
@@ -35,6 +36,7 @@ private val AnimationScaleKeys = listOf(
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         val appearance = (application as TracebackApp).container.appearanceStore
 
