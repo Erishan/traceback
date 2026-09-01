@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,10 @@ import com.erishan.traceback.opportunity.ui.OpportunityListController
 import com.erishan.traceback.opportunity.ui.OpportunityListScreen
 import com.erishan.traceback.settings.domain.ThemeMode
 import com.erishan.traceback.ui.theme.TracebackTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 
 private sealed interface IosDestination {
     data object List : IosDestination
@@ -99,9 +104,10 @@ fun IosShellApp(container: SharedContainer) {
                 }
 
                 is IosDestination.Detail -> {
-                    val detailController = remember(destination.id, container) {
+                    val detailScope = rememberDestinationScope(scope, destination.id)
+                    val detailController = remember(destination.id, container, detailScope) {
                         OpportunityDetailController(
-                            scope = scope,
+                            scope = detailScope,
                             id = destination.id,
                             repository = container.opportunityRepository,
                             userContextRepository = container.userContextRepository,
@@ -166,4 +172,22 @@ fun IosShellApp(container: SharedContainer) {
             }
         }
     }
+}
+
+@Composable
+private fun rememberDestinationScope(
+    parentScope: CoroutineScope,
+    key: Any,
+): CoroutineScope {
+    val destinationScope = remember(parentScope, key) {
+        CoroutineScope(
+            parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job])
+        )
+    }
+    DisposableEffect(destinationScope) {
+        onDispose {
+            destinationScope.cancel()
+        }
+    }
+    return destinationScope
 }

@@ -13,6 +13,7 @@ import com.erishan.traceback.opportunity.domain.OpportunityRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -143,7 +144,9 @@ class OpportunityDetailController(
                     userContext = profile,
                     job = opportunity.toJobInput(),
                 )
+                ensureActive()
                 editMutex.withLock {
+                    ensureActive()
                     repository.update(id) { it.copy(aiBrief = brief) }
                 }
             } catch (e: CancellationException) {
