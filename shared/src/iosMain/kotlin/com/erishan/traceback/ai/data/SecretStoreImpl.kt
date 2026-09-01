@@ -32,9 +32,12 @@ import platform.Foundation.dataUsingEncoding
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
+import platform.Security.SecItemUpdate
 import platform.Security.errSecItemNotFound
 import platform.Security.errSecSuccess
 import platform.Security.kSecAttrAccount
+import platform.Security.kSecAttrAccessible
+import platform.Security.kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 import platform.Security.kSecAttrService
 import platform.Security.kSecClass
 import platform.Security.kSecClassGenericPassword
@@ -57,6 +60,7 @@ class SecretStoreImpl : SecretStore {
     }
 
     override suspend fun openAiKey(): String? = withContext(Dispatchers.IO) {
+        migrateKeychainItemToDeviceOnlyIfNeeded()
         readKey()
     }
 
@@ -68,6 +72,7 @@ class SecretStoreImpl : SecretStore {
     suspend fun warmUp() {
         val snapshot = withContext(Dispatchers.IO) {
             migrateFromUserDefaultsIfNeeded()
+            migrateKeychainItemToDeviceOnlyIfNeeded()
             readPresence()
         }
         presence.value = snapshot
@@ -120,9 +125,19 @@ class SecretStoreImpl : SecretStore {
             ?: error("Could not encode OpenAI key")
         deleteKey()
         val query = mutableQuery()
+        CFDictionarySetValue(query, kSecAttrAccessible, kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
         CFDictionarySetValue(query, kSecValueData, CFBridgingRetain(data) as CFTypeRef)
         val status = SecItemAdd(query, null)
         check(status == errSecSuccess) { "Keychain write failed: $status" }
+    }
+
+    private fun migrateKeychainItemToDeviceOnlyIfNeeded() {
+        val attributes = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
+        CFDictionarySetValue(attributes, kSecAttrAccessible, kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
+        val status = SecItemUpdate(mutableQuery(), attributes)
+        check(status == errSecSuccess || status == errSecItemNotFound) {
+            "Keychain migration failed: $status"
+        }
     }
 
     private fun deleteKey() {
