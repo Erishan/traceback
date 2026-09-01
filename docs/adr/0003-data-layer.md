@@ -1,37 +1,32 @@
-# ADR-0003 — Data Layer: Offline-First, Single Source of Truth
+# ADR-0003 — Data Layer: Offline First, Single Source of Truth
 
 Status: Accepted · 2026-07-24
 
 ## Context
 
-Opportunities are stored locally (Room) and later synced to a remote backend
-(Firebase). When a local and a remote copy both exist, the data layer needs one
-rule for which is truth and what happens to writes made offline.
+Opportunities are stored locally in Room and may later sync to a remote
+backend. When a local copy and a remote copy both exist, the data layer needs
+one rule for which one is true and what happens to writes made offline.
 
 ## Decision
 
-- Room is the single source of truth; the UI observes Room, never the network.
-- Writes hit Room first (optimistic, observed immediately). Firebase sync runs
-  afterward in the background and only ever feeds Room, never the UI.
-- Domain models and persistence entities are separate classes, mapped in the
-  data layer.
+- Room is the one source of truth. The UI observes Room and never the network.
+- Writes go to Room first and are seen at once. Sync runs later in the
+  background and only ever feeds Room.
+- Domain models and database entities are separate classes. The data layer maps
+  between them.
 
 ## Consequences
 
-- The app works offline: writes complete locally and instantly, sync is deferred
-  and invisible.
-- Domain and UI never learn whether a remote source exists; they see Room-backed
-  data through the repository interface.
-- OpenAI (ADR-0014) is not a source of truth. A brief is a user-initiated
-  command: the client calls `api.openai.com`, then writes the result to Room.
-  The UI observes the row, never the HTTP response.
-- Entities never cross into the domain — the mapping boundary keeps the
-  abstraction from leaking, and lets persistence and business rules evolve
-  independently.
+- The app works offline. A write finishes locally and sync stays invisible.
+- Domain and UI never learn whether a remote source exists.
+- OpenAI is not a source of truth. A brief is a user command. The client calls
+  the API and writes the result to Room, and the UI observes the row.
+- Entities never reach the domain, so storage and business rules can change on
+  their own.
 
 ## Reverse cost
 
-Cheap to add or remove Firebase: `domain` depends only on the repository
-interface (ADR-0002), so Firebase attaches as a data-layer source feeding Room.
-The rejected design -Firebase as source of truth wired into the UI- would
-instead ripple through every screen on removal.
+Cheap to add or drop a remote source, because `domain` only knows the
+repository interface. A remote source of truth wired straight into the UI was
+rejected, because removing it would then touch every screen.

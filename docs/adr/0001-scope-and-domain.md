@@ -1,53 +1,44 @@
-# ADR-0001 — Scope & Domain Model
+# ADR-0001 — Scope and Domain Model
 
 Status: Accepted · 2026-07-24
 
 ## Context
 
-Traceback tracks a freelance opportunity from proposal to payment: a pipeline
-where most opportunities die, payment does not track delivery, and work arrives
-from several channels. The domain is fixed before implementation, and scope is
-kept narrow.
+Traceback follows a freelance opportunity from proposal to payment. Most
+opportunities die, payment does not follow delivery, and work arrives from
+several channels. The domain is fixed before code and the scope stays small.
 
 ## Decision
 
-v1 models one entity, `Opportunity`, on two independent axes:
-
-- **Pipeline stage** — DRAFT → APPLIED → IN_CONVERSATION → INTERVIEW → HIRED →
-  DELIVERED → CLOSED, plus LOST as a terminal state reachable from any stage.
-- **Source** — enum UPWORK / LINKEDIN / REFERRAL / OTHER, with a free-text
-  label when OTHER.
-
-v1 actions: add, change stage, list/filter by stage and source, delete; all
-entry is manual. Payment status, statistics, and automated collection are out
-of scope. Enums persist as strings, not ordinals.
+- v1 has one entity, `Opportunity`, on two independent axes.
+- Stage: DRAFT, APPLIED, IN_CONVERSATION, INTERVIEW, HIRED, DELIVERED, CLOSED
+  in that order. LOST is terminal and can be reached from any stage.
+- Source: UPWORK, LINKEDIN, REFERRAL, OTHER. OTHER carries a free text label.
+- v1 actions: add, change stage, list, filter, delete. All input is manual.
+- Enums are stored as strings, not as ordinals.
+- Payment, statistics and automatic collection are out of scope.
 
 ## Consequences
 
-- Pipeline and payment are separate axes: a deposit can precede, follow, or
-  never accompany delivery, which one chain cannot represent. Payment is a
-  later increment (amendment 2026-08-26).
-- LOST keeps the app a real pipeline rather than a log of won work, and makes
-  win rate computable.
-- A closed source enum prevents the "Upwork / upwork / UpWork" fragmentation a
-  free string invites. String enum storage survives reordering and inserted
-  values; ordinal storage would shift the meaning of existing rows.
+- Stage and payment stay apart, because a deposit can come before delivery,
+  after it, or never. Payment is a later step.
+- LOST keeps the app a pipeline instead of a log of won work, so win rate can
+  be computed.
+- A closed source enum stops "Upwork", "upwork" and "UpWork" from all
+  appearing. Strings, not ordinals, as ordinals change the meaning of old
+  rows when the enum is reordered.
 
 ## Reverse cost
 
-Cheap to add an enum value or stage. Expensive to merge the two axes or change
-enum storage format — both require a data migration.
+Cheap to add a stage or a source. Expensive to merge the two axes or to change
+enum storage, because both need a data migration.
 
 ## Amendment 2026-08-25
 
-v1.1 is a local OpenAI job brief driven by an on-device profile (ADR-0014,
-ADR-0015). The v1 opportunity pipeline is unchanged.
+v1.1 adds a local OpenAI job brief driven by a profile stored on the device
+(ADR-0014, ADR-0015). The v1 pipeline does not change.
 
 ## Amendment 2026-08-26
 
-The Android brief loop and aurora identity are in. The CMP foundation extract
-is in (ADR-0018): `:shared` holds domain/data/AI; `:app` keeps aurora UI;
-`:iosCompose` + `iosApp/` prove Room, Keychain, and Ktor Darwin on iOS. Next
-product step is sharing aurora UI via Compose Multiplatform. Payment tracking,
-statistics, and other model providers (Claude, Gemini) stay deferred until
-after that.
+The shared extract is done (ADR-0018). `:shared` holds domain, data and AI.
+`:app` holds the aurora UI.

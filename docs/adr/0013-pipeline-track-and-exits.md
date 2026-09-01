@@ -4,36 +4,33 @@ Status: Accepted · 2026-08-23
 
 ## Context
 
-`PipelineStage` mixes two different things: stages an opportunity advances
-through, and stages it ends at. Presenting progress requires knowing which is
-which and in what order. An opportunity stores only its current stage; no
-transition history is kept.
+`PipelineStage` holds two different things. Some stages are steps forward and
+some are endings. Showing progress needs to know which is which and in what
+order. An opportunity stores only its current stage and keeps no history.
 
 ## Decision
 
-- `PipelineStage` owns the distinction. `isTerminal` is an exhaustive `when`, so
-  a new stage cannot be added without classifying it. The forward `track` is
-  derived as the non-terminal entries in declaration order, and `trackIndex` is
-  null for terminal stages.
-- Progress is a function of the current stage alone. Terminal stages have no
-  position on the track and are presented as an exit from it, not a point on it.
-- Stage history is not recorded. Progress reached before a terminal stage is not
-  displayed, because it is not known.
+- `PipelineStage` owns the difference. `isTerminal` is an exhaustive `when`, so
+  a new stage cannot be added without classifying it. The forward track is the
+  entries that are not terminal, in declaration order, and the track index is
+  null for a terminal stage.
+- Progress comes from the current stage alone. A terminal stage has no place on
+  the track and is drawn as an exit from it.
+- Stage history is not recorded. Progress reached before a terminal stage is
+  not shown, because it is not known.
 
 ## Consequences
 
-- Ordering and terminality are facts about the pipeline, not about the screen,
-  so they travel to shared multiplatform code untouched; only the drawing stays
-  in the UI layer.
-- Deriving the track from `isTerminal` removes the second list that would
-  otherwise drift from the enum.
+- Order and terminality are facts about the pipeline and not about the screen,
+  so they move to shared code untouched. Only the drawing stays in the UI.
+- Deriving the track from `isTerminal` removes a second list that would drift
+  away from the enum.
 - A terminal opportunity shows no partial progress. A `lastActiveStage` field
-  was rejected: once history is wanted it is wanted with timestamps and reasons,
-  which is a transitions table, and a single column would fix the wrong shape in
-  the schema.
+  was rejected, because once history is wanted it is wanted with times and
+  reasons, which is a transitions table.
 
 ## Reverse cost
 
-Cheap for the presentation, moderate for the data: adding a transitions table is
-a new schema version and a write on every stage change, but nothing that exists
-today has to change shape.
+Cheap for the drawing and moderate for the data. A transitions table is a new
+schema version and a write on every stage change, but nothing that exists today
+changes shape.

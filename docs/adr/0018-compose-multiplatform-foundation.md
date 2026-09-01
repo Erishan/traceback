@@ -4,50 +4,36 @@ Status: Accepted · 2026-08-26
 
 ## Context
 
-ADR-0001 and ADR-0002 deferred a multiplatform extract until domain and data
-were proven Android-free. That extract is now due: Room 3, Ktor, and package
-boundaries already pointed at shared source sets. The hard CMP failures are
-platform seams (database path, secrets, HTTP engine, composition root), not
-aurora screens. Shipping those seams first keeps Android green while proving
+ADR-0001 and ADR-0002 delayed the shared extract until domain and data were
+free of Android. That point is reached. The hard failures in a shared build are
+the platform seams, such as database path, secrets and HTTP engine, not the
+screens. Shipping the seams first keeps Android green while it is proven that
 iOS can open the same graph.
 
 ## Decision
 
-- Gradle modules:
-  - `:shared` — KMP library (`commonMain` + `androidMain` + `iosMain`) holding
-    domain, Room data, AI use case / Ktor client, and `SharedContainer`.
-  - `:app` — Android application; Navigation 3 routes and thin ViewModels;
-    depends on `:shared` and `:ui`.
-  - `:ui` — KMP Compose library (`commonMain` + `androidMain` + `iosMain`) for
-    aurora theme, components, opportunity/Me screens, controllers, and compose
-    resources. See ADR-0019.
-  - `:iosCompose` — iOS Compose Multiplatform shell (list, detail, create, Me);
-    exports `:shared` and `:ui` as the `IosCompose` framework.
-  - `iosApp/` — thin Xcode host that embeds the framework via
-    `embedAndSignAppleFrameworkForXcode`.
-- Android KMP library plugin is `com.android.kotlin.multiplatform.library`
-  (AGP 9); not `com.android.library`.
-- Platform seams:
-  - Room: `BundledSQLiteDriver` + path builders (Context / NSDocumentDirectory).
-  - Secrets: `SecretStore` — EncryptedSharedPreferences on Android, Keychain on
-    iOS.
-  - Appearance: SharedPreferences / NSUserDefaults.
-  - HTTP: Ktor CIO on Android, Darwin on iOS.
-- Manual DI stays (`SharedContainer`); Koin remains deferred (ADR-0005).
-- Aurora UI migration to `:ui` is tracked in ADR-0019 (not part of this
-  foundation slice).
+- `:shared` is a Kotlin Multiplatform library holding domain, Room data, the AI
+  use case and the container.
+- `:app` is the Android app with Navigation 3 and thin ViewModels.
+- `:ui` is a shared Compose library for theme, components and screens.
+  See ADR-0019.
+- `:iosCompose` is the iOS Compose shell and `iosApp/` is the Xcode host that
+  embeds the framework.
+- The Android side of a shared library uses the multiplatform library plugin.
+- Platform seams: Room uses a bundled SQLite driver with a path builder per
+  platform, `SecretStore` uses encrypted preferences on Android and Keychain on
+  iOS, and HTTP uses Ktor CIO on Android and Darwin on iOS.
+- Manual injection stays. Koin is still deferred.
 
 ## Consequences
 
-- Android and iOS share one Room schema (v1–4 history under `shared/schemas`).
-- UI share is a separate move into `:ui` (ADR-0019), not another untangling of
-  domain/data.
-- Full iOS simulator launch needs a full Xcode install (not Command Line Tools
-  alone); `:shared:compileKotlinIosSimulatorArm64` validates the shared graph
-  without linking Compose.
+- Android and iOS share one Room schema and its version history.
+- Moving the UI into `:ui` is a separate step and not another untangling of
+  domain and data.
+- A full iOS simulator run needs a full Xcode install.
 
 ## Reverse cost
 
-Moderate: collapsing back to a single Android module is mechanical but touches
-every consumer of `SharedContainer`. Expensive to change the Room driver or
-secret-store interfaces after both platforms ship data.
+Moderate. Going back to one Android module is mechanical but touches every user
+of the container. Expensive to change the Room driver or the secret store
+interface after both platforms ship data.

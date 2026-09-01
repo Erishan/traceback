@@ -4,35 +4,34 @@ Status: Accepted · 2026-08-25
 
 ## Context
 
-v1.1 needs a model to brief a job. The product is a showcase that never holds
-user secrets. ChatGPT Plus is a chat subscription, not API access. Other
-providers are deferred so the first ship stays one client and one key slot.
+v1.1 needs a model to brief a job. The product never holds a secret that
+belongs to the user. A ChatGPT subscription is not API access. Other providers
+wait, so the first release has one client and one key slot.
 
 ## Decision
 
 - The user pastes an OpenAI API key on the Me screen. It is stored with
-  `EncryptedSharedPreferences` (Android Keystore). It is not a Room column,
-  not in logs, not in backup (`allowBackup` is already false).
-- After save, the UI shows only the last four characters. Clear removes the
-  ciphertext.
-- There is no Traceback server, proxy, or analytics host. The process may
-  talk only to `https://api.openai.com` and only when the user runs a brief.
-- One model is hardcoded: `gpt-4o`. No picker. Claude and Gemini are out of
-  v1.1.
-- The domain sees a `SecretStore` (`hasKey`, `lastFour`, `set`, `clear`). The
-  implementation is Android-specific; the interface is not.
+  `EncryptedSharedPreferences`. It is not a Room column, not in logs and not in
+  backup.
+- After save the UI shows only the last four characters. Clear removes the
+  stored value.
+- There is no Traceback server, proxy or analytics host. The process may talk
+  only to `https://api.openai.com`, and only when the user runs a brief.
+- One model is fixed in code, `gpt-4o`. There is no picker.
+- The domain sees a `SecretStore` interface. Only the implementation is
+  specific to Android.
 
 ## Consequences
 
-- Losing the keystore (app uninstall, failed backup) loses the key. Re-paste
-  is the recovery. That is accepted: we do not hold a copy.
-- A wrong key is discovered on the first brief (401), not on save. Save does
-  not hit the network.
-- Adding Anthropic or Google later is a second `SecretStore` slot and a second
-  client. The OpenAI client must not encode “the only LLM in the world”, only
-  “the only one wired today”.
+- Losing the keystore loses the key, and the user pastes it again. That is
+  accepted, because no copy is kept.
+- A wrong key shows up on the first brief as a 401 and not on save, because
+  save does not use the network.
+- Adding another provider later is a second store and a second client. The
+  OpenAI client must not read as the only model in the world, only as the only
+  one wired today.
 
 ## Reverse cost
 
-Cheap to add a provider. Expensive to introduce a backend that sees keys —
-every screen and the README’s “we never hold them” claim would have to change.
+Cheap to add a provider. Expensive to add a backend that sees keys, because
+every screen and the claim in the README would have to change.
