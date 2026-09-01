@@ -2,16 +2,17 @@ package com.erishan.traceback.opportunity.ui
 
 import com.erishan.traceback.core.enums.OpportunitySource
 import com.erishan.traceback.core.enums.PipelineStage
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class DetailMutationGateTest {
 
@@ -27,17 +28,16 @@ class DetailMutationGateTest {
     @Test
     fun concurrentClaims_onlyOneWins() = runBlocking {
         val gate = DetailMutationGate()
-        val wins = AtomicInteger(0)
 
-        coroutineScope {
-            repeat(64) {
-                launch(Dispatchers.Default) {
-                    if (gate.tryClaimBrief()) wins.incrementAndGet()
+        val wins = coroutineScope {
+            List(64) {
+                async(Dispatchers.Default) {
+                    gate.tryClaimBrief()
                 }
-            }
+            }.awaitAll().count { it }
         }
 
-        assertEquals(1, wins.get())
+        assertEquals(1, wins)
         assertTrue(gate.state.value.briefInFlight)
     }
 

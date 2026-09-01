@@ -1,9 +1,9 @@
 package com.erishan.traceback.me.data
 
 import com.erishan.traceback.me.domain.UserContext
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class UserContextMappersTest {
 

@@ -2,8 +2,8 @@ package com.erishan.traceback.opportunity.ui
 
 import androidx.compose.ui.unit.dp
 import com.erishan.traceback.ui.theme.MinTouchTarget
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class StageTriggerTest {
 

@@ -1,10 +1,10 @@
 package com.erishan.traceback.opportunity.data
 
 import com.erishan.traceback.opportunity.domain.Note
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class NoteMappersTest {

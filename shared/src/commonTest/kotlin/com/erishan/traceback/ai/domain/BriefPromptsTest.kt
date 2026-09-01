@@ -1,9 +1,9 @@
 package com.erishan.traceback.ai.domain
 
 import com.erishan.traceback.me.domain.UserContext
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class BriefPromptsTest {
 

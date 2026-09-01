@@ -16,26 +16,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Renders the showcase composables and writes the README's screenshots. The pictures come
- * from the same declarations the previews use, so they cannot fall behind the design.
- *
- * Each frame is the device's own content area - the showcase fills the window rather than
- * a fixed box, because [captureToImage] on the root captures the window, and a smaller
- * box inside it would leave a blank margin around the screen.
- *
- * The showcases pin reduced motion, which is load-bearing here and not just cosmetic:
- * the aurora's ambient drift is an infinite transition, and Compose never reaches idle
- * while one is running. Stilled, [androidx.compose.ui.test.junit4.ComposeContentTestRule.waitForIdle]
- * returns, no frame is caught mid-animation, and two runs produce identical bytes.
- *
- * The files go to the directory AGP names in `additionalTestOutputDir`, which Gradle then
- * copies back to the host by itself - no adb on PATH, no reaching into `Android/data`,
- * which scoped storage stopped letting the shell read. Outside a Gradle run there is no
- * such argument, so it falls back to the app's own files directory.
- *
- * Run it with `docs/screenshots.sh`, which copies the results into `docs/images/`.
- */
 @RunWith(AndroidJUnit4::class)
 class ScreenshotTest {
 
