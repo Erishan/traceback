@@ -1,14 +1,15 @@
-Yeah. 
-![just-give-me-the-file.png](docs/images/just-give-me-the-file.png)
-
-However, you may just like it. 
-
 # Traceback
 
-Closing a deal on your freelance work is not an easy job. 
-You gotta see what they really want if they want anything, 
+[![CI](https://github.com/Erishan/traceback/actions/workflows/ci.yml/badge.svg)](https://github.com/Erishan/traceback/actions/workflows/ci.yml)
+
+*A pipeline for freelance leads. Android, on your phone, no account.*
+
+![just-give-me-the-file.png](docs/images/just-give-me-the-file.png)
+
+Closing a deal on your freelance work is not an easy job.
+You gotta see what they really want if they want anything,
 you send your proposal and wait...
-Sometimes they go quiet. 
+Sometimes they go quiet.
 Sometimes they are too hyped and they just jump to a new project.
 Sometimes you do not hear from them for three whole weeks and all of a sudden a new opportunity pops up.
 
@@ -20,6 +21,12 @@ In Traceback every lead gets a stage such as Draft, Applied, In conversation, In
 Delivered. And it moves along as things happen. When one dies, it goes to
 Closed or Lost instead of quietly disappearing, which can help you find out what
 your real win rate is.
+
+It is an Android app and everything stays on your phone. No account, no
+Traceback server, nothing to sign up for. There is an iOS build too, and a
+[section further down](#ios) telling you exactly how much to trust it.
+
+-> fyi the source is only here, there is no app on any store.
 
 ## What it looks like
 
@@ -44,25 +51,45 @@ your real win rate is.
 - Open it later to see how far it got, edit anything inline, and drop dated
   notes as the conversation goes on.
 - Filter the list down to what is active, won, or lost.
-- Everything stays on your phone. No account, no Traceback server, no sync.
-  The only network call is a job brief you start, sent to OpenAI with the
-  API key you typed in. The key never leaves the device except as an
-  Authorization header to `api.openai.com`.
+- Ask for a job brief and it goes to OpenAI with the API key you typed in.
+  That is the only network call the app ever makes, and the key never leaves
+  the device except as an Authorization header to `api.openai.com`.
 
 ## Under the hood
 
-Kotlin and Compose Multiplatform. Domain, Room, and the OpenAI client live in
-`:shared`. Aurora theme, components, and all opportunity/Me screens live in
-`:ui` and compile for Android and iOS. `:app` is the Android shell (Navigation
-3, thin ViewModels). `:iosCompose` + `iosApp/` host the iOS shell with the same
-screens and controllers. The reasoning behind each choice lives in
-[docs/adr](docs/adr).
+Kotlin and Compose Multiplatform. Four modules:
+
+| Module | What is in it | Builds for |
+|---|---|---|
+| `:shared` | Domain, Room data, the OpenAI client, the manual DI container | Android, iOS |
+| `:ui` | Aurora theme, components, the list, detail, create and Me screens, and the controllers that back them | Android, iOS |
+| `:app` | The Android app: Navigation 3 routes, thin ViewModels, Android previews | Android |
+| `:iosCompose` + `iosApp/` | The iOS shell: a hand written back stack and the Xcode host that embeds the framework | iOS |
+
+The reasoning behind each choice lives in [docs/adr](docs/adr).
+
+## Contrast is measured, not eyeballed
+tools/contrast_audit.py reads the colours out of the theme and fails on any text or surface pair below WCAG AA, in both themes.
+
+## iOS
+
+The shared core runs on iOS. `:shared` and `:ui` are Kotlin Multiplatform, so
+iOS gets the same Room schema, the same OpenAI client and the same opportunity
+and Me screens as Android, from the same source.
+
+What it does not get is a native feel! 
+The screens are Compose drawn into a UIKit host, so text editing behaviour, selection handles 
+and scroll momentum come from Compose and not from UIKit. 
+As iOS also has no Navigation 3: the back stack and the back swipe are written by hand.
+One shared UI is the standing decision and this is the price it charges. 
+
+-> Yes, it's better to read it here than to find it in the build.
 
 ## Run it
 
 ### Android
 
-Open it in Android Studio and hit Run
+Open it in Android Studio and hit Run.
 
 ```bash
 ./gradlew installDebug
@@ -72,18 +99,16 @@ Open it in Android Studio and hit Run
 
 Requires a full **Xcode** install (Command Line Tools alone are not enough).
 Open [`iosApp/iosApp.xcodeproj`](iosApp/iosApp.xcodeproj), pick a simulator,
-and Run. The Xcode build embeds `:iosCompose` (which exports `:shared` and
-`:ui`).
+and Run. The Xcode build embeds `:iosCompose`, which exports `:shared` and
+`:ui`.
 
 ```bash
 ./gradlew :ui:compileKotlinIosSimulatorArm64 :iosCompose:compileKotlinIosSimulatorArm64
 ```
 
-## Next
+## License
 
-The OpenAI brief, Me profile, and full aurora UI are on both platforms
-([ADR-0015](docs/adr/0015-user-context-and-job-brief.md),
-[ADR-0019](docs/adr/0019-shared-aurora-ui.md)). Remaining CMP gaps: iOS
-Navigation 3 parity (or a shared nav contract), `@Preview` wrappers on Android,
-and merging `cmp-shared`. Claude, Gemini, and payment tracking come after that
-([ADR-0001](docs/adr/0001-scope-and-domain.md)).
+The application code is licensed under [Apache 2.0](LICENSE); the bundled
+Manrope font is licensed separately under the SIL Open Font License 1.1
+([docs/licenses/Manrope-OFL.txt](docs/licenses/Manrope-OFL.txt), summarised in
+[NOTICE](NOTICE)).
