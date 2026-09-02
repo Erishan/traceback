@@ -69,7 +69,7 @@ class SecretStoreImpl : SecretStore {
         presence.value = KeyPresence(hasKey = false, lastFour = null)
     }
 
-    suspend fun warmUp() {
+    override suspend fun warmUp() {
         val snapshot = withContext(Dispatchers.IO) {
             migrateFromUserDefaultsIfNeeded()
             migrateKeychainItemToDeviceOnlyIfNeeded()

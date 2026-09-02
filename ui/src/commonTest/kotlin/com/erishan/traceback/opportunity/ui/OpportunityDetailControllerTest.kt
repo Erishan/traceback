@@ -108,6 +108,8 @@ class OpportunityDetailControllerTest {
         override suspend fun clearOpenAiKey() = Unit
 
         override suspend fun openAiKey(): String? = key
+
+        override suspend fun warmUp() = Unit
     }
 
     private class CancellationIgnoringOpenAiClient(

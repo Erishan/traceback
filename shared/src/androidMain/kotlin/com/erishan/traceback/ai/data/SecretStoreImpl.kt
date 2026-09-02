@@ -19,30 +19,39 @@ import kotlinx.coroutines.withContext
 class SecretStoreImpl(
     context: Context,
 ) : SecretStore {
-    private val prefs: SharedPreferences
+    private val appContext = context.applicationContext
     private val presence = MutableStateFlow(KeyPresence(hasKey = false, lastFour = null))
 
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
         presence.value = readPresence()
     }
 
-    init {
-        val appContext = context.applicationContext
+    private val prefs: SharedPreferences by lazy {
         val masterKey = MasterKey.Builder(appContext)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        prefs = EncryptedSharedPreferences.create(
+        val encryptedPrefs = EncryptedSharedPreferences.create(
             appContext,
             PREFS_FILE,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        presence.value = readPresence()
+        encryptedPrefs.registerOnSharedPreferenceChangeListener(listener)
+        presence.value = readPresence(encryptedPrefs)
+        encryptedPrefs
     }
 
-    override fun observe(): Flow<KeyPresence> = presence.asStateFlow()
+    override fun observe(): Flow<KeyPresence> {
+        prefs
+        return presence.asStateFlow()
+    }
+
+    override suspend fun warmUp() {
+        withContext(Dispatchers.IO) {
+            prefs
+        }
+    }
 
     override suspend fun setOpenAiKey(value: String) {
         val trimmed = trimmedOpenAiKey(value)
@@ -70,8 +79,8 @@ class SecretStoreImpl(
         presence.value = KeyPresence(hasKey = false, lastFour = null)
     }
 
-    private fun readPresence(): KeyPresence {
-        val stored = prefs.getString(PREF_OPENAI_KEY, null)
+    private fun readPresence(store: SharedPreferences = prefs): KeyPresence {
+        val stored = store.getString(PREF_OPENAI_KEY, null)
         return if (stored.isNullOrEmpty()) {
             KeyPresence(hasKey = false, lastFour = null)
         } else {

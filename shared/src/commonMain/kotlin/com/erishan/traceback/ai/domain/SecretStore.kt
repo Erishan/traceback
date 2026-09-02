@@ -7,4 +7,5 @@ interface SecretStore {
     suspend fun setOpenAiKey(value: String)
     suspend fun clearOpenAiKey()
     suspend fun openAiKey(): String?
+    suspend fun warmUp()
 }
