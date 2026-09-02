@@ -19,6 +19,8 @@ docs/sprints/
 .idea/
 *.iml
 local.properties
+keystore.properties
+*.jks
 
 # Xcode (user-specific; keep locally, never commit)
 **/xcuserdata/
